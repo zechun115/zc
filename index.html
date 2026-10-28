@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="原神音乐热度跨平台数据可视化平台，整合B站PV、网易云音乐、QQ音乐数据，提供地图探索、角色分析、剧情追踪、数据洞察等功能。">
+<meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact,PV播放量,网易云,QQ音乐">
+<meta name="author" content="提瓦特音乐数据可视化团队">
+<meta name="theme-color" content="#0F0D0A">
+<link rel="preconnect" href="https://game.gtimg.cn">
+<link rel="preconnect" href="https://act-webstatic.mihoyo.com">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/map.css">
+<link rel="stylesheet" href="css/map-page.css">
+<link rel="stylesheet" href="css/optimize.css">
+<link rel="stylesheet" href="css/page-hero.css">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<title>原神音乐热度数据可视化 - 地图中枢</title>
+<!-- 页面预加载：优化导航切换体验 -->
+<link rel="prefetch" href="character.html">
+<link rel="prefetch" href="story.html">
+<link rel="prefetch" href="region.html">
+<link rel="prefetch" href="insight.html">
+<link rel="prefetch" href="album.html">
+<script>
+/* 全局图片兜底（必须在最前，保证img.onerror触发时已存在） */
+window.globalImgFallback = function(img){try{if(img)img.style.display='none';}catch(e){}};
+</script>
+</head>
+<body>
+<a href="#main" class="skip-link">跳转到主要内容</a>
+<div class="page-loader" aria-hidden="true"><div class="page-loader-spinner"></div></div>
+
+<nav class="navbar" role="navigation" aria-label="主导航">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="logo-icon"></span>
+      <span>原神音乐数据</span>
+    </div>
+    <button class="nav-menu-btn" aria-label="切换菜单" aria-expanded="false" aria-controls="nav-tabs">
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+    </button>
+    <div class="nav-tabs" id="nav-tabs">
+      <a href="index.html" class="nav-tab active">地图中枢</a>
+      <a href="character.html" class="nav-tab">角色音乐</a>
+      <a href="story.html" class="nav-tab">剧情场景</a>
+      <a href="region.html" class="nav-tab">地区探索</a>
+      <a href="insight.html" class="nav-tab">数据洞察</a>
+      <a href="album.html" class="nav-tab">音乐专辑</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container" style="padding-bottom:0;">
+  <!-- 统一顶栏：立绘大图横幅 -->
+  <section class="page-hero" data-hero="温迪">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-overlay"></div>
+    <span class="page-hero-corner tl"></span>
+    <span class="page-hero-corner tr"></span>
+    <span class="page-hero-corner bl"></span>
+    <span class="page-hero-corner br"></span>
+    <div class="page-hero-content">
+      <div class="ele-strip">
+        <img src="assets/img/elements/UI_Element_Fire.png" alt="火" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Water.png" alt="水" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Ice.png" alt="冰" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Electric.png" alt="雷" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Wind.png" alt="风" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Rock.png" alt="岩" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Grass.png" alt="草" onerror="this.style.display='none'">
+      </div>
+      <h1>地图中枢</h1>
+      <div class="hero-line"></div>
+      <p>提瓦特大陆音乐热度数据可视化 · 探索九大地区的音乐传播轨迹</p>
+    </div>
+    <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
+  </section>
+</div>
+
+<div class="main-layout">
+  <!-- 地图舞台：满屏覆盖式布局（参考空荧酒馆互动地图），地图占满全部区域，UI 以浮层覆盖 -->
+  <div class="map-stage" id="mapStage">
+    <!-- 地图本体：绝对填充整个舞台 -->
+    <div class="teyvat-map-container" id="teyvatMapContainer" style="border:none;border-radius:0;"></div>
+    <div class="map-loading" id="mapLoading">
+      <div class="map-loading-spinner"></div>
+      <div class="map-loading-text">正在加载地图...</div>
+    </div>
+
+    <!-- 顶部中央：当前区域名 + 子区域标签（半透明黑底白字胶囊） -->
+    <div class="map-region-banner" id="mapRegionBanner">
+      <div class="mrb-name" id="mrbName"><img src="assets/img/icons/传送锚点.png" alt="" onerror="this.style.display='none'"/>提瓦特大陆</div>
+      <div class="mrb-areas" id="mrbAreas"></div>
+    </div>
+
+    <!-- 左上角：缩放/视图控制组（竖排图标按钮） -->
+    <div class="map-ctl map-ctl-zoom">
+      <button class="map-ctl-btn" id="zoomIn" title="放大">+</button>
+      <span class="map-ctl-zoomlevel" id="zoomLevel">100%</span>
+      <button class="map-ctl-btn" id="zoomOut" title="缩小">−</button>
+      <button class="map-ctl-btn" id="zoomReset" title="重置视图">⟲</button>
+      <button class="map-ctl-btn" id="mapFullscreenBtn" title="全屏"><img src="assets/img/deco/UI_ItemIcon_114.png" alt="全屏" onerror="this.style.display='none'"/>全屏</button>
+    </div>
+
+    <!-- 右上角：更换地区按钮 + 下拉面板 -->
+    <div class="map-ctl-topright">
+      <button class="map-ctl-btn region-switch-btn" id="regionSwitchBtn"><img src="assets/img/icons/七天神像.png" alt="" onerror="this.style.display='none'"/>更换地区</button>
+      <div class="region-switch-panel" id="regionSwitchPanel" hidden>
+        <div class="rsp-title">选择地区</div>
+        <div class="region-tabs rsp-grid" id="regionTabs">
+          <button class="region-tab active" data-region="all" style="--rc:#C9A227"><img src="assets/img/icons/传送锚点.png" onerror="this.style.display='none'"/>全大陆</button>
+          <button class="region-tab" data-region="mondstadt" style="--rc:#6BCB77"><img src="assets/img/regions/蒙德.png" onerror="this.style.display='none'"/>蒙德</button>
+          <button class="region-tab" data-region="liyue" style="--rc:#C44A4A"><img src="assets/img/regions/璃月.png" onerror="this.style.display='none'"/>璃月</button>
+          <button class="region-tab" data-region="inazuma" style="--rc:#9B4AD9"><img src="assets/img/regions/稻妻.png" onerror="this.style.display='none'"/>稻妻</button>
+          <button class="region-tab" data-region="sumeru" style="--rc:#5AAD67"><img src="assets/img/regions/须弥.png" onerror="this.style.display='none'"/>须弥</button>
+          <button class="region-tab" data-region="fontaine" style="--rc:#4AD9D9"><img src="assets/img/regions/枫丹.png" onerror="this.style.display='none'"/>枫丹</button>
+          <button class="region-tab" data-region="natlan" style="--rc:#FF5A36"><img src="assets/img/regions/纳塔.png" onerror="this.style.display='none'"/>纳塔</button>
+          <button class="region-tab" data-region="nodkrai" style="--rc:#8B5CF6"><img src="assets/img/regions/挪德卡莱.png" onerror="this.style.display='none'"/>挪德卡莱</button>
+          <button class="region-tab" data-region="snezhnaya" style="--rc:#7ED2F7"><img src="assets/img/regions/至冬.png" onerror="this.style.display='none'"/>至冬</button>
+        </div>
+        <div class="rsp-title">全部地图</div>
+        <div class="region-tabs rsp-grid" id="mapViewTabs"></div>
+      </div>
+    </div>
+
+    <!-- 左下角：图层开关（热度图层） -->
+    <div class="map-ctl-bottomleft">
+      <button class="map-layer-toggle" id="heatmapToggle" title="切换音乐热度热力图层"><img src="assets/img/elements/UI_Element_Fire.png" alt="" onerror="this.style.display='none'"/><span class="dot"></span>热度图层</button>
+    </div>
+
+    <!-- 右下角：坐标显示 -->
+    <div class="map-coords-display" id="mapCoordsDisplay">(--%, --%)</div>
+
+    <!-- 右侧：筛选面板（搜索 + 角色标记分类树，按地区分组可勾选） -->
+    <div class="map-filter-panel" id="mapFilterPanel">
+      <div class="mfp-head">
+        <img src="assets/img/icons/华丽的宝箱.png" alt="" onerror="this.style.display='none'"/>标记筛选
+      </div>
+      <div class="map-search mfp-search" id="mapSearch">
+        <input type="text" placeholder="搜索角色..." id="searchInput">
+        <button class="search-btn" id="searchBtn" title="搜索"><img src="assets/img/deco/UI_ItemIcon_108.png" alt="搜索" onerror="this.style.display='none'"/></button>
+      </div>
+      <div class="mfp-tree" id="mfpTree"><!-- 由 map.js 按地区分组渲染角色标记开关 --></div>
+      <div class="mfp-foot">点击国家展开该国角色列表 · 点击角色查看详情</div>
+    </div>
+
+    <!-- 右侧：详情浮层（点击地区/角色标记后覆盖显示，可关闭） -->
+    <div class="map-detail-panel map-detail-float" id="mapDetailPanel">
+      <div class="map-detail-empty">
+        <div class="map-detail-icon"><img src="assets/img/icons/传送锚点.png" onerror="this.style.display='none'" style="width:48px;height:48px;"/></div>
+        <div class="map-detail-title">提瓦特大陆</div>
+        <div class="map-detail-desc">点击地图上的国家区域或角色标记，在此处查看详情</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="data-section" id="dataSection">
+    <div class="data-section-header">
+      <h3><img src="assets/img/deco/UI_ItemIcon_108.png" onerror="this.style.display='none'" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"/>实时数据概览</h3>
+      <div class="data-section-subtitle">提瓦特大陆音乐热度数据总览 · 截至2026年10月</div>
+    </div>
+    <div class="data-grid">
+      <div class="data-card">
+        <div class="value" id="statPv"></div>
+        <div class="label">PV总播放量</div>
+      </div>
+      <div class="data-card">
+        <div class="value" id="statFav"></div>
+        <div class="label">音乐总收藏</div>
+      </div>
+      <div class="data-card">
+        <div class="value" id="statCmt"></div>
+        <div class="label">音乐总评论</div>
+      </div>
+      <div class="data-card">
+        <div class="value" id="statChars"></div>
+        <div class="label">角色总数</div>
+      </div>
+      <div class="data-card">
+        <div class="value" id="statRegions"></div>
+        <div class="label">地区数量</div>
+      </div>
+      <div class="data-card">
+        <div class="value" id="statTracks"></div>
+        <div class="label">音乐曲目</div>
+      </div>
+    </div>
+
+    <div class="data-row" style="max-width:1400px;margin:20px auto 0;">
+      <div class="data-card-wide">
+        <div class="card-wide-header">
+          <h4><img src="assets/img/deco/UI_ItemIcon_204.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>PV播放量排行榜</h4>
+          <a href="insight.html" class="card-wide-link">查看完整榜单 →</a>
+        </div>
+        <div class="rank-list" id="pvRankList"></div>
+      </div>
+      <div class="data-card-wide">
+        <div class="card-wide-header">
+          <h4><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>音乐收藏排行榜</h4>
+          <a href="album.html" class="card-wide-link">查看音乐专辑 →</a>
+        </div>
+        <div class="rank-list" id="musicRankList"></div>
+      </div>
+    </div>
+
+    <div class="data-source-card" style="margin-top:20px;">
+      <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源</div>
+      <div class="ds-grid">
+        <div class="ds-item">
+          <span class="ds-label">B站PV</span>
+          <span class="ds-value">bilibili官方数据</span>
+        </div>
+        <div class="ds-item">
+          <span class="ds-label">音乐平台</span>
+          <span class="ds-value">网易云音乐 · QQ音乐公开数据</span>
+        </div>
+        <div class="ds-item">
+          <span class="ds-label">数据版本</span>
+          <span class="ds-value">原神7.1版本</span>
+        </div>
+      </div>
+      <div class="ds-note"><img src="assets/img/deco/UI_ItemIcon_210.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>向下滚动查看数据概览 · 点击国家区域查看代表音乐 · 点击角色标记查看详情 · 滚轮缩放浏览全图</div>
+      <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/avatar-map.js"></script>
+<script src="js/nav.js"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="js/map-presets.js?v=20261028"></script>
+<script src="js/map.js?v=20261028"></script>
+<script src="js/index.js?v=20261028"></script>
+<script src="js/page-hero.js"></script>
+<script src="js/optimize.js"></script>
+</body>
+</html>

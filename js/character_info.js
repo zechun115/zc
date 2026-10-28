@@ -1,0 +1,1 @@
+const CHARACTER_INFO = {};

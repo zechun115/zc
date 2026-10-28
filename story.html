@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="原神音乐热度跨平台数据可视化平台 - 剧情场景音乐热度分析，剧情原声与角色音乐在流媒体平台的传播对比">
+<meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact">
+<meta name="author" content="提瓦特音乐数据可视化团队">
+<meta name="theme-color" content="#0F0D0A">
+<link rel="preconnect" href="https://game.gtimg.cn">
+<title>剧情场景 - 原神音乐热度数据</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/optimize.css">
+<link rel="stylesheet" href="css/page-hero.css">
+<!-- 页面预加载：优化导航切换体验 -->
+<link rel="prefetch" href="index.html">
+<link rel="prefetch" href="character.html">
+<link rel="prefetch" href="region.html">
+<link rel="prefetch" href="insight.html">
+<link rel="prefetch" href="album.html">
+<script>
+/* 全局图片兜底（必须在最前，保证img.onerror触发时已存在） */
+window.globalImgFallback = function(img){try{if(img)img.style.display='none';}catch(e){}};
+</script>
+</head>
+<body>
+<a href="#main" class="skip-link">跳转到主要内容</a>
+<div class="page-loader" aria-hidden="true"><div class="page-loader-spinner"></div></div>
+
+<!-- ========== 悬浮导航栏 ========== -->
+<nav class="navbar" role="navigation" aria-label="主导航">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="logo-icon"></span>
+      <span>原神音乐数据</span>
+    </div>
+    <button class="nav-menu-btn" aria-label="切换菜单" aria-expanded="false" aria-controls="nav-tabs">
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+    </button>
+    <div class="nav-tabs" id="nav-tabs">
+      <a href="index.html" class="nav-tab">地图中枢</a>
+      <a href="character.html" class="nav-tab">角色音乐</a>
+      <a href="story.html" class="nav-tab active">剧情场景</a>
+      <a href="region.html" class="nav-tab">地区探索</a>
+      <a href="insight.html" class="nav-tab">数据洞察</a>
+      <a href="album.html" class="nav-tab">音乐专辑</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- 统一顶栏：立绘大图横幅 -->
+  <section class="page-hero" data-hero="雷电将军">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-overlay"></div>
+    <span class="page-hero-corner tl"></span>
+    <span class="page-hero-corner tr"></span>
+    <span class="page-hero-corner bl"></span>
+    <span class="page-hero-corner br"></span>
+    <div class="page-hero-content">
+      <div class="ele-strip">
+        <img src="assets/img/elements/UI_Element_Fire.png" alt="火" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Water.png" alt="水" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Ice.png" alt="冰" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Electric.png" alt="雷" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Wind.png" alt="风" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Rock.png" alt="岩" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Grass.png" alt="草" onerror="this.style.display='none'">
+      </div>
+      <h1>剧情场景音乐</h1>
+      <div class="hero-line"></div>
+      <p>剧情原声与角色音乐在流媒体平台的传播对比 · 版本热点驱动的音乐热度演变</p>
+    </div>
+    <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
+  </section>
+
+  <!-- 版本热度趋势图 -->
+  <div class="card">
+    <h3>剧情音乐版本热度趋势 <span class="method-tag">趋势分析</span></h3>
+    <p class="subtitle">各版本剧情原声在网易云平台的收藏量变化。方法：按发行版本排序追踪热度演变，标注版本热点事件以揭示热度驱动因素。</p>
+    <svg id="versionTrendSvg" viewBox="0 0 720 320" style="width:100%;height:auto;"></svg>
+    <div id="versionTrendLegend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;"></div>
+  </div>
+
+  <!-- 版本热点解读 -->
+  <div class="card">
+    <h3>版本热点音乐解读 <span class="method-tag">热点分析</span></h3>
+    <p class="subtitle">聚焦各版本最具代表性的剧情音乐，解析热度背后的剧情事件与文化因素</p>
+    <div id="versionHotspots" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- 版本时间轴·舆论反响 -->
+  <div class="card">
+    <h3>版本音乐时间轴·舆论反响 <span class="method-tag">文字可视化</span></h3>
+    <p class="subtitle">沿版本迭代追踪剧情音乐的传播轨迹与玩家社区舆论演变。关键词字号映射讨论热度，情绪标签区分好评/破圈/褒贬，典型声音还原玩家真实反馈。</p>
+    <div class="version-timeline" id="versionTimeline"></div>
+  </div>
+
+  <!-- 剧情音乐热度对比 -->
+  <div class="card">
+    <h3>剧情音乐热度对比</h3>
+    <p class="subtitle">网易云收藏量 vs QQ音乐收藏量</p>
+    <div class="bar-chart" id="storyBars" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- 版本 × 地区 热度矩阵 -->
+  <div class="card">
+    <h3>版本 × 地区 热度矩阵 <span class="method-tag">交叉分析</span></h3>
+    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按版本-地区分组统计平均收藏量，色块深浅映射热度强度，识别版本迭代中的地区偏好迁移。</p>
+    <div id="versionRegionMatrix" style="margin-top:16px;overflow-x:auto;"></div>
+  </div>
+
+  <!-- 剧情 vs 角色 -->
+  <div class="card">
+    <h3>剧情音乐 vs 角色音乐 热度对比</h3>
+    <p class="subtitle">同地区剧情音乐与角色音乐在流媒体平台的表现差异</p>
+    <div id="storyVsChar" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- 数据明细 -->
+  <div class="card">
+    <h3>剧情音乐数据明细</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>排名</th><th>曲目</th><th>地区</th><th>版本</th><th>热度/网易云收藏</th><th>平台数据明细</th><th>QQ音乐收藏</th><th>链接</th></tr>
+        </thead>
+        <tbody id="storyTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 数据来源说明 -->
+  <div class="data-source-card">
+    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源与分析方法说明</div>
+    <div class="ds-grid">
+      <div class="ds-item">
+        <span class="ds-label">剧情音乐数据</span>
+        <span class="ds-value">网易云·QQ音乐公开数据</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">版本热点事件</span>
+        <span class="ds-value">原神官方版本更新记录</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">采集时间</span>
+        <span class="ds-value">2026年10月</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">分析方法</span>
+        <span class="ds-value">趋势分析·热点挖掘·交叉分析</span>
+      </div>
+    </div>
+    <div class="ds-note">说明：版本热点解读基于各版本主线剧情事件与音乐传播热度关联整理，热度倍数以全曲目均值为基准计算。</div>
+    <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/avatar-map.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/story.js"></script>
+<script src="js/page-hero.js"></script>
+<script src="js/optimize.js"></script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="原神音乐热度跨平台数据可视化平台 - 音乐专辑曲目热度分析，43张官方原声专辑TOP曲目热度可视化（已同步至7.1版本）">
+<meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact">
+<meta name="author" content="提瓦特音乐数据可视化团队">
+<meta name="theme-color" content="#0F0D0A">
+<link rel="preconnect" href="https://game.gtimg.cn">
+<title>音乐专辑 - 原神音乐热度数据</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/optimize.css">
+<link rel="stylesheet" href="css/album.css">
+<link rel="stylesheet" href="css/page-hero.css">
+<!-- 页面预加载：优化导航切换体验 -->
+<link rel="prefetch" href="index.html">
+<link rel="prefetch" href="character.html">
+<link rel="prefetch" href="story.html">
+<link rel="prefetch" href="region.html">
+<link rel="prefetch" href="insight.html">
+<script>
+/* 全局图片兜底（必须在最前，保证img.onerror触发时已存在） */
+window.globalImgFallback = function(img){try{if(img)img.style.display='none';}catch(e){}};
+</script>
+</head>
+<body>
+<a href="#main" class="skip-link">跳转到主要内容</a>
+<div class="page-loader" aria-hidden="true"><div class="page-loader-spinner"></div></div>
+
+<!-- ========== 悬浮导航栏 ========== -->
+<nav class="navbar" role="navigation" aria-label="主导航">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="logo-icon"></span>
+      <span>原神音乐数据</span>
+    </div>
+    <button class="nav-menu-btn" aria-label="切换菜单" aria-expanded="false" aria-controls="nav-tabs">
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+      <span class="nav-menu-bar"></span>
+    </button>
+    <div class="nav-tabs" id="nav-tabs">
+      <a href="index.html" class="nav-tab">地图中枢</a>
+      <a href="character.html" class="nav-tab">角色音乐</a>
+      <a href="story.html" class="nav-tab">剧情场景</a>
+      <a href="region.html" class="nav-tab">地区探索</a>
+      <a href="insight.html" class="nav-tab">数据洞察</a>
+      <a href="album.html" class="nav-tab active">音乐专辑</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- 统一顶栏：立绘大图横幅 -->
+  <section class="page-hero" data-hero="芙宁娜">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-overlay"></div>
+    <span class="page-hero-corner tl"></span>
+    <span class="page-hero-corner tr"></span>
+    <span class="page-hero-corner bl"></span>
+    <span class="page-hero-corner br"></span>
+    <div class="page-hero-content">
+      <div class="ele-strip">
+        <img src="assets/img/elements/UI_Element_Fire.png" alt="火" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Water.png" alt="水" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Ice.png" alt="冰" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Electric.png" alt="雷" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Wind.png" alt="风" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Rock.png" alt="岩" onerror="this.style.display='none'">
+        <img src="assets/img/elements/UI_Element_Grass.png" alt="草" onerror="this.style.display='none'">
+      </div>
+      <h1>官方音乐专辑</h1>
+      <div class="hero-line"></div>
+      <p>43张原神官方原声专辑 · 已同步至7.1版本 · 仅展示网易云/QQ音乐/B站可直接核实的公开曲目 · 每条数据附三平台搜索直达链接</p>
+    </div>
+    <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
+  </section>
+
+  <!-- ========== 数据真实性声明 + 热度可视化依据（顶部显眼位置） ========== -->
+  <div class="card" style="margin-bottom:24px;border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(245,158,11,0.05),transparent);">
+    <h3 style="color:var(--gold);">
+      <img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:20px;height:20px;vertical-align:-4px;margin-right:8px;"/>
+      数据真实性 · 热度依据 说明（请先阅读）
+    </h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+      <!-- 左栏：真实性承诺 -->
+      <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(168,85,247,0.18);background:rgba(168,85,247,0.03);">
+        <div class="ds-title-sub" style="font-weight:700;color:var(--chart-4);margin-bottom:8px;">✓ 零虚构承诺</div>
+        <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.9;color:var(--text-secondary);">
+          <li>所有<strong style="color:var(--text-primary);">曲目标题、专辑名称、发行日期、总曲目数</strong>均与网易云音乐/QQ音乐官方专辑标题完全一致。</li>
+          <li>所有展示的<strong style="color:var(--text-primary);">具体曲目</strong>均为网易云音乐/QQ音乐/B站<strong style="color:var(--chart-1);">可直接搜索到的公开曲目</strong>（非自创）。</li>
+          <li>对平台搜索结果不唯一、无法逐一核实的氛围BGM，<strong style="color:var(--chart-1);">宁空勿假</strong>，在专辑卡片上直接提示「完整曲目请前往官方音乐平台」。</li>
+          <li>无平台实测数据的曲目按<strong style="color:var(--text-primary);">同地区均值估算</strong>热度，并在曲目上以「◇均估 / ◇估算」标签明示；完全无法核实的曲目不展示任何数字。</li>
+        </ul>
+      </div>
+      <!-- 右栏：热度计算依据 -->
+      <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(251,114,153,0.18);background:rgba(251,114,153,0.03);">
+        <div class="ds-title-sub" style="font-weight:700;color:var(--chart-1);margin-bottom:8px;"><img src="assets/img/elements/UI_Element_Fire.png" alt="热度" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" onerror="this.style.display='none'">热度计算公式（曲目级）</div>
+        <div style="padding:10px 12px;border-radius:8px;background:var(--bg-elevated);font-family:monospace;font-size:11.5px;color:var(--text-primary);margin-bottom:8px;">
+<span style="color:var(--gold-light);">【曲目热度】</span> heatScore (0-100) =<br>
+&nbsp;&nbsp;<span style="color:#FE2C55;">网易云收藏(k)</span>/2 上限40 +<br>
+&nbsp;&nbsp;<span style="color:#31A5E8;">QQ播放(w)</span>/5 上限30 +<br>
+&nbsp;&nbsp;<span style="color:#FB7299;">B站播放(w)</span>/10 上限30<br>
+<br>
+<span style="color:var(--gold-light);">【数据来源优先级】</span><br>
+&nbsp;&nbsp;✓实测 平台精确数据 ><br>
+&nbsp;&nbsp;◈区域 地区曲目匹配 ><br>
+&nbsp;&nbsp;★热度 popularity字段 ><br>
+&nbsp;&nbsp;◇均估 地区均值估算
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary);line-height:1.7;">
+          <div>每首曲目以<strong style="color:var(--gold);">热度条</strong>直观展示综合热度（0-100分），热度条颜色反映等级：现象级(≥75红色) · 高热度(≥50金色) · 中等(≥25紫色) · 常规(&gt;0灰色)</div>
+          <div style="margin-top:6px;">核对方式：每首曲目名旁均有<strong style="color:var(--gold);">「<img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> · <img src="assets/img/items/UI_ItemIcon_112002.png" alt="QQ音乐" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> · <img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'">」</strong>三个图标按钮，点击直达平台搜索结果，约10秒即可人工核实。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 概览统计 -->
+  <div class="album-stats" id="albumStats"></div>
+
+  <!-- 筛选器 -->
+  <div class="filters" id="albumFilter">
+    <button class="chip active" data-f="all">全部</button>
+    <button class="chip" data-f="scene">场景OST</button>
+    <button class="chip" data-f="character">角色OST</button>
+    <button class="chip" data-f="ep">EP专辑</button>
+    <button class="chip" data-f="version">版本合集</button>
+    <span class="filter-divider"></span>
+    <button class="chip" data-f="mondstadt">蒙德</button>
+    <button class="chip" data-f="liyue">璃月</button>
+    <button class="chip" data-f="inazuma">稻妻</button>
+    <button class="chip" data-f="sumeru">须弥</button>
+    <button class="chip" data-f="fontaine">枫丹</button>
+    <button class="chip" data-f="natlan">纳塔</button>
+    <button class="chip" data-f="nodkrai">挪德卡莱</button>
+    <button class="chip" data-f="snezhnaya">至冬</button>
+  </div>
+
+  <!-- 专辑网格 -->
+  <div class="card" style="margin-bottom:24px;">
+    <h3><img src="assets/img/icons/精致的宝箱.png" onerror="this.style.display='none'" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"/>专辑曲目热度（仅展示已核实公开曲目）</h3>
+    <p class="subtitle">每张专辑仅展示网易云/QQ音乐/B站可直接搜索核实的核心曲目；其余氛围BGM或搜索结果不唯一的曲目不展示数字，请通过卡片底部的三平台链接直达官方专辑页面查看完整曲目</p>
+    <div class="album-grid" id="albumGrid"></div>
+  </div>
+
+  <!-- 数据来源（精简版底部说明） -->
+  <div class="data-source-card">
+    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源 · 采集时间</div>
+    <div class="ds-grid">
+      <div class="ds-item">
+        <span class="ds-label">专辑信息 · 曲目列表</span>
+        <span class="ds-value">网易云音乐 music.163.com · QQ音乐 y.qq.com</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">传播数据（PV·播放·收藏）</span>
+        <span class="ds-value">Bilibili.com · 网易云音乐 · QQ音乐</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">采集核对时间</span>
+        <span class="ds-value">2026年10月（三平台公开页面）</span>
+      </div>
+      <div class="ds-item">
+        <span class="ds-label">用户核对方式</span>
+        <span class="ds-value">点击专辑卡片底部 <img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/items/UI_ItemIcon_112002.png" alt="QQ音乐" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> 按钮直达三平台搜索</span>
+      </div>
+    </div>
+    <div class="ds-note" style="color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network · 若展示数值与平台实时数据存在细微差异，以三平台官方页面为准。</div>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/avatar-map.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/album.js"></script>
+<script src="js/page-hero.js"></script>
+<script src="js/optimize.js"></script>
+</body>
+</html>
