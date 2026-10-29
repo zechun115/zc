@@ -201,16 +201,32 @@ function renderRegion() {
     const rows = REGIONS.map(r => {
       const tks = (typeof getTracksByRegion === 'function') ? getTracksByRegion(r.id) : [];
       const withData = tks.filter(t => (t.neteaseCmt !== null) || (t.biliPlay !== null));
-      const tc = withData.reduce((s, t) => s + (t.neteaseCmt || 0), 0);
-      const tp = withData.reduce((s, t) => s + (t.biliPlay || 0), 0);
-      return { name: r.name, version: r.version || '', n: withData.length, tc, tp };
+      const cmtArr = withData.filter(t => typeof t.neteaseCmt === 'number').map(t => t.neteaseCmt);
+      const playArr = withData.filter(t => typeof t.biliPlay === 'number').map(t => t.biliPlay);
+      const tc = cmtArr.reduce((s, v) => s + v, 0);
+      const tp = playArr.reduce((s, v) => s + v, 0);
+      const medCmt = (typeof statMedian === 'function') ? statMedian(cmtArr) : 0;
+      const medPlay = (typeof statMedian === 'function') ? statMedian(playArr) : 0;
+      return { name: r.name, version: r.version || '', n: withData.length,
+        nc: cmtArr.length, np: playArr.length, tc, tp, medCmt, medPlay };
     }).filter(r => r.n > 0).sort((a, b) => b.tc - a.tc);
     tableEl.innerHTML = rows.map(r => {
-      const avgCmt = r.tc / r.n;
-      const avgPlay = r.tp / r.n;
+      const avgCmt = r.nc > 0 ? r.tc / r.nc : 0;
+      const avgPlay = r.np > 0 ? r.tp / r.np : 0;
       return `<tr><td>${r.name}</td><td>${r.version && r.version !== '0.0' ? 'v' + r.version : '--'}</td><td>${r.n}</td><td>${fmtTableNum(r.tc)}</td><td>${fmtTableNum(r.tp)}</td>
-      <td>${fmtTableNum(avgCmt)}</td><td>${fmtTableNum(avgPlay)}</td></tr>`;
+      <td>${fmtTableNum(avgCmt)}</td><td>${fmtTableNum(avgPlay)}</td>
+      <td>${r.nc ? fmtTableNum(r.medCmt) : '—'}</td><td>${r.np ? fmtTableNum(r.medPlay) : '—'}</td></tr>`;
     }).join('');
+
+    // 分析摘要：样本规模、集中度、互动深度（按评论可核实曲目计算）
+    const summEl = document.getElementById('regionSummary');
+    if (summEl) {
+      const totals = rows.reduce((a, r) => ({ tc: a.tc + r.tc, tp: a.tp + r.tp, n: a.n + r.n, nc: a.nc + r.nc }), { tc: 0, tp: 0, n: 0, nc: 0 });
+      const sortedByCmt = [...rows].sort((a, b) => b.tc - a.tc);
+      const top3Share = totals.tc > 0 ? sortedByCmt.slice(0, 3).reduce((s, r) => s + r.tc, 0) / totals.tc * 100 : 0;
+      const depth = totals.tp > 0 ? (totals.tc / totals.nc) / (totals.tp / 10000) : 0;
+      summEl.innerHTML = `<strong>分析摘要：</strong>共覆盖 ${rows.length} 个地区、${totals.n} 首含真实指标的曲目（其中 ${totals.nc} 首有网易云评论数据）。评论集中度：评论总量最高的 3 个地区合计占 ${top3Share.toFixed(1)}%，说明曲目热度在地区间分布不均。互动深度：每万次 B站播放对应约 ${depth.toFixed(1)} 条网易云评论，用于衡量「播放规模」与「评论参与」的相对关系；该比值跨平台非同源用户，仅作量级参考。平均值易受长尾曲目抬高，判断典型水平请以表中位数列为准。`;
+    }
   }
 
   const charListEl = document.getElementById('regionChars');

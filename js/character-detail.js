@@ -52,6 +52,34 @@ function renderCharacterDetail(char) {
 
   const peers = allChars.filter(c => c.name !== char.name).sort((a, b) => b.pv - a.pv);
 
+  // ---- 统计基准（全站统一口径：中位数 / 四分位 / 百分位 / Tukey 异常值） ----
+  // 角色级样本 = 全部可玩角色（n = CHARACTERS.length），四项指标各自独立基准
+  const allPv = CHARACTERS.map(c => c.pv);
+  const allNetease = CHARACTERS.map(c => c.netease);
+  const allCmt = CHARACTERS.map(c => c.cmt);
+  const allQq = CHARACTERS.map(c => c.qq);
+  const pctOf = (arr, v) => (typeof statPercentileRank === 'function') ? Math.round(statPercentileRank(arr, v)) : null;
+  const pvPct = pctOf(allPv, char.pv);
+  const neteasePct = pctOf(allNetease, char.netease);
+  const cmtPct = pctOf(allCmt, char.cmt);
+  const qqPct = pctOf(allQq, char.qq);
+  const pvMedian = (typeof statMedian === 'function') ? statMedian(allPv) : null;
+  const pvQ1 = (typeof statQ1 === 'function') ? statQ1(allPv) : null;
+  const pvQ3 = (typeof statQ3 === 'function') ? statQ3(allPv) : null;
+  const pvIQR = (typeof statIQR === 'function') ? statIQR(allPv) : null;
+  const pvTukey = (pvQ3 !== null && pvIQR !== null) ? pvQ3 + 1.5 * pvIQR : null;
+  const pvVsMedian = (pvMedian && pvMedian > 0) ? (char.pv / pvMedian) : null;
+  const pvIsOutlier = pvTukey !== null && char.pv > pvTukey;
+  const pctTag = v => v === null ? '—' : `P${v}`;
+
+  // 跨平台条形图：各平台独立归一（分母为该平台全角色最大值），仅表示平台内相对位置
+  const platformBars = [
+    { label: '网易云收藏', val: char.netease, max: Math.max(...allNetease), scale: 1000, pct: neteasePct, color: 'var(--chart-1)' },
+    { label: '网易云评论', val: char.cmt, max: Math.max(...allCmt), scale: 1000, pct: cmtPct, color: 'var(--chart-3)' },
+    { label: 'QQ音乐收藏', val: char.qq, max: Math.max(...allQq), scale: 1000, pct: qqPct, color: 'var(--chart-5)' },
+    { label: 'B站PV播放', val: char.pv, max: Math.max(...allPv), scale: 10000, pct: pvPct, color: 'var(--chart-4)' }
+  ];
+
   const pvRank = CHARACTERS.slice().sort((a, b) => b.pv - a.pv).findIndex(c => c.name === char.name) + 1;
   const neteaseRank = CHARACTERS.slice().sort((a, b) => b.netease - a.netease).findIndex(c => c.name === char.name) + 1;
 
@@ -142,19 +170,19 @@ function renderCharacterDetail(char) {
         <div class="char-stats-grid">
           <div class="char-stat">
             <div class="v" style="color:${color};">${char.pv.toLocaleString()}万</div>
-            <div class="l">B站PV播放 · 第${pvRank}名</div>
+            <div class="l">B站PV播放 · 第${pvRank}名 · ${pctTag(pvPct)}</div>
           </div>
           <div class="char-stat">
             <div class="v">${fmt(char.netease * 1000)}</div>
-            <div class="l">网易云收藏 · 第${neteaseRank}名</div>
+            <div class="l">网易云收藏 · 第${neteaseRank}名 · ${pctTag(neteasePct)}</div>
           </div>
           <div class="char-stat">
             <div class="v">${fmt(char.cmt * 1000)}</div>
-            <div class="l">网易云评论</div>
+            <div class="l">网易云评论 · ${pctTag(cmtPct)}</div>
           </div>
           <div class="char-stat">
             <div class="v">${fmt(char.qq * 1000)}</div>
-            <div class="l">QQ音乐收藏</div>
+            <div class="l">QQ音乐收藏 · ${pctTag(qqPct)}</div>
           </div>
         </div>
       </div>
@@ -180,7 +208,7 @@ function renderCharacterDetail(char) {
     <div class="two-col">
       <div class="card">
         <h3>${ic('assets/img/deco/UI_ItemIcon_105.png')}PV热度数据</h3>
-        <p class="subtitle">B站角色PV播放量 · 全角色排名</p>
+        <p class="subtitle">B站角色PV播放量 · 全角色排名与分布位置</p>
         <div style="text-align:center;padding:16px 0;">
           <div style="font-size:42px;font-weight:700;background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;">${fmt(char.pv * 1000)}</div>
           <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">B站累计播放量</div>
@@ -203,28 +231,34 @@ function renderCharacterDetail(char) {
             </div>
           </div>`;
         })()}
+        <div style="padding:12px 0 0;border-top:1px solid rgba(212,168,86,0.1);font-size:12px;line-height:1.9;color:var(--text-secondary);">
+          <strong style="color:var(--gold-light);">相对位置分析：</strong>
+          全角色 PV 中位数 ${pvMedian === null ? '—' : fmt(pvMedian * 10000)}，Q1 ${pvQ1 === null ? '—' : fmt(pvQ1 * 10000)}，Q3 ${pvQ3 === null ? '—' : fmt(pvQ3 * 10000)}，四分位距 IQR = ${pvIQR === null ? '—' : fmt(pvIQR * 10000)}。
+          该角色 PV 约为中位数的 <strong>${pvVsMedian === null ? '—' : pvVsMedian.toFixed(2)} 倍</strong>，处于 <strong>${pctTag(pvPct)}</strong> 百分位。
+          ${pvIsOutlier
+            ? `按 Tukey 规则（Q3+1.5×IQR = ${fmt(pvTukey * 10000)}），该角色属于<strong>高值异常点</strong>，其 PV 明显偏离主体分布，均值受此类极值抬高，比较时应以中位数与百分位为准。`
+            : `按 Tukey 规则（Q3+1.5×IQR = ${pvTukey === null ? '—' : fmt(pvTukey * 10000)}），该角色位于正常分布区间内。`}
+        </div>
       </div>
 
       <div class="card">
-        <h3>${ic('assets/img/deco/UI_ItemIcon_108.png')}跨平台对比</h3>
-        <p class="subtitle">各平台收藏/评论量</p>
-        <div style="space-y:12px;">
-          ${[
-            { label: '网易云收藏', val: char.netease, max: 85, color: 'var(--chart-1)' },
-            { label: '网易云评论', val: char.cmt, max: 18.5, color: 'var(--chart-3)' },
-            { label: 'QQ音乐收藏', val: char.qq, max: 62, color: 'var(--chart-5)' },
-            { label: 'PV播放(万)', val: char.pv, max: 5767, color: 'var(--chart-4)' }
-          ].map(item => `
+        <h3>${ic('assets/img/deco/UI_ItemIcon_108.png')}跨平台数据对比</h3>
+        <p class="subtitle">条形长度 = 该角色在各平台内的最大值占比（平台独立归一，不同量纲不可横向比较）</p>
+        <div>
+          ${platformBars.map(item => `
             <div style="margin-bottom:10px;">
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
-                <span style="color:var(--text-secondary);">${item.label}</span>
-                <span style="font-weight:600;">${item.val.toFixed(1)}</span>
+                <span style="color:var(--text-secondary);">${item.label} <span style="color:var(--text-quaternary);font-size:10px;">${pctTag(item.pct)}</span></span>
+                <span style="font-weight:600;">${fmt(item.val * item.scale)}</span>
               </div>
               <div style="height:8px;background:var(--surface);border-radius:4px;overflow:hidden;">
-                <div style="width:${(item.val / item.max * 100).toFixed(0)}%;height:100%;background:${item.color};border-radius:4px;transition:width 0.8s;"></div>
+                <div style="width:${((item.val / item.max) * 100).toFixed(0)}%;height:100%;background:${item.color};border-radius:4px;transition:width 0.8s;"></div>
               </div>
             </div>
           `).join('')}
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(212,168,86,0.1);font-size:11px;line-height:1.8;color:var(--text-tertiary);">
+            网易云/QQ 收藏为平台公开收藏量，B站 PV 为角色 PV 视频累计播放量。三项指标来源不同、用户群体不重合，<strong>不可相加，也不可换算为同一批用户的行为</strong>；条形仅反映该角色在同一平台内的相对位置。
+          </div>
         </div>
       </div>
     </div>
@@ -232,7 +266,9 @@ function renderCharacterDetail(char) {
     <!-- 角色主题音乐 -->
     <div class="card music-section" id="musicSection">
       <h3>${ic('assets/img/items/UI_ItemIcon_112001.png')}角色主题音乐</h3>
-      <p class="subtitle">${hasAlbumData ? `${char.name} 相关的官方专辑曲目（共${displayTracks.length}首）· 数据来源于官方专辑核实` : '暂无该角色的官方专辑曲目数据'}</p>
+      <p class="subtitle">${hasAlbumData
+        ? `${char.name} 相关的官方专辑曲目（共${displayTracks.length}首）· 热度分 = log₁₀(1+网易云评论) 与 log₁₀(1+B站播放) 归一后按 0.4 : 0.6 加权，缺失项按可用权重归一`
+        : '暂无该角色的官方专辑曲目数据'}</p>
       <div style="display:grid;gap:10px;">
         ${displayTracks.length ? displayTracks.map((m, i) => {
           // 检查是否为ALBUMS来源数据（getTrackFullData 不带 heatScore，需按真实指标现算）

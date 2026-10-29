@@ -328,11 +328,12 @@
   function getRegionTopTrack(rid) {
     const tracks = REGION_TRACKS[rid] || [];
     if (!tracks.length) return null;
-    // 仅按真实指标排序：评论数 + 播放量/10（两者量级差约一个数量级）
+    // 仅按真实指标排序：统一使用全站热度分（对数归一 + 权重归一，避免量级差异直接相加）
     return tracks.map(t => {
       const r = trackRealOf(t);
-      return { t, score: r ? (r.neteaseCmt || 0) + (r.biliPlay || 0) / 10 : -1 };
-    }).filter(x => x.score >= 0).sort((a, b) => b.score - a.score)[0]?.t || null;
+      const score = (r && typeof getTrackHeatScore === 'function') ? getTrackHeatScore(r) : -1;
+      return { t, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score)[0]?.t || null;
   }
 
   // ----- 共享：选中国家（渲染角色列表 + 高亮标记 + 代表音乐）-----
@@ -396,10 +397,10 @@
       ${region.areas ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${region.areas.map(a => `<span style="padding:2px 7px;border-radius:10px;background:${region.color}18;color:var(--text-secondary);font-size:11px;">${a}</span>`).join('')}</div>` : ''}
       ${topTrackHtml}
       <div class="rip-stats">
-        <div class="rip-stat">PV总播放 <span class="v">${fmtCN(totalPv * 10000)}</span></div>
+        <div class="rip-stat">角色PV总播放 <span class="v">${fmtCN(totalPv * 10000)}</span></div>
         <div class="rip-stat">角色音乐收藏 <span class="v">${fmtCN(totalFav * 1000)}</span></div>
-        <div class="rip-stat">曲目评论 <span class="v">${trackCmt > 0 ? fmtCN(trackCmt) : '—'}</span></div>
-        <div class="rip-stat">曲目播放 <span class="v">${trackPlay > 0 ? fmtCN(trackPlay) : '—'}</span></div>
+        <div class="rip-stat">曲目网易云评论 <span class="v">${trackCmt > 0 ? fmtCN(trackCmt) : '—'}</span></div>
+        <div class="rip-stat">曲目B站播放 <span class="v">${trackPlay > 0 ? fmtCN(trackPlay) : '—'}</span></div>
         <div class="rip-stat">热门角色 <span class="v">${chars.sort((a, b) => b.pv - a.pv)[0]?.name || '-'}</span></div>
       </div>
       ${elementList.length > 1 ? `
@@ -408,15 +409,19 @@
         ${elementBarHtml}
       </div>` : ''}
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px;" onerror="this.style.display='none'"/> 热门地区音乐</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px;" onerror="this.style.display='none'"/> 地区音乐 TOP3（按综合热度分）</div>
         ${tracks.map(t => ({ t, r: trackRealOf(t) }))
           .filter(x => x.r)
-          .sort((a, b) => ((b.r.neteaseCmt || 0) + (b.r.biliPlay || 0) / 10) - ((a.r.neteaseCmt || 0) + (a.r.biliPlay || 0) / 10))
+          .sort((a, b) => {
+            const ha = (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(a.r) : 0;
+            const hb = (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(b.r) : 0;
+            return hb - ha;
+          })
           .slice(0, 3).map(({ t, r }) => `
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">
             <span style="color:var(--text-tertiary);font-size:10px;">v${t.version}</span>
             <span style="flex:1;color:var(--text-primary);">${t.name}</span>
-            <span style="color:var(--text-tertiary);font-size:11px;">评${fmtCN(r.neteaseCmt || 0)} · 播${fmtCN(r.biliPlay || 0)}</span>
+            <span style="color:var(--text-tertiary);font-size:11px;">网易云评${fmtCN(r.neteaseCmt || 0)} · B站播${fmtCN(r.biliPlay || 0)}</span>
           </div>
         `).join('') || '<div style="font-size:11px;color:var(--text-quaternary);">暂无真实平台数据</div>'}
       </div>

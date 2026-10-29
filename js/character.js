@@ -474,8 +474,9 @@ function renderScatter() {
   const maxPv = Math.max(...data.map(c => c.pv));
   const maxN = Math.max(...data.map(c => c.netease));
   const maxC = Math.max(...data.map(c => c.cmt));
-  const avgPv = data.reduce((s, c) => s + c.pv, 0) / data.length;
-  const avgN = data.reduce((s, c) => s + c.netease, 0) / data.length;
+  // 象限分割采用中位数：右偏分布下均值会被头部角色拉高，中位数更能代表典型角色
+  const midPv = (typeof statMedian === 'function') ? statMedian(data.map(c => c.pv)) : data.reduce((s, c) => s + c.pv, 0) / data.length;
+  const midN = (typeof statMedian === 'function') ? statMedian(data.map(c => c.netease)) : data.reduce((s, c) => s + c.netease, 0) / data.length;
 
   const M = { l: 70, r: 45, t: 45, b: 65 };
   const W = 780, H = 480, w = W - M.l - M.r, h = H - M.t - M.b;
@@ -528,8 +529,8 @@ function renderScatter() {
   svg.appendChild(bg);
 
   // 均值线位置（象限分割）
-  const avgPx = M.l + (avgPv / maxPv) * w;
-  const avgPy = M.t + (1 - avgN / maxN) * h;
+  const avgPx = M.l + (midPv / maxPv) * w;
+  const avgPy = M.t + (1 - midN / maxN) * h;
 
   // 象限背景色
   const quadTR = document.createElementNS(NS, 'rect');
@@ -597,7 +598,7 @@ function renderScatter() {
   yt.setAttribute('transform', `rotate(-90,22,${H / 2})`);
   yt.textContent = '网易云收藏量'; svg.appendChild(yt);
 
-  // 均值线
+  // 中位数分割线（右偏分布下比均值更稳健）
   const avgXLine = document.createElementNS(NS, 'line');
   avgXLine.setAttribute('x1', avgPx); avgXLine.setAttribute('y1', M.t);
   avgXLine.setAttribute('x2', avgPx); avgXLine.setAttribute('y2', H - M.b);
@@ -617,13 +618,13 @@ function renderScatter() {
   avgLabelX.setAttribute('x', avgPx + 4); avgLabelX.setAttribute('y', M.t + 12);
   avgLabelX.setAttribute('text-anchor', 'start'); avgLabelX.setAttribute('font-size', '9');
   avgLabelX.setAttribute('fill', 'var(--gold)'); avgLabelX.setAttribute('font-weight', '600');
-  avgLabelX.textContent = 'PV均值'; svg.appendChild(avgLabelX);
+  avgLabelX.textContent = 'PV中位数'; svg.appendChild(avgLabelX);
 
   const avgLabelY = document.createElementNS(NS, 'text');
   avgLabelY.setAttribute('x', W - M.r - 4); avgLabelY.setAttribute('y', avgPy - 4);
   avgLabelY.setAttribute('text-anchor', 'end'); avgLabelY.setAttribute('font-size', '9');
   avgLabelY.setAttribute('fill', 'var(--gold)'); avgLabelY.setAttribute('font-weight', '600');
-  avgLabelY.textContent = '收藏均值'; svg.appendChild(avgLabelY);
+  avgLabelY.textContent = '收藏中位数'; svg.appendChild(avgLabelY);
 
   // 象限标签
   const quadLabels = [
@@ -763,9 +764,9 @@ function renderScatter() {
       const stars = '★'.repeat(c.rarity);
 
       // 计算象限分类和排名百分位
-      const quad = c.pv >= avgPv && c.netease >= avgN ? '双高明星'
-        : c.pv < avgPv && c.netease >= avgN ? '音乐出圈'
-        : c.pv >= avgPv && c.netease < avgN ? 'PV带飞'
+      const quad = c.pv >= midPv && c.netease >= midN ? '双高明星'
+        : c.pv < midPv && c.netease >= midN ? '音乐出圈'
+        : c.pv >= midPv && c.netease < midN ? 'PV带飞'
         : '待发掘';
       const quadColor = quad === '双高明星' ? '#C9A227' : quad === '音乐出圈' ? '#4AD9D9' : quad === 'PV带飞' ? '#D94A4A' : '#94a3b8';
       const pvPct = Math.round((data.filter(x => x.pv < c.pv).length / data.length) * 100);
@@ -853,9 +854,9 @@ function renderScatter() {
       const scaleX = rect.width / W;
       const scaleY = rect.height / H;
       const stars = '★'.repeat(c.rarity);
-      const quad = c.pv >= avgPv && c.netease >= avgN ? '双高明星'
-        : c.pv < avgPv && c.netease >= avgN ? '音乐出圈'
-        : c.pv >= avgPv && c.netease < avgN ? 'PV带飞' : '待发掘';
+      const quad = c.pv >= midPv && c.netease >= midN ? '双高明星'
+        : c.pv < midPv && c.netease >= midN ? '音乐出圈'
+        : c.pv >= midPv && c.netease < midN ? 'PV带飞' : '待发掘';
       const quadColor = quad === '双高明星' ? '#C9A227' : quad === '音乐出圈' ? '#4AD9D9' : quad === 'PV带飞' ? '#D94A4A' : '#94a3b8';
       const pvPct = Math.round((data.filter(x => x.pv < c.pv).length / data.length) * 100);
       const musicPct = Math.round((data.filter(x => x.netease < c.netease).length / data.length) * 100);
@@ -990,9 +991,25 @@ function renderScatter() {
         <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
         <div class="legend-item" style="display:flex;align-items:center;gap:6px;">
           <div style="width:20px;height:2px;background:var(--gold);border-top:2px dashed var(--gold);opacity:0.6;"></div>
-          <span style="font-size:12px;color:var(--text-secondary);">均值线</span>
+          <span style="font-size:12px;color:var(--text-secondary);">中位数线</span>
         </div>
       </div>`;
+  }
+
+  // 分析摘要：相关系数 + 四象限人数 + 中位数分割说明（全部按当前筛选样本实时计算）
+  const summEl = document.getElementById('scatterSummary');
+  if (summEl) {
+    const r = (typeof statPearson === 'function') ? statPearson(data.map(c => c.pv), data.map(c => c.netease)) : null;
+    const rLabel = (typeof statCorrLabel === 'function') ? statCorrLabel(r) : '';
+    const r2 = r === null ? null : (r * r * 100).toFixed(1);
+    const q = { q1: 0, q2: 0, q3: 0, q4: 0 };
+    data.forEach(c => {
+      const right = c.pv >= midPv, up = c.netease >= midN;
+      if (right && up) q.q1++; else if (!right && up) q.q2++; else if (!right && !up) q.q3++; else q.q4++;
+    });
+    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名角色；PV 与网易云收藏的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明 PV 热度只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自平台受众与曲目发行等非 PV 因素。
+      分割线取 <strong>中位数</strong>（PV ${midPv}万 / 收藏 ${midN}千），较均值更能代表典型角色。四象限人数：双高明星 ${q.q1} 人、音乐出圈 ${q.q2} 人、待发掘 ${q.q3} 人、PV带飞 ${q.q4} 人。
+      <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置。</span>`;
   }
 
   // 添加数据导出属性到散点图卡片

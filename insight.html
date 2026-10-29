@@ -73,7 +73,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>数据洞察</h1>
       <div class="hero-line"></div>
-      <p>跨平台、跨时间、跨维度的深度数据分析 · 归一化矩阵、趋势演化与相关性挖掘</p>
+      <p>面向 122 名角色与 1712 首可核实曲目的跨平台音乐传播分析 · 描述统计、相关分析、分布诊断与异常值识别</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
@@ -81,76 +81,123 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- KPI摘要卡片 -->
   <div id="kpiGrid" class="kpi-grid"></div>
 
+  <!-- 执行摘要：结论先行，全部数值由页面脚本按真实样本实时计算 -->
+  <div class="card" style="border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(201,162,39,0.06),transparent);">
+    <h3>执行摘要 <span class="method-tag">结论先行</span></h3>
+    <p class="subtitle" id="execSummaryLead">正在基于真实样本计算核心结论……</p>
+    <div class="three-col" style="margin-top:14px;">
+      <div class="insight-finding">
+        <h4 style="color:var(--chart-1);">发现一 · 平台联动</h4>
+        <p id="execFinding1"></p>
+      </div>
+      <div class="insight-finding gold">
+        <h4 style="color:var(--chart-5);">发现二 · 分布形态</h4>
+        <p id="execFinding2"></p>
+      </div>
+      <div class="insight-finding purple">
+        <h4 style="color:var(--chart-4);">发现三 · 结构差异</h4>
+        <p id="execFinding3"></p>
+      </div>
+    </div>
+    <div class="ds-note" id="execLimitation" style="margin-top:14px;"></div>
+  </div>
+
+  <!-- 研究框架与指标口径：说明“分析什么、用什么方法、口径是什么” -->
+  <div class="card">
+    <h3>研究框架与指标口径 <span class="method-tag">方法论</span></h3>
+    <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-top:12px;">
+      <div>
+        <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">研究问题</div>
+        <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
+          <div><strong style="color:var(--text-primary);">RQ1 平台联动：</strong>角色 B 站 PV 热度与网易云/QQ 音乐收藏是否同步？相关性强度如何？</div>
+          <div><strong style="color:var(--text-primary);">RQ2 结构差异：</strong>地区、元素、武器、星级分组下的热度分布是否存在系统性差异？</div>
+          <div><strong style="color:var(--text-primary);">RQ3 分布形态：</strong>曲目级互动是否呈长尾分布？现象级作品集中在哪些版本与地区？</div>
+          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频曝光到音乐收藏、评论互动，各平台规模量级差多少？</div>
+        </div>
+      </div>
+      <div>
+        <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">指标定义与统计方法</div>
+        <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
+          <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站角色 PV 播放量（万）、网易云收藏量（千）、QQ 音乐收藏量（千）、PV 评论量（千）。</div>
+          <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、B站「原神+曲名」最相关视频播放量（次）；QQ 音乐不公开单曲数据，不纳入曲目级计算。</div>
+          <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、min-max 与对数归一化、IQR 异常值判定。</div>
+          <div><strong style="color:var(--text-primary);">样本：</strong>122 名可玩角色；1712 首具备至少一项真实指标的官方曲目（去重后）。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 平台矩阵 -->
   <div class="card">
-    <h3>跨平台热度对比矩阵 <span class="method-tag">归一化对比分析</span></h3>
-    <p class="subtitle">各地区在不同平台的热度表现（色块深浅 = 相对热度）。方法：将各地区角色的热度均值（地区总和÷地区角色数）除以全角色单人最大值进行0-1归一化，消除平台间量纲差异。</p>
+    <h3>跨平台热度对比矩阵 <span class="method-tag">分组归一化</span></h3>
+    <p class="subtitle">按地区汇总的角色级平台指标（n = 该地区可玩角色数）。方法：先计算地区内角色的人均指标（地区总和 ÷ 地区角色数），再以「全角色单人最大值 × 地区角色数」为理论上限做 min-max 归一化，得到 0–100% 的相对强度，从而消除万/千等量纲差异。注意：百分比表示相对位置，不是绝对值。</p>
     <div id="platformMatrix" style="margin-top:16px;"></div>
   </div>
 
   <!-- 趋势图 -->
   <div class="card">
-    <h3>热度-时间关系分析 <span class="method-tag">趋势分析</span></h3>
-    <p class="subtitle">各版本角色PV平均播放量随地区迭代的变化趋势。方法：按地区分组计算PV均值，观察游戏版本推进过程中的热度演化规律。</p>
+    <h3>地区间角色 PV 热度差异 <span class="method-tag">分组比较</span></h3>
+    <p class="subtitle">以地区为单位比较角色 PV 的平均水平与离散程度。方法：计算各地区角色 PV 的均值、最高值与最低值，并标注角色数 n；均值用于横向比较，最高/最低值用于刻画组内差距。因各地区 n 不同（3–30 人不等），均值差异需结合样本量谨慎解读。</p>
     <svg id="trendSvg" viewBox="0 0 700 260" style="width:100%;height:auto;"></svg>
   </div>
 
   <!-- 转化漏斗图 -->
   <div class="card">
-    <h3>跨平台音乐传播转化漏斗 <span class="method-tag">关联分析</span></h3>
-    <p class="subtitle">从B站PV曝光到音乐平台收藏、再到评论互动的全链路转化。方法：以PV总播放为源头，对比各平台实际收藏与互动数据，直观呈现用户从视频观看到音乐消费的转化衰减。</p>
+    <h3>跨平台互动规模对比 <span class="method-tag">量级比较</span></h3>
+    <p class="subtitle">比较 B站 PV 播放、网易云收藏、QQ 音乐收藏、B站 PV 评论四类指标的总体量级。方法：将各指标统一换算为绝对人次后绘制条形对比，并计算相对首项的百分比。必须说明：四者统计对象不同（播放/收藏/评论并非同一批用户），因此比率只反映平台规模与行为深度差异，<strong>不能解读为用户级转化率</strong>。</p>
     <svg id="sankeySvg" viewBox="0 0 700 280" style="width:100%;height:280px;"></svg>
   </div>
 
   <!-- 星级热度分布对比图 -->
   <div class="card">
-    <h3>星级热度分布对比图 <span class="method-tag">分布分析</span></h3>
-    <p class="subtitle">5星 vs 4星角色的PV播放量分布密度对比。方法：将PV数据分箱统计，用镜像直方图同时展示两种稀有度角色的热度集中区间与离散差异。</p>
+    <h3>星级角色 PV 分布对比 <span class="method-tag">分布分析</span></h3>
+    <p class="subtitle">5 星与 4 星角色 PV 的分布形态对比。方法：按 PV 区间等宽分箱（12 箱）绘制背靠背直方图；虚线标注各组中位数，用于比较集中趋势与离散程度。中位数对极端值不敏感，比均值更适合描述右偏分布。</p>
     <svg id="boxSvg" viewBox="0 0 600 220" style="width:100%;height:auto;"></svg>
   </div>
 
   <!-- 元素分析 -->
   <div class="card">
-    <h3>元素热度对比分析 <span class="method-tag">分类分析</span></h3>
-    <p class="subtitle">各元素角色的数量、平均PV和收藏热度对比。方法：按元素分组统计，分析不同元素类型在玩家群体中的受欢迎程度差异。</p>
+    <h3>元素分组热度对比 <span class="method-tag">分类分析</span></h3>
+    <p class="subtitle">按七元素分组比较角色数量、人均 PV 与人均收藏。方法：组内求均值并给出 n 与占比；元素间差异同时受角色数量与单个角色热度影响，因此需结合「数量占比」与「人均热度」两条线索解读，避免把样本量差异误判为热度差异。</p>
     <div id="elementAnalysis" style="margin-top:16px;"></div>
   </div>
 
   <!-- 武器类型分析 -->
   <div class="card">
-    <h3>武器类型热度分布 <span class="method-tag">分类分析</span></h3>
-    <p class="subtitle">各武器类型角色的数量分布与平均热度对比。方法：按武器类型分组统计，分析不同武器类型在游戏中的普及率和玩家偏好。</p>
+    <h3>武器类型分组热度对比 <span class="method-tag">分类分析</span></h3>
+    <p class="subtitle">按五类武器分组比较角色数量、人均 PV 与人均收藏。方法：组内描述统计（n、均值、星级构成）。武器类型与角色定位相关，人均热度差异可能由「该武器承载的输出/辅助角色结构」导致，属于结构性差异而非武器本身效应。</p>
     <div id="weaponAnalysis" style="margin-top:16px;"></div>
   </div>
 
   <!-- 相关性分析 -->
   <div class="card">
-    <h3>PV播放量与收藏量相关性 <span class="method-tag">相关分析</span></h3>
-    <p class="subtitle">B站PV播放量与网易云音乐收藏量的散点分布与皮尔逊相关系数。方法：计算角色级别的双变量相关性，检验视频传播与音乐收藏之间的联动效应。</p>
+    <h3>PV 播放量与网易云收藏的相关性 <span class="method-tag">相关分析</span></h3>
+    <p class="subtitle">角色级双变量散点图与 Pearson 相关系数。方法：对 n 名角色计算 PV（万）与网易云收藏（千）的线性相关系数 r，并按 Cohen 阈值标注强度（|r|≥0.7 强、≥0.4 中等、≥0.2 弱）。相关不等于因果：两者可能同受角色人气、版本档期等第三因素驱动。</p>
     <div id="correlationChart" style="margin-top:16px;"></div>
   </div>
 
   <!-- 现象级曲目分析 -->
   <div class="card">
-    <h3>现象级曲目深度分析 <span class="method-tag">异常值挖掘</span></h3>
-    <p class="subtitle">识别热度远超均值的现象级音乐作品，分析其出圈原因与文化背景</p>
+    <h3>曲目互动长尾与异常值识别 <span class="method-tag">异常值挖掘</span></h3>
+    <p class="subtitle">以网易云评论数为曲目热度代理指标，识别显著高于整体水平的作品。方法：计算中位数、Q1/Q3 与 IQR，采用 Tukey 上界 Q3 + 1.5×IQR 作为异常值阈值；超过阈值的曲目定义为「现象级」，并给出其相对中位数的倍数。该方法是分布诊断而非主观评选。</p>
     <div id="phenomenonAnalysis" style="margin-top:16px;"></div>
   </div>
 
   <!-- 关键发现 -->
   <div class="card">
-    <h3>关键数据发现</h3>
+    <h3>关键发现 <span class="method-tag">统计结果摘要</span></h3>
+    <p class="subtitle">以下三条结论由上方统计结果直接汇总，数值随样本实时计算，不使用固定文案。</p>
     <div class="three-col" style="margin-top:12px;">
       <div class="insight-finding">
-        <h4 style="color:var(--chart-1);">最高人气角色</h4>
+        <h4 style="color:var(--chart-1);">角色维度 · PV 领先</h4>
         <p id="insightTop1"></p>
       </div>
       <div class="insight-finding gold">
-        <h4 style="color:var(--chart-5);">最热曲目</h4>
+        <h4 style="color:var(--chart-5);">曲目维度 · 互动峰值</h4>
         <p id="insightTop2"></p>
       </div>
       <div class="insight-finding purple">
-        <h4 style="color:var(--chart-4);">平台差异</h4>
+        <h4 style="color:var(--chart-4);">全站样本 · 规模核验</h4>
         <p id="insightTop3"></p>
       </div>
     </div>
@@ -182,20 +229,20 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="ds-item">
         <span class="ds-label">分析方法</span>
-        <span class="ds-value">分类·趋势·关联·分布分析</span>
+        <span class="ds-value">描述统计·相关分析·分组比较·异常值检测</span>
       </div>
     </div>
-    <div class="ds-note">说明：抖音平台数据为基于B站与网易云比例的估算值（已标注"暂无"）。所有数据采集脚本均存放于项目根目录，可复现。</div>
+    <div class="ds-note">方法说明：① 角色级相关分析使用全部可玩角色（n = 122），不做抽样；② 曲目级样本为 1712 首具备真实指标的官方曲目（按中文曲名去重），无真实来源不计入；③ B站曲目播放量取「原神+曲名」搜索最相关视频，同专辑多首曲目可能命中共用同一支 PV，因此该指标反映「曲目相关视频热度」而非严格单曲播放；④ 所有数值为 2026 年 10 月单次快照，不构成时间序列趋势推断。上述限制不影响组内相对比较，但解读跨平台绝对量级时需谨慎。</div>
     <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
   </div>
 
 </div>
 
-<script src="js/data.js?v=20261029h"></script>
-<script src="js/avatar-map.js?v=20261029h"></script>
-<script src="js/nav.js?v=20261029h"></script>
-<script src="js/insight.js?v=20261029h"></script>
-<script src="js/page-hero.js?v=20261029h"></script>
-<script src="js/optimize.js?v=20261029h"></script>
+<script src="js/data.js?v=20261030a"></script>
+<script src="js/avatar-map.js?v=20261030a"></script>
+<script src="js/nav.js?v=20261030a"></script>
+<script src="js/insight.js?v=20261030a"></script>
+<script src="js/page-hero.js?v=20261030a"></script>
+<script src="js/optimize.js?v=20261030a"></script>
 </body>
 </html>

@@ -7999,3 +7999,110 @@ function getAllTracksSummary() {
   });
   return allTracks.sort((a, b) => b.heatScore - a.heatScore);
 }
+
+/* ==================== 统计分析公共函数（全站统一口径） ==================== */
+/* 说明：所有页面共用同一套描述统计与相关分析实现，避免各页自行计算导致口径不一致。 */
+function statMean(arr) {
+  const a = (arr || []).filter(v => typeof v === 'number' && isFinite(v));
+  return a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
+}
+
+function statQuantile(arr, q) {
+  const a = (arr || []).filter(v => typeof v === 'number' && isFinite(v)).sort((x, y) => x - y);
+  if (!a.length) return 0;
+  const pos = (a.length - 1) * Math.min(1, Math.max(0, q));
+  const lo = Math.floor(pos), hi = Math.ceil(pos);
+  return lo === hi ? a[lo] : a[lo] + (a[hi] - a[lo]) * (pos - lo);
+}
+
+function statMedian(arr) { return statQuantile(arr, 0.5); }
+function statQ1(arr) { return statQuantile(arr, 0.25); }
+function statQ3(arr) { return statQuantile(arr, 0.75); }
+function statIQR(arr) { return statQ3(arr) - statQ1(arr); }
+
+/* 变异系数（离散程度 / 均值），用于跨指标可比地衡量波动 */
+function statCV(arr) {
+  const m = statMean(arr);
+  if (!m) return null;
+  const sd = Math.sqrt(statMean(arr.map(v => Math.pow(v - m, 2))));
+  return sd / m;
+}
+
+/* 皮尔逊相关系数；样本量不足 3 或任一方差为 0 时返回 null */
+function statPearson(xs, ys) {
+  const pairs = xs.map((x, i) => [x, ys[i]]).filter(([x, y]) =>
+    typeof x === 'number' && typeof y === 'number' && isFinite(x) && isFinite(y));
+  if (pairs.length < 3) return null;
+  const mx = statMean(pairs.map(p => p[0]));
+  const my = statMean(pairs.map(p => p[1]));
+  let num = 0, dx = 0, dy = 0;
+  pairs.forEach(([x, y]) => {
+    num += (x - mx) * (y - my);
+    dx += Math.pow(x - mx, 2);
+    dy += Math.pow(y - my, 2);
+  });
+  if (!dx || !dy) return null;
+  return num / Math.sqrt(dx * dy);
+}
+
+/* 相关系数强度分级（Cohen 经验阈值，仅作描述性标注，不作因果推断） */
+function statCorrLabel(r) {
+  if (r === null) return '样本不足';
+  const a = Math.abs(r);
+  if (a >= 0.7) return '强';
+  if (a >= 0.4) return '中等';
+  if (a >= 0.2) return '弱';
+  return '极弱/无';
+}
+
+/* 百分位排名：v 在 arr 中的位置（0-100，越高越靠前） */
+function statPercentileRank(arr, v) {
+  const a = (arr || []).filter(x => typeof x === 'number' && isFinite(x));
+  if (!a.length) return null;
+  const below = a.filter(x => x < v).length;
+  const equal = a.filter(x => x === v).length;
+  return ((below + equal * 0.5) / a.length) * 100;
+}
+
+/* 可核实曲目普查：合并官方专辑曲目与剧情/地区补充曲目，按中文曲名去重。
+ * 仅收录至少具备一项真实指标（网易云评论数 / B站相关视频播放量）的曲目，
+ * 无真实来源一律不计入样本（不估算、不插值）。 */
+function getVerifiedTrackCensus() {
+  const out = [];
+  const seen = new Set();
+  const baseName = n => (String(n || '').split(' ')[0] || '').trim();
+
+  ALBUMS.forEach(album => {
+    album.tracks.forEach(track => {
+      if (track.realData === false) return;
+      const real = (typeof TRACK_REAL !== 'undefined' && track.ncmId) ? TRACK_REAL[track.ncmId] : null;
+      const cmt = real && typeof real.neteaseCmt === 'number' ? real.neteaseCmt : null;
+      const play = real && typeof real.biliPlay === 'number' ? real.biliPlay : null;
+      if (cmt === null && play === null) return;
+      const name = (track.name || '').trim();
+      const key = baseName(name);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      out.push({ name, region: album.region, version: album.version, type: album.type, album: album.name, cmt, play });
+    });
+  });
+
+  const extras = [
+    ...(typeof STORY_TRACKS !== 'undefined' ? STORY_TRACKS : []).map(t => ({ ...t, type: '剧情曲' })),
+    ...Object.entries(typeof REGION_TRACKS !== 'undefined' ? REGION_TRACKS : {})
+      .flatMap(([rid, arr]) => arr.map(t => ({ ...t, region: rid, type: '地区BGM' })))
+  ];
+  extras.forEach(t => {
+    const key = baseName(t.name);
+    if (!key || seen.has(key)) return;
+    const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+    if (!r || (typeof r.neteaseCmt !== 'number' && typeof r.biliPlay !== 'number')) return;
+    seen.add(key);
+    out.push({
+      name: (t.name || '').trim(), region: t.region, version: t.version, type: t.type, album: null,
+      cmt: typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null,
+      play: typeof r.biliPlay === 'number' ? r.biliPlay : null
+    });
+  });
+  return out;
+}

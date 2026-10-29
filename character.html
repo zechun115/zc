@@ -97,7 +97,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="原石"></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpiAvgFav">0</div>
-        <div class="kpi-label">平均收藏量</div>
+        <div class="kpi-label">人均网易云收藏（次）</div>
       </div>
     </div>
     <div class="kpi-card">
@@ -128,7 +128,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 散点图 -->
   <div class="card animate-on-scroll" data-animation="fadeInUp">
     <h3>角色双平台热度散点图 <span class="method-tag">聚类分析</span></h3>
-    <p class="subtitle">横轴：B站PV播放量(万) | 纵轴：网易云收藏量 | 气泡大小：评论总数 | 颜色：元素属性 | 点击气泡跳转详情。方法：四象限分类法，以均值为分界识别"双高明星""音乐出圈""PV带飞""待发掘"四类角色。</p>
+    <p class="subtitle">横轴：B站 PV 播放量（万） | 纵轴：网易云收藏量（千） | 气泡大小：PV 评论数 | 颜色：元素属性 | 点击气泡跳转详情。方法：以各指标的<strong>中位数</strong>为分界做四象限分类（中位数比均值更稳健，可避免头部角色抬高分割线），并在图下给出 Pearson 相关系数与各象限人数。</p>
     <div class="scatter-wrap">
       <svg class="scatter-svg" id="scatterSvg" viewBox="0 0 780 480" preserveAspectRatio="xMidYMid meet"></svg>
       <div class="tooltip" id="scatterTip"></div>
@@ -189,7 +189,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <span class="ds-value">米游社wiki · 原神官方</span>
       </div>
     </div>
-    <div class="ds-note">说明：散点图气泡大小映射评论数，四象限以各指标中值为分界。悬停气泡可查看详情并与排行榜联动高亮。</div>
+    <div class="ds-note" id="scatterSummary">分析摘要计算中……</div>
   </div>
 
 </div>

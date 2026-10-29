@@ -100,7 +100,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <!-- 雷达图 -->
     <div class="card radar-card">
       <h3>地区音乐风格雷达图</h3>
-      <p class="subtitle">多维度评估地区音乐特征 · 默认七国对比 · 按住 Ctrl/Cmd 点击地区可增删</p>
+      <p class="subtitle">五维指标：人均评论、人均播放、播放峰值、曲目规模、互动深度（每万次播放对应评论数）。各组指标先经 log1p 变换再做 min-max 归一化（0.08–1），以压缩长尾、避免头部曲目把其他地区压到接近圆心；维度值只表示相对强弱，不是绝对值。</p>
       <svg id="radarSvg" viewBox="0 0 300 300" style="width:100%;height:300px;"></svg>
       <div id="radarLegend" class="radar-legend"></div>
       <div class="radar-actions">
@@ -122,10 +122,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <h3>地区音乐数据总览</h3>
     <div style="overflow-x:auto;">
       <table>
-        <thead><tr><th>地区</th><th>版本</th><th>曲目数</th><th>总评论</th><th>总播放</th><th>平均评论</th><th>平均播放</th></tr></thead>
+        <thead><tr><th>地区</th><th>版本</th><th>曲目数</th><th>总评论</th><th>总播放</th><th>人均评论</th><th>人均播放</th><th>中位评论</th><th>中位播放</th></tr></thead>
         <tbody id="regionTable"></tbody>
       </table>
     </div>
+    <div class="ds-note" id="regionSummary" style="margin-top:12px;">分析摘要计算中……</div>
   </div>
 
   <!-- 数据来源说明 -->
@@ -150,12 +151,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261029h"></script>
-<script src="js/avatar-map.js?v=20261029h"></script>
-<script src="js/character.js?v=20261029h"></script>
-<script src="js/nav.js?v=20261029h"></script>
-<script src="js/region.js?v=20261029h"></script>
-<script src="js/page-hero.js?v=20261029h"></script>
-<script src="js/optimize.js?v=20261029h"></script>
+<script src="js/data.js?v=20261030a"></script>
+<script src="js/avatar-map.js?v=20261030a"></script>
+<script src="js/character.js?v=20261030a"></script>
+<script src="js/nav.js?v=20261030a"></script>
+<script src="js/region.js?v=20261030a"></script>
+<script src="js/page-hero.js?v=20261030a"></script>
+<script src="js/optimize.js?v=20261030a"></script>
 </body>
 </html>

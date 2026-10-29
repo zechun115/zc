@@ -80,7 +80,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本热度趋势图 -->
   <div class="card">
     <h3>剧情音乐版本热度趋势 <span class="method-tag">趋势分析</span></h3>
-    <p class="subtitle">各版本剧情原声在网易云平台的真实评论数变化。方法：按发行版本排序追踪数据演变，标注版本热点事件以揭示热度驱动因素。</p>
+    <p class="subtitle">按发行版本排序，追踪各版本代表剧情曲的网易云评论数（真实采集）变化；版本事件仅作为背景解释，不构成因果证据。</p>
     <svg id="versionTrendSvg" viewBox="0 0 720 320" style="width:100%;height:auto;"></svg>
     <div id="versionTrendLegend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;"></div>
   </div>
@@ -88,14 +88,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本热点解读 -->
   <div class="card">
     <h3>版本热点音乐解读 <span class="method-tag">热点分析</span></h3>
-    <p class="subtitle">聚焦各版本最具代表性的剧情音乐，解析热度背后的剧情事件与文化因素</p>
+    <p class="subtitle">以各版本评论数最高的剧情曲为代表，比较其相对全样本<strong>中位数</strong>的倍数与百分位；倍数越高说明该曲越接近分布右端，不代表版本整体质量。</p>
     <div id="versionHotspots" style="margin-top:16px;"></div>
   </div>
 
-  <!-- 版本时间轴·舆论反响 -->
+  <!-- 版本时间轴·实测指标 -->
   <div class="card">
-    <h3>版本音乐时间轴·舆论反响 <span class="method-tag">文字可视化</span></h3>
-    <p class="subtitle">沿版本迭代追踪剧情音乐的传播轨迹与玩家社区舆论演变。关键词字号映射讨论热度，情绪标签区分好评/破圈/褒贬，典型声音还原玩家真实反馈。</p>
+    <h3>版本音乐时间轴 · 实测指标 <span class="method-tag">分位比较</span></h3>
+    <p class="subtitle">沿版本迭代追踪各版本代表剧情曲的网易云评论与 B站相关视频播放，分位标签表示该曲在全部剧情曲样本中的位置。所有数值均来自实测采集，不使用模拟舆论或估算指数。</p>
     <div class="version-timeline" id="versionTimeline"></div>
   </div>
 
@@ -139,7 +139,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="ds-grid">
       <div class="ds-item">
         <span class="ds-label">剧情音乐数据</span>
-        <span class="ds-value">网易云·QQ音乐公开数据</span>
+        <span class="ds-value">网易云评论 · B站视频播放（实测）</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">版本热点事件</span>
@@ -151,20 +151,20 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="ds-item">
         <span class="ds-label">分析方法</span>
-        <span class="ds-value">趋势分析·热点挖掘·交叉分析</span>
+        <span class="ds-value">趋势分析·分位比较·交叉分组</span>
       </div>
     </div>
-    <div class="ds-note">说明：版本热点解读基于各版本主线剧情事件与音乐传播热度关联整理，热度倍数以全曲目均值为基准计算。</div>
+    <div class="ds-note">说明：版本热点解读以各版本评论数最高的剧情曲为代表，倍数与百分位以全部可核实剧情曲的中位数和分布为基准；事件描述仅作背景说明，不含模拟舆论或估算数据。</div>
     <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
   </div>
 
 </div>
 
-<script src="js/data.js?v=20261029h"></script>
-<script src="js/avatar-map.js?v=20261029h"></script>
-<script src="js/nav.js?v=20261029h"></script>
-<script src="js/story.js?v=20261029h"></script>
-<script src="js/page-hero.js?v=20261029h"></script>
-<script src="js/optimize.js?v=20261029h"></script>
+<script src="js/data.js?v=20261030a"></script>
+<script src="js/avatar-map.js?v=20261030a"></script>
+<script src="js/nav.js?v=20261030a"></script>
+<script src="js/story.js?v=20261030a"></script>
+<script src="js/page-hero.js?v=20261030a"></script>
+<script src="js/optimize.js?v=20261030a"></script>
 </body>
 </html>

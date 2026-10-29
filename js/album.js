@@ -104,6 +104,24 @@ function renderStats() {
       <div class="stat-label">仅元数据专辑（宁空勿假）</div>
     </div>
   `;
+
+  // 分析摘要：覆盖率偏差、评论分布形态、异常值比例（基于统一口径的可核实曲目样本）
+  const analysisEl = document.getElementById('albumAnalysis');
+  if (analysisEl) {
+    const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
+    const cmts = census.filter(c => typeof c.cmt === 'number').map(c => c.cmt);
+    const plays = census.filter(c => typeof c.play === 'number').map(c => c.play);
+    const median = (typeof statMedian === 'function') ? statMedian(cmts) : 0;
+    const q3 = (typeof statQ3 === 'function') ? statQ3(cmts) : 0;
+    const iqr = (typeof statIQR === 'function') ? statIQR(cmts) : 0;
+    const tukey = q3 + 1.5 * iqr;
+    const outliers = cmts.filter(v => v > tukey).length;
+    const outShare = cmts.length ? (outliers / cmts.length * 100).toFixed(1) : '—';
+    const playMedian = (typeof statMedian === 'function') ? statMedian(plays) : 0;
+    analysisEl.innerHTML = `<strong>分析摘要：</strong>官方收录 ${totalTracks} 首，其中 ${realTracks} 首具备实测指标（覆盖率 ${coverage}%），因此本页指标应视为<strong>可核实样本</strong>而非全量总体，覆盖率不足的部分不参与任何统计推断。
+      曲目评论中位数 ${median ? Math.round(median).toLocaleString() : '—'}、Q3 ${q3 ? Math.round(q3).toLocaleString() : '—'}、IQR ${iqr ? Math.round(iqr).toLocaleString() : '—'}，按 Tukey 规则（Q3+1.5×IQR）识别出 ${outliers} 首异常值，约占样本 ${outShare}%，说明评论分布高度右偏、少数曲目贡献绝大部分互动。
+      B站相关视频播放中位数 ${playMedian ? Math.round(playMedian).toLocaleString() : '—'}；评论与播放口径不同源，两者不可换算或相除。`;
+  }
 }
 
 function renderAlbumGrid() {
