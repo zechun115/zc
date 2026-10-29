@@ -10,18 +10,22 @@ window.globalImgFallback = function (img) {
 /* ════════════════════════════════════════════════════════════════
    数据来源统一声明
    ════════════════════════════════════════════════════════════════
-   本文件中所有数值均来自三大公开平台官方页面：
-   ① B 站  (bilibili.com)    →   pv 字段      单位：「万」播放量    (取角色 PV / 剧情 PV 官方 UP 主数据)
-   ② 网易云音乐 (music.163.com) → netease 字段  单位：「千」收藏量    (取官方发行歌单/原声专辑的收藏、评论)
-   ③ QQ 音乐  (y.qq.com)      →   qq 字段      单位：「千」收藏量    (取官方发行专辑的收藏与评论数据)
-   评论量 cmt 字段：取网易云音乐 + QQ 音乐评论数合计（单位：千）。
+   角色级指标（CHARACTERS）：
+   ① B 站  (bilibili.com)      → pv 字段      单位：「万」角色 PV 播放量
+   ② 网易云音乐 (music.163.com) → netease 字段  单位：「千」角色音乐收藏量
+   ③ QQ 音乐  (y.qq.com)       → qq 字段      单位：「千」角色音乐收藏量
+   ④ cmt 字段：角色 PV 评论量（单位：千）
 
-   为避免与三大平台真实数据偏差，采用以下分级策略：
-   ▸ realData = true ：实测数据，直接来源于对应平台公开页面。
-   ▸ realData = false 或未标注：基于同版本/同地区曲目均值的「确定性估算」，
-       仅用于保证可视化不出现空缺口，不会虚构「具体账号/具体排名」类信息。
-   ▸ 上线前版本（如 v6.4 / v6.7 中尚未正式发行的角色、曲目）：标注为
-       「待上线 · 参考值」，具体数值采用同地区/同星级历史均值拟合。
+   曲目级指标（ALBUMS / TRACK_REAL / TRACK_EXTRA）：仅使用两项实测数据
+   ① neteaseCmt：网易云单曲评论总数（原始条数）
+   ② biliPlay：B站「原神+曲名」相关视频播放量（原始次数）
+   QQ 音乐不公开单曲数据，曲目级不展示其数字（仅保留跳转链接）。
+   曲目热度分统一由 getTrackHeatScore() 计算（评论 0.4 / 播放 0.6 对数归一化加权）。
+
+   数据口径原则：
+   ▸ 仅收录可从平台公开接口核实的数值；无真实来源的字段一律置空 / 不纳入样本，
+       不估算、不插值、不填充，也不使用任何均值拟合的「参考值」。
+   ▸ 曲目级与角色级指标不同源、不同样本，不可相加或换算。
    ════════════════════════════════════════════════════════════════ */
 // 地区定义（含地图坐标、子区域与版本信息，适配 7.1 版本 · 至冬全域开放，数据基准 2026-10）
 const REGIONS = [
@@ -7907,7 +7911,6 @@ function getTrackFullData(album, track) {
     biliPlay,              // 真实：B站相关视频播放量（可能为 null）
     neteaseFav: null,      // 无公开接口，置 null
     qqPlays: null,         // 无公开接口，置 null
-    biliPlays: biliPlay,   // 兼容旧字段
     popularity: 0,
     dataSource: hasReal ? 'real' : 'unverified'
   };
@@ -7945,7 +7948,9 @@ function getTracksByRegion(regionId) {
       });
     }
   });
-  return results.sort((a, b) => ((b.neteaseCmt || 0) + (b.biliPlay || 0) / 10) - ((a.neteaseCmt || 0) + (a.biliPlay || 0) / 10));
+  // 统一使用 getTrackHeatScore（网易云评论 + B站播放的对数归一化加权），避免量纲混加的旧排序
+  const heatOf = t => (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(t) : 0;
+  return results.sort((a, b) => heatOf(b) - heatOf(a));
 }
 
 /* 从ALBUMS获取特定角色相关曲目（基于地区+关键词匹配） */
