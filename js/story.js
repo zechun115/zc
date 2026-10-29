@@ -1,7 +1,7 @@
 // ==================== 剧情场景页 ====================
 // 剧情曲目真实数据：为每首剧情曲目关联真实平台指标（无真实数据者剔除，不估算）
 // netease/cmt 字段承载「网易云评论数（千）」，qq 字段承载「B站相关视频播放量（千）」
-const ST = (window.STORY_TRACKS || []).map(t => {
+const ST = ((typeof STORY_TRACKS !== 'undefined' ? STORY_TRACKS : null) || []).map(t => {
   const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
   const cmtK = r && typeof r.neteaseCmt === 'number' ? +(r.neteaseCmt / 1000).toFixed(1) : null;
   const playK = r && typeof r.biliPlay === 'number' ? +(r.biliPlay / 1000).toFixed(1) : null;
@@ -268,17 +268,19 @@ function renderVersionRegionMatrix() {
   const versions = [...new Set(ST.map(t => t.version))].sort((a, b) => parseFloat(a) - parseFloat(b));
   const regions = [...new Set(ST.map(t => t.region))];
 
-  // 构建矩阵
+  // 构建矩阵：分组取中位数（分组样本量通常很小，中位数比均值稳健）
   const matrix = {};
   let maxVal = 0;
   versions.forEach(v => {
     matrix[v] = {};
     regions.forEach(r => {
       const tracks = ST.filter(t => t.version === v && t.region === r);
-      matrix[v][r] = tracks.length > 0
-        ? tracks.reduce((s, t) => s + t.netease, 0) / tracks.length
-        : 0;
-      if (matrix[v][r] > maxVal) maxVal = matrix[v][r];
+      const vals = tracks.map(t => t.netease).filter(x => typeof x === 'number' && x > 0);
+      matrix[v][r] = {
+        val: vals.length ? ((typeof statMedian === 'function') ? statMedian(vals) : vals.reduce((s, x) => s + x, 0) / vals.length) : 0,
+        n: tracks.length
+      };
+      if (matrix[v][r].val > maxVal) maxVal = matrix[v][r].val;
     });
   });
 
@@ -293,14 +295,15 @@ function renderVersionRegionMatrix() {
   versions.forEach(v => {
     html += `<div style="background:var(--surface-elevated);padding:12px 8px;font-size:12px;font-weight:600;text-align:center;color:var(--gold-light);">v${v}</div>`;
     regions.forEach(r => {
-      const val = matrix[v][r];
+      const cell = matrix[v][r];
+      const val = cell.val;
       if (val === 0) {
         html += `<div class="heatmap-cell heat-cell hlvl-0" data-v="0" title="v${v} ${rName(r)}: 无曲目">—</div>`;
       } else {
         const ratio = val / maxVal;
         let lvl = ratio < 0.22 ? 1 : (ratio < 0.42 ? 2 : (ratio < 0.62 ? 3 : (ratio < 0.82 ? 4 : 5)));
         const cls = `hlvl-${lvl}`;
-        html += `<div class="heatmap-cell heat-cell ${cls}" data-v="${Math.round(ratio*100)}" title="v${v} ${rName(r)}: ${val.toFixed(0)}k">${Math.round(val)}k</div>`;
+        html += `<div class="heatmap-cell heat-cell ${cls}" data-v="${Math.round(ratio*100)}" title="v${v} ${rName(r)}: 评论中位数 ${val.toFixed(1)}k（n=${cell.n}）">${Math.round(val)}k</div>`;
       }
     });
   });

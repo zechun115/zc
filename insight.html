@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -73,7 +73,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>数据洞察</h1>
       <div class="hero-line"></div>
-      <p>面向 122 名角色与 1712 首可核实曲目的跨平台音乐传播分析 · 描述统计、相关分析、分布诊断与异常值识别</p>
+      <p>面向 <span id="heroCharN">122</span> 名角色与 <span id="heroTrackN">1753</span> 首可核实曲目的跨平台音乐传播分析 · 描述统计、相关分析、分布诊断与异常值识别</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
@@ -121,7 +121,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
           <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站角色 PV 播放量（万）、网易云收藏量（千）、QQ 音乐收藏量（千）、PV 评论量（千）。</div>
           <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、B站「原神+曲名」最相关视频播放量（次）；QQ 音乐不公开单曲数据，不纳入曲目级计算。</div>
           <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、min-max 与对数归一化、IQR 异常值判定。</div>
-          <div><strong style="color:var(--text-primary);">样本：</strong>122 名可玩角色；1712 首具备至少一项真实指标的官方曲目（去重后）。</div>
+          <div><strong style="color:var(--text-primary);">样本：</strong><span id="defCharN">122</span> 名可玩角色；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
         </div>
       </div>
     </div>
@@ -232,17 +232,17 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <span class="ds-value">描述统计·相关分析·分组比较·异常值检测</span>
       </div>
     </div>
-    <div class="ds-note">方法说明：① 角色级相关分析使用全部可玩角色（n = 122），不做抽样；② 曲目级样本为 1712 首具备真实指标的官方曲目（按中文曲名去重），无真实来源不计入；③ B站曲目播放量取「原神+曲名」搜索最相关视频，同专辑多首曲目可能命中共用同一支 PV，因此该指标反映「曲目相关视频热度」而非严格单曲播放；④ 所有数值为 2026 年 10 月单次快照，不构成时间序列趋势推断。上述限制不影响组内相对比较，但解读跨平台绝对量级时需谨慎。</div>
+    <div class="ds-note">方法说明：① 角色级相关分析使用全部可玩角色（n = 122），不做抽样；② 曲目级样本为 <span id="noteTrackN">1753</span> 首具备真实指标的官方曲目（按中文曲名去重），无真实来源不计入；③ B站曲目播放量取「原神+曲名」搜索最相关视频，同专辑多首曲目可能命中共用同一支 PV，因此该指标反映「曲目相关视频热度」而非严格单曲播放；④ 所有数值为 2026 年 10 月单次快照，不构成时间序列趋势推断。上述限制不影响组内相对比较，但解读跨平台绝对量级时需谨慎。</div>
     <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
   </div>
 
 </div>
 
-<script src="js/data.js?v=20261030a"></script>
-<script src="js/avatar-map.js?v=20261030a"></script>
-<script src="js/nav.js?v=20261030a"></script>
-<script src="js/insight.js?v=20261030a"></script>
-<script src="js/page-hero.js?v=20261030a"></script>
-<script src="js/optimize.js?v=20261030a"></script>
+<script src="js/data.js?v=20261030h"></script>
+<script src="js/avatar-map.js?v=20261030h"></script>
+<script src="js/nav.js?v=20261030h"></script>
+<script src="js/insight.js?v=20261030h"></script>
+<script src="js/page-hero.js?v=20261030h"></script>
+<script src="js/optimize.js?v=20261030h"></script>
 </body>
 </html>

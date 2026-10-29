@@ -60,8 +60,22 @@ function hideTooltip() {
   }
 }
 
+function syncSampleCounts() {
+  // 静态文案中的样本量与实时统计口径保持一致，避免「1712 / 1753」这类硬编码漂移
+  const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
+  ['heroCharN', 'defCharN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = CHARACTERS.length;
+  });
+  ['heroTrackN', 'defTrackN', 'noteTrackN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = census.length;
+  });
+}
+
 (function () {
   renderKPI();
+  syncSampleCounts();
   renderExecutiveSummary();
   renderPlatformMatrix();
   renderTrend();
@@ -1184,19 +1198,22 @@ function renderPhenomenon() {
   const el = document.getElementById('phenomenonAnalysis');
   if (!el) return;
 
-  // 合并剧情曲与地区BGM，按曲目名去重；仅保留网易云评论数（真实）可查的曲目
-  const seenTrackNames = new Set();
-  const allTracks = [];
-  [
-    ...(window.STORY_TRACKS || []).map(t => ({ name: t.name, region: t.region, version: t.version, type: '剧情曲' })),
-    ...Object.entries(REGION_TRACKS).flatMap(([rid, arr]) => arr.map(t => ({ name: t.name, region: rid, version: t.version, type: '地区BGM' })))
-  ].forEach(t => {
-    if (seenTrackNames.has(t.name)) return;
-    const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
-    if (!r || typeof r.neteaseCmt !== 'number') return;
-    seenTrackNames.add(t.name);
-    allTracks.push({ ...t, heat: r.neteaseCmt, play: typeof r.biliPlay === 'number' ? r.biliPlay : 0 });
-  });
+  // 样本与执行摘要 / 关键发现保持同一口径：getVerifiedTrackCensus（按中文曲名去重，仅含真实指标）
+  // 仅保留网易云评论数（真实）可查的曲目，作为曲目热度的代理指标
+  const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
+  // 官方专辑 type 为英文内部标识，展示时统一映射为中文，避免出现 ep / scene 等生标识
+  const TYPE_LABEL = { scene: '场景OST', character: '角色OST', ep: 'EP专辑', version: '版本OST' };
+  const regionLabel = id => (id ? rName(id) : '未标注地区');
+  const allTracks = census
+    .filter(t => typeof t.cmt === 'number')
+    .map(t => ({
+      name: t.name,
+      region: t.region,
+      version: t.version,
+      type: TYPE_LABEL[t.type] || t.type || '曲目',
+      heat: t.cmt,
+      play: typeof t.play === 'number' ? t.play : 0
+    }));
   if (!allTracks.length) {
     el.innerHTML = `<div class="insight-card" style="padding:32px;text-align:center;">
       <div class="insight-label">暂无真实平台数据（未采集到对应曲目的网易云评论数）</div></div>`;
@@ -1209,7 +1226,7 @@ function renderPhenomenon() {
   const iqr = q3 - q1;
   const threshold = q3 + 1.5 * iqr;
   const phenomenons = allTracks.filter(t => t.heat > threshold).sort((a, b) => b.heat - a.heat);
-  const sng = allTracks.find(t => t.name === '神女劈观');
+  const sng = allTracks.find(t => t.name.indexOf('神女劈观') === 0);
   const avgHeat = statMean(heats);
   const cv = statCV(heats);
   const coverage = (phenomenons.length / allTracks.length) * 100;
@@ -1247,7 +1264,7 @@ function renderPhenomenon() {
     <div class="insight-card" style="border-top:3px solid #EC4899;">
       <div class="insight-icon">${icoPng('assets/img/items/UI_ItemIcon_112001.png','','')}</div>
       <div class="insight-value">${allTracks.length}</div>
-      <div class="insight-label">去重后可核实曲目 n</div>
+      <div class="insight-label">含网易云评论数的曲目 n（去重后）</div>
     </div>
   </div>
   <div class="ds-note" style="margin:10px 0 14px;">
@@ -1265,7 +1282,7 @@ function renderPhenomenon() {
         <h3>"神女劈观" —— 京剧跨界的现象级出圈</h3>
       </div>
       <div class="featured-content">
-        <p><strong>${sng.name}</strong>（${rName(sng.region)} · v${sng.version}）实测 <span class="highlight">${fmt(sng.heat)}</span> 条网易云评论，
+        <p><strong>${sng.name}</strong>（${regionLabel(sng.region)} · v${sng.version}）实测 <span class="highlight">${fmt(sng.heat)}</span> 条网易云评论，
         位于样本第 <span class="highlight">${pct === null ? '—' : pct.toFixed(0)}</span> 百分位，为曲目评论中位数（${median}）的 <span class="highlight">${ratioMed} 倍</span>。</p>
         <p>该曲以京剧唱腔演绎，将中国传统戏曲融入游戏音乐，在 2.4 版本海灯节期间形成跨圈层传播。从统计视角看，它属于长尾分布右端的极端样本，
         其量级不能作为全站曲目的平均水平参照。</p>
@@ -1273,14 +1290,15 @@ function renderPhenomenon() {
       <div class="featured-stats">
         <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${fmt(sng.heat)} 评论</span></div>
         <div class="stat-item"><span><img src="assets/img/deco/UI_NameCardIcon_0.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>v${sng.version} 上线</span></div>
-        <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${rName(sng.region)} 剧情曲</span></div>
+        <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${regionLabel(sng.region)} · ${sng.type}</span></div>
       </div>
     </div>`;
   }
 
-  html += '<div class="section-header"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display=\'none\'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/> 异常值曲目清单（Tukey 规则：评论数 &gt; Q3+1.5×IQR）</div>';
+  const listTracks = phenomenons.slice(0, 15);
+  html += `<div class="section-header"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/> 异常值曲目清单（Tukey 规则：评论数 &gt; Q3+1.5×IQR，共 ${phenomenons.length} 首，列出前 ${listTracks.length} 首）</div>`;
   html += '<div class="ranking-list">';
-  phenomenons.forEach((t, i) => {
+  listTracks.forEach((t, i) => {
     const bar = Math.min(100, (t.heat / phenomenons[0].heat) * 100);
     const rankColor = i < 3 ? ['#F59E0B', '#94A3B8', '#CD7F32'][i] : '#64748B';
     html += `
@@ -1288,7 +1306,7 @@ function renderPhenomenon() {
         <div class="rank-badge" style="background:${rankColor};">${i + 1}</div>
         <div class="rank-info">
           <div class="rank-title">${t.name}</div>
-          <div class="rank-meta">${rName(t.region)} · v${t.version} · ${t.type}</div>
+          <div class="rank-meta">${regionLabel(t.region)} · v${t.version || '—'} · ${t.type}</div>
           <div class="rank-bar-container">
             <div class="rank-bar" style="width:${bar}%;background:linear-gradient(90deg,${rColor(t.region)},${rColor(t.region)}88);"></div>
           </div>

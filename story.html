@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -109,7 +109,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本 × 地区 热度矩阵 -->
   <div class="card">
     <h3>版本 × 地区 热度矩阵 <span class="method-tag">交叉分析</span></h3>
-    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按版本-地区分组统计平均网易云评论数，色块深浅映射热度强度，识别版本迭代中的地区偏好迁移。</p>
+    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按「版本 × 地区」分组取网易云评论<strong>中位数</strong>（分组样本量 n 见单元格悬浮提示），色块深浅映射相对强度，用于识别版本迭代中的地区偏好迁移；分组样本较小处不宜作为独立结论。</p>
     <div id="versionRegionMatrix" style="margin-top:16px;overflow-x:auto;"></div>
   </div>
 
@@ -160,11 +160,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261030a"></script>
-<script src="js/avatar-map.js?v=20261030a"></script>
-<script src="js/nav.js?v=20261030a"></script>
-<script src="js/story.js?v=20261030a"></script>
-<script src="js/page-hero.js?v=20261030a"></script>
-<script src="js/optimize.js?v=20261030a"></script>
+<script src="js/data.js?v=20261030h"></script>
+<script src="js/avatar-map.js?v=20261030h"></script>
+<script src="js/nav.js?v=20261030h"></script>
+<script src="js/story.js?v=20261030h"></script>
+<script src="js/page-hero.js?v=20261030h"></script>
+<script src="js/optimize.js?v=20261030h"></script>
 </body>
 </html>

@@ -169,8 +169,10 @@ function rarityBadgeSvg(r) {
 function rarityStars(rarity) {
   const r = Math.max(1, Math.min(5, Number(rarity) || 1));
   let html = '';
+  // 本地素材库无星级 PNG（UI_Rarity_Star_Gold.png 不存在），改用与角色详情页一致的
+  // 金色 ★ 字形，避免出现破图占位与 alt 文本
   for (let i = 0; i < r; i++) {
-    html += `<img class="rarity-star-icon" src="assets/img/deco/UI_Rarity_Star_Gold.png" alt="星" loading="lazy"/>`;
+    html += `<span class="rarity-star-icon rarity-star-glyph" aria-label="星">★</span>`;
   }
   return `<span class="rarity-stars-img" title="${r}星">${html}</span>`;
 }
@@ -262,7 +264,10 @@ window.renderCharCard = function(c) {
   // 专辑曲目预览（从ALBUMS获取）
   let albumTracksHtml = '';
   if (typeof getTracksByCharacter === 'function') {
-    const charTracks = getTracksByCharacter(c.name);
+    const charTracks = getTracksByCharacter(c.name).map(t => ({
+      ...t,
+      heatScore: (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(t) : (t.heatScore || 0)
+    }));
     const topTracks = charTracks.slice(0, 2);
     if (topTracks.length > 0) {
       albumTracksHtml = `
@@ -271,7 +276,7 @@ window.renderCharCard = function(c) {
           ${topTracks.map(t => `
             <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:2px;">
               <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:var(--text-secondary);">${t.trackName || t.name}</span>
-              <span style="color:${color};font-weight:600;flex-shrink:0;"><img src="assets/img/deco/UI_ItemIcon_105.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>${t.heatScore || '-'}</span>
+              <span style="color:${color};font-weight:600;flex-shrink:0;"><img src="assets/img/deco/UI_ItemIcon_105.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>${t.heatScore > 0 ? t.heatScore : '—'}</span>
             </div>
           `).join('')}
         </div>`;

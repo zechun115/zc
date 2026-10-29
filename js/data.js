@@ -7963,7 +7963,8 @@ function getTracksByCharacter(characterName) {
   );
   
   const allTracks = [...regionTracks.slice(0, 10), ...directMatches];
-  return allTracks.sort((a, b) => ((b.neteaseCmt || 0) + (b.biliPlay || 0) / 10) - ((a.neteaseCmt || 0) + (a.biliPlay || 0) / 10))
+  const heatOf = t => (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(t) : 0;
+  return allTracks.sort((a, b) => heatOf(b) - heatOf(a))
     .filter((t, i, arr) => arr.findIndex(x => x.trackName === t.trackName) === i);
 }
 
@@ -8069,8 +8070,20 @@ function statPercentileRank(arr, v) {
  * 无真实来源一律不计入样本（不估算、不插值）。 */
 function getVerifiedTrackCensus() {
   const out = [];
-  const seen = new Set();
   const baseName = n => (String(n || '').split(' ')[0] || '').trim();
+  // 同曲多源去重：基础曲名完全相同或存在包含关系，且实测指标数值一致 → 判定为同一首
+  //（如「神女劈观」与「神女劈观·唤情 Devastation and Redemption」、「蒙德」与「蒙德城」）
+  const seenList = [];
+  const isDup = (key, cmt, play) => seenList.some(s => {
+    // 基础曲名完全相同视为同一首（同一曲目在多张专辑中重复收录）
+    if (s.key === key) return true;
+    const nameHit = s.key.indexOf(key) === 0 || key.indexOf(s.key) === 0;
+    if (!nameHit) return false;
+    // 优先用网易云评论数比对，缺失时才退回 B站播放量，避免不同曲目因共用同一支 PV 被误合并
+    if (cmt !== null && s.cmt !== null) return s.cmt === cmt;
+    if (play !== null && s.play !== null) return s.play === play;
+    return false;
+  });
 
   ALBUMS.forEach(album => {
     album.tracks.forEach(track => {
@@ -8081,8 +8094,8 @@ function getVerifiedTrackCensus() {
       if (cmt === null && play === null) return;
       const name = (track.name || '').trim();
       const key = baseName(name);
-      if (!key || seen.has(key)) return;
-      seen.add(key);
+      if (!key || isDup(key, cmt, play)) return;
+      seenList.push({ key, cmt, play });
       out.push({ name, region: album.region, version: album.version, type: album.type, album: album.name, cmt, play });
     });
   });
@@ -8094,14 +8107,16 @@ function getVerifiedTrackCensus() {
   ];
   extras.forEach(t => {
     const key = baseName(t.name);
-    if (!key || seen.has(key)) return;
+    if (!key) return;
     const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
     if (!r || (typeof r.neteaseCmt !== 'number' && typeof r.biliPlay !== 'number')) return;
-    seen.add(key);
+    const cmt = typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null;
+    const play = typeof r.biliPlay === 'number' ? r.biliPlay : null;
+    if (isDup(key, cmt, play)) return;
+    seenList.push({ key, cmt, play });
     out.push({
       name: (t.name || '').trim(), region: t.region, version: t.version, type: t.type, album: null,
-      cmt: typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null,
-      play: typeof r.biliPlay === 'number' ? r.biliPlay : null
+      cmt, play
     });
   });
   return out;

@@ -2721,6 +2721,18 @@ tr:hover td { background: rgba(212,168,86,0.06); }
   height: 13px;
   object-fit: contain;
 }
+/* 星级字形（本地无星级 PNG 时的统一呈现，与角色详情页 ★ 一致） */
+.rarity-stars-img .rarity-star-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  font-size: 12px;
+  line-height: 1;
+  color: #F5C542;
+  text-shadow: 0 0 4px rgba(245,197,66,0.45);
+}
 
 /* 角色卡片：星级品质底板（替换 CSS 菱形） */
 .char-card-rarity-diamond {
