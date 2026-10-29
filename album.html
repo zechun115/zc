@@ -92,7 +92,8 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
           <li>所有<strong style="color:var(--text-primary);">曲目标题、专辑名称、发行日期、总曲目数</strong>均与网易云音乐/QQ音乐官方专辑标题完全一致。</li>
           <li>所有展示的<strong style="color:var(--text-primary);">具体曲目</strong>均为网易云音乐/QQ音乐/B站<strong style="color:var(--chart-1);">可直接搜索到的公开曲目</strong>（非自创）。</li>
           <li>对平台搜索结果不唯一、无法逐一核实的氛围BGM，<strong style="color:var(--chart-1);">宁空勿假</strong>，在专辑卡片上直接提示「完整曲目请前往官方音乐平台」。</li>
-          <li>无平台实测数据的曲目按<strong style="color:var(--text-primary);">同地区均值估算</strong>热度，并在曲目上以「◇均估 / ◇估算」标签明示；完全无法核实的曲目不展示任何数字。</li>
+          <li><strong style="color:var(--chart-1);">不做任何估算</strong>：仅展示爬虫实测的「网易云评论数」与「B站相关视频播放量」；无真实来源的曲目数字一律留空显示「—」，不填充、不推算。</li>
+          <li>QQ音乐不公开单曲收藏/播放数，故曲目级不展示其数字，仅保留跳转链接供人工核对。</li>
         </ul>
       </div>
       <!-- 右栏：热度计算依据 -->
@@ -100,15 +101,15 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <div class="ds-title-sub" style="font-weight:700;color:var(--chart-1);margin-bottom:8px;"><img src="assets/img/elements/UI_Element_Fire.png" alt="热度" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" onerror="this.style.display='none'">热度计算公式（曲目级）</div>
         <div style="padding:10px 12px;border-radius:8px;background:var(--bg-elevated);font-family:monospace;font-size:11.5px;color:var(--text-primary);margin-bottom:8px;">
 <span style="color:var(--gold-light);">【曲目热度】</span> heatScore (0-100) =<br>
-&nbsp;&nbsp;<span style="color:#FE2C55;">网易云收藏(k)</span>/2 上限40 +<br>
-&nbsp;&nbsp;<span style="color:#31A5E8;">QQ播放(w)</span>/5 上限30 +<br>
-&nbsp;&nbsp;<span style="color:#FB7299;">B站播放(w)</span>/10 上限30<br>
+&nbsp;&nbsp;<span style="color:#FE2C55;">log10(1+网易云评论)</span>/5 × 0.4 +<br>
+&nbsp;&nbsp;<span style="color:#FB7299;">log10(1+B站播放)</span>/7 × 0.6<br>
+&nbsp;&nbsp;（缺失项按可用权重重新归一，两项皆无则无热度）<br>
 <br>
-<span style="color:var(--gold-light);">【数据来源优先级】</span><br>
-&nbsp;&nbsp;✓实测 平台精确数据 ><br>
-&nbsp;&nbsp;◈区域 地区曲目匹配 ><br>
-&nbsp;&nbsp;★热度 popularity字段 ><br>
-&nbsp;&nbsp;◇均估 地区均值估算
+<span style="color:var(--gold-light);">【数据来源】</span><br>
+&nbsp;&nbsp;✓ 网易云单曲评论总数（官方接口）<br>
+&nbsp;&nbsp;✓ B站「原神+曲名」相关视频播放量（官方接口）<br>
+&nbsp;&nbsp;— 无实测来源：数字留空，不估算<br>
+&nbsp;&nbsp;— QQ音乐：不公开单曲数据，仅提供链接
         </div>
         <div style="font-size:11px;color:var(--text-tertiary);line-height:1.7;">
           <div>每首曲目以<strong style="color:var(--gold);">热度条</strong>直观展示综合热度（0-100分），热度条颜色反映等级：现象级(≥75红色) · 高热度(≥50金色) · 中等(≥25紫色) · 常规(&gt;0灰色)</div>
@@ -155,8 +156,8 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <span class="ds-value">网易云音乐 music.163.com · QQ音乐 y.qq.com</span>
       </div>
       <div class="ds-item">
-        <span class="ds-label">传播数据（PV·播放·收藏）</span>
-        <span class="ds-value">Bilibili.com · 网易云音乐 · QQ音乐</span>
+        <span class="ds-label">曲目级数据（评论·播放）</span>
+        <span class="ds-value">网易云音乐单曲评论数 · B站相关视频播放量（爬虫实测）</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">采集核对时间</span>
@@ -167,16 +168,16 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <span class="ds-value">点击专辑卡片底部 <img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/items/UI_ItemIcon_112002.png" alt="QQ音乐" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> 按钮直达三平台搜索</span>
       </div>
     </div>
-    <div class="ds-note" style="color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network · 若展示数值与平台实时数据存在细微差异，以三平台官方页面为准。</div>
+    <div class="ds-note" style="color:var(--text-quaternary);">B站播放量口径：按「原神 + 曲名」搜索最相关视频的累计播放量；同一专辑的曲目可能命中同一支官方专辑PV，因此同专辑内数值可能相同。<br>© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network · 若展示数值与平台实时数据存在细微差异，以三平台官方页面为准。</div>
   </div>
 
 </div>
 
-<script src="js/data.js"></script>
-<script src="js/avatar-map.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/album.js"></script>
-<script src="js/page-hero.js"></script>
-<script src="js/optimize.js"></script>
+<script src="js/data.js?v=20261029h"></script>
+<script src="js/avatar-map.js?v=20261029h"></script>
+<script src="js/nav.js?v=20261029h"></script>
+<script src="js/album.js?v=20261029h"></script>
+<script src="js/page-hero.js?v=20261029h"></script>
+<script src="js/optimize.js?v=20261029h"></script>
 </body>
 </html>

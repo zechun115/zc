@@ -1,4 +1,14 @@
 // ==================== 剧情场景页 ====================
+// 剧情曲目真实数据：为每首剧情曲目关联真实平台指标（无真实数据者剔除，不估算）
+// netease/cmt 字段承载「网易云评论数（千）」，qq 字段承载「B站相关视频播放量（千）」
+const ST = (window.STORY_TRACKS || []).map(t => {
+  const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+  const cmtK = r && typeof r.neteaseCmt === 'number' ? +(r.neteaseCmt / 1000).toFixed(1) : null;
+  const playK = r && typeof r.biliPlay === 'number' ? +(r.biliPlay / 1000).toFixed(1) : null;
+  if (cmtK === null && playK === null) return null;
+  return { ...t, netease: cmtK ?? 0, qq: playK ?? 0, cmt: cmtK ?? 0 };
+}).filter(Boolean);
+
 // 版本热点事件数据（基于各版本剧情与音乐传播热点整理）
 const VERSION_EVENTS = {
   "1.2": { event: "龙脊雪山开放", desc: "蒙德首张扩展地图，雪境氛围配乐奠定原神冬季叙事基调", region: "mondstadt" },
@@ -221,7 +231,7 @@ function renderVersionTrend() {
   svg.innerHTML = '';
 
   // 按版本排序
-  const sorted = [...STORY_TRACKS].sort((a, b) => parseFloat(a.version) - parseFloat(b.version));
+  const sorted = [...ST].sort((a, b) => parseFloat(a.version) - parseFloat(b.version));
   const versions = [...new Set(sorted.map(t => t.version))];
   const maxHeat = Math.max(...sorted.map(t => t.netease));
   const M = { l: 50, r: 40, t: 30, b: 50 };
@@ -267,7 +277,7 @@ function renderVersionTrend() {
   yt.setAttribute('text-anchor', 'middle'); yt.setAttribute('font-size', '12');
   yt.setAttribute('fill', 'var(--text-secondary)'); yt.setAttribute('font-weight', '500');
   yt.setAttribute('transform', `rotate(-90,14,${H / 2})`);
-  yt.textContent = '网易云收藏量(千)'; svg.appendChild(yt);
+  yt.textContent = '网易云评论数(千)'; svg.appendChild(yt);
 
   // 计算坐标点
   const points = sorted.map(t => {
@@ -360,8 +370,8 @@ function renderVersionTrend() {
       版本: t.version,
       曲目: t.name,
       地区: rName(t.region),
-      网易云收藏千: t.netease,
-      评论数千: t.cmt
+      网易云评论千: t.netease,
+      B站播放千: t.qq
     }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
@@ -379,14 +389,14 @@ function renderVersionHotspots() {
 
   // 选取每个版本热度最高的曲目
   const versionTop = {};
-  STORY_TRACKS.forEach(t => {
+  ST.forEach(t => {
     if (!versionTop[t.version] || t.netease > versionTop[t.version].netease) {
       versionTop[t.version] = t;
     }
   });
 
   const sortedVersions = Object.keys(versionTop).sort((a, b) => parseFloat(b) - parseFloat(a));
-  const avgHeat = STORY_TRACKS.reduce((s, t) => s + t.netease, 0) / STORY_TRACKS.length;
+  const avgHeat = ST.reduce((s, t) => s + t.netease, 0) / ST.length;
 
   el.innerHTML = sortedVersions.map(v => {
     const t = versionTop[v];
@@ -404,10 +414,10 @@ function renderVersionHotspots() {
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:18px;font-weight:700;color:${color};">
-            <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:14px;height:14px;vertical-align:-2px;margin-right:2px;" onerror="this.style.display='none'" title="来源：music.163.com 网易云音乐官方OST收藏量"/>
+            <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:14px;height:14px;vertical-align:-2px;margin-right:2px;" onerror="this.style.display='none'" title="来源：music.163.com 网易云单曲评论数（真实）"/>
             ${t.netease}k
           </div>
-          <div style="font-size:10px;color:var(--text-tertiary);">均值${heatRatio}倍 · QQ ${t.qq}k</div>
+          <div style="font-size:10px;color:var(--text-tertiary);">均值${heatRatio}倍 · B站 ${t.qq}k</div>
         </div>
       </div>
       <div style="font-size:13px;color:var(--text-primary);margin-bottom:6px;font-weight:500;"><img src="assets/img/deco/UI_ItemIcon_201.png" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"/> ${evt.event}</div>
@@ -420,11 +430,11 @@ function renderVersionHotspots() {
         </span>
         <span style="background:rgba(254,44,85,0.06);padding:2px 6px;border-radius:4px;font-weight:600;color:#FE2C55;">
           <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>
-          网易云收藏 ${t.netease}k
+          网易云评论 ${t.netease}k
         </span>
         <span style="background:rgba(49,165,232,0.06);padding:2px 6px;border-radius:4px;font-weight:600;color:#31A5E8;">
-          <img src="assets/img/deco/UI_ItemIcon_211.png" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>
-          QQ音乐收藏 ${t.qq}k
+          <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>
+          B站播放 ${t.qq}k
         </span>
         <span><img src="assets/img/deco/UI_ItemIcon_202.png" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"/>评论 ${t.cmt}k</span>
       </div>
@@ -437,8 +447,8 @@ function renderVersionRegionMatrix() {
   const el = document.getElementById('versionRegionMatrix');
   if (!el) return;
 
-  const versions = [...new Set(STORY_TRACKS.map(t => t.version))].sort((a, b) => parseFloat(a) - parseFloat(b));
-  const regions = [...new Set(STORY_TRACKS.map(t => t.region))];
+  const versions = [...new Set(ST.map(t => t.version))].sort((a, b) => parseFloat(a) - parseFloat(b));
+  const regions = [...new Set(ST.map(t => t.region))];
 
   // 构建矩阵
   const matrix = {};
@@ -446,7 +456,7 @@ function renderVersionRegionMatrix() {
   versions.forEach(v => {
     matrix[v] = {};
     regions.forEach(r => {
-      const tracks = STORY_TRACKS.filter(t => t.version === v && t.region === r);
+      const tracks = ST.filter(t => t.version === v && t.region === r);
       matrix[v][r] = tracks.length > 0
         ? tracks.reduce((s, t) => s + t.netease, 0) / tracks.length
         : 0;
@@ -493,8 +503,8 @@ function renderVersionRegionMatrix() {
 function renderStoryBars() {
   const el = document.getElementById('storyBars');
   if (!el) return;
-  const maxF = Math.max(...STORY_TRACKS.map(t => t.netease));
-  el.innerHTML = STORY_TRACKS.map(t => `
+  const maxF = Math.max(...ST.map(t => t.netease));
+  el.innerHTML = ST.map(t => `
     <div class="bar-row">
       <div class="bar-label">${t.name}</div>
       <div class="bar-track">
@@ -504,7 +514,7 @@ function renderStoryBars() {
     </div>
     <div style="display:flex;gap:12px;margin-left:112px;margin-top:-4px;margin-bottom:6px;font-size:11px;color:var(--text-tertiary);">
       <span>发行版本: v${t.version}</span>
-      <span>网易云 ${t.netease}k</span><span>QQ ${t.qq}k</span>
+      <span>网易云评论 ${t.netease}k</span><span>B站播放 ${t.qq}k</span>
     </div>
   `).join('');
 }
@@ -513,7 +523,7 @@ function renderStoryVsChar() {
   const el = document.getElementById('storyVsChar');
   if (!el) return;
   const groups = {};
-  STORY_TRACKS.forEach(t => {
+  ST.forEach(t => {
     if (!groups[t.region]) groups[t.region] = { sf: 0, sc: 0, cf: 0, cc: 0, version: '' };
     groups[t.region].sf += t.netease; groups[t.region].sc += t.cmt;
   });
@@ -551,7 +561,7 @@ function renderStoryTable() {
   if (!el) return;
   
   // 增强数据：从ALBUMS获取平台数据
-  const storyTracks = STORY_TRACKS.map(st => {
+  const storyTracks = ST.map(st => {
     let albumData = null;
     if (typeof getTrackFullData === 'function') {
       // 在ALBUMS中查找匹配的曲目
@@ -588,10 +598,10 @@ function renderStoryTable() {
         </div>
       </td>` : '<td>—</td>';
     
-    const heatCell = ad && ad.heatScore > 0 
+    const heatCell = ad && ad.heatScore > 0
       ? `<td><span style="color:var(--gold);font-weight:600;">${ad.heatScore}/100</span></td>`
-      : `<td>${fmt(t.netease * 1000)}</td>`;
-      
+      : `<td>—</td>`;
+
     return `
     <tr>
       <td>${i + 1}</td>
@@ -599,11 +609,10 @@ function renderStoryTable() {
       <td>${rName(t.region)}</td>
       <td>v${t.version}</td>
       ${heatCell}
-      ${ad ? `<td style="font-size:11px;">
-        ${ad.neteaseFav > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>${ad.neteaseFav}k</span> ` : ''}
-        ${ad.qqPlays > 0 ? `<span style="color:#31A5E8;"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>${ad.qqPlays}w</span>` : ''}
-      </td>` : `<td>${fmt(t.cmt * 1000)}</td>`}
-      <td>${fmt(t.qq * 1000)}</td>
+      <td style="font-size:11px;">
+        ${t.netease > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${t.netease}k</span>` : '—'}
+      </td>
+      <td>${t.qq > 0 ? `${t.qq}k` : '—'}</td>
       ${platformLinks}
     </tr>`;
   }).join('');
@@ -615,7 +624,12 @@ function renderVersionTimeline() {
   if (!el) return;
 
   const maxBuzz = Math.max(...TIMELINE_VERSIONS.map(v => v.buzz));
-  const maxHeat = Math.max(...TIMELINE_VERSIONS.map(v => v.heat));
+  // 网易云真实评论数（千）覆盖原估算热度；无真实数据则为 null
+  TIMELINE_VERSIONS.forEach(v => {
+    const r = (typeof getRealByName === 'function') ? getRealByName(v.track) : null;
+    v.realHeat = (r && typeof r.neteaseCmt === 'number') ? +(r.neteaseCmt / 1000).toFixed(1) : null;
+  });
+  const maxHeat = Math.max(...TIMELINE_VERSIONS.map(v => v.realHeat || 0), 1);
   const sentimentMap = {
     'positive':  { label: '好评',  color: 'var(--chart-3)', iconPng: 'assets/img/deco/UI_ItemIcon_210.png', iconFb: '✦', bg: 'rgba(52,211,153,0.1)' },
     'breakout':  { label: '破圈',  color: 'var(--gold)',    iconPng: 'assets/img/deco/UI_ItemIcon_204.png', iconFb: '★', bg: 'rgba(245,158,11,0.15)' },
@@ -628,7 +642,7 @@ function renderVersionTimeline() {
     const color = rColor(v.region);
     const sent = sentimentMap[v.sentiment];
     const buzzPct = (v.buzz / maxBuzz * 100).toFixed(0);
-    const heatPct = (v.heat / maxHeat * 100).toFixed(0);
+    const heatPct = v.realHeat !== null ? (v.realHeat / maxHeat * 100).toFixed(0) : 0;
     const isLeft = idx % 2 === 0;
     const isBreakout = v.sentiment === 'breakout';
     const isFirst = idx === 0;
@@ -658,9 +672,9 @@ function renderVersionTimeline() {
       : v.buzz >= 50
       ? '<img src="assets/img/deco/UI_ItemIcon_202.png" style="width:11px;height:11px;vertical-align:-1px;"/>'
       : '<img src="assets/img/deco/UI_ItemIcon_211.png" style="width:11px;height:11px;vertical-align:-1px;"/>';
-    const heatIco = v.heat >= 90
+    const heatIco = (v.realHeat || 0) >= 30
       ? '<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:11px;height:11px;vertical-align:-1px;"/>'
-      : v.heat >= 60
+      : (v.realHeat || 0) >= 5
       ? '<img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;"/>'
       : '<img src="assets/img/items/UI_ItemIcon_112002.png" style="width:11px;height:11px;vertical-align:-1px;"/>';
 
@@ -696,13 +710,13 @@ function renderVersionTimeline() {
         <div class="tl-metrics">
           <div class="tl-metric">
             <div class="tl-metric-header">
-              <span class="tl-metric-label" style="font-size:11px;color:var(--text-tertiary);">${heatIco} 网易云热度
-                <span class="tl-metric-src" title="来源：music.163.com 网易云音乐官方OST收藏量（单位：千），与 STORY_TRACKS 数据一致"
+              <span class="tl-metric-label" style="font-size:11px;color:var(--text-tertiary);">${heatIco} 网易云评论
+                <span class="tl-metric-src" title="来源：music.163.com 网易云单曲评论数（真实，单位千）"
                       style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(254,44,85,0.08);color:#FE2C55;font-weight:600;margin-left:3px;">
                   <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:8px;height:8px;vertical-align:-1px;" onerror="this.style.display='none'"/>网易云
                 </span>
               </span>
-              <span class="tl-metric-val" style="font-size:13px;font-weight:700;color:${color};">${v.heat}k</span>
+              <span class="tl-metric-val" style="font-size:13px;font-weight:700;color:${color};">${v.realHeat !== null ? v.realHeat + 'k' : '—'}</span>
             </div>
             <div class="tl-metric-bar" style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden;">
               <div class="tl-metric-fill" style="width:${heatPct}%;background:linear-gradient(90deg,${color}88,${color});border-radius:3px;transition:width 0.6s ease;"></div>

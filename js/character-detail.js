@@ -1,4 +1,4 @@
-// ==================== 角色详情页 ====================
+﻿// ==================== 角色详情页 ====================
 
 (function () {
   const params = new URLSearchParams(window.location.search);
@@ -55,15 +55,13 @@ function renderCharacterDetail(char) {
   const pvRank = CHARACTERS.slice().sort((a, b) => b.pv - a.pv).findIndex(c => c.name === char.name) + 1;
   const neteaseRank = CHARACTERS.slice().sort((a, b) => b.netease - a.netease).findIndex(c => c.name === char.name) + 1;
 
-  const charMusic = getCharacterMusic(char);
-  
-  // 从ALBUMS获取真实曲目数据
+  // 从ALBUMS获取真实曲目数据（无真实曲目时不展示任何虚构条目）
   let albumTracks = [];
   if (typeof getTracksByCharacter === 'function') {
     albumTracks = getTracksByCharacter(char.name);
   }
   const hasAlbumData = albumTracks.length > 0;
-  const displayTracks = hasAlbumData ? albumTracks.slice(0, 8) : charMusic;
+  const displayTracks = albumTracks.slice(0, 8);
 
   const starHtml = Array(5).fill(0).map((_, i) =>
     `<span class="star ${i < char.rarity ? 'gold' : 'silver'}">★</span>`
@@ -234,24 +232,18 @@ function renderCharacterDetail(char) {
     <!-- 角色主题音乐 -->
     <div class="card music-section" id="musicSection">
       <h3>${ic('assets/img/items/UI_ItemIcon_112001.png')}角色主题音乐</h3>
-      <p class="subtitle">${char.name} 相关的原声音乐作品（共${displayTracks.length}首）${hasAlbumData ? ' · 数据来源于官方专辑核实' : ''}</p>
+      <p class="subtitle">${hasAlbumData ? `${char.name} 相关的官方专辑曲目（共${displayTracks.length}首）· 数据来源于官方专辑核实` : '暂无该角色的官方专辑曲目数据'}</p>
       <div style="display:grid;gap:10px;">
-        ${displayTracks.map((m, i) => {
-          // 检查是否为ALBUMS来源数据
-          const isAlbumData = hasAlbumData && m.heatScore !== undefined;
-          const heatScore = isAlbumData ? m.heatScore : null;
+        ${displayTracks.length ? displayTracks.map((m, i) => {
+          // 检查是否为ALBUMS来源数据（getTrackFullData 不带 heatScore，需按真实指标现算）
+          const isAlbumData = !!(m.albumId || m.ncmId || m.trackName);
+          const heatScore = isAlbumData && typeof getTrackHeatScore === 'function' ? getTrackHeatScore(m) : null;
           const platformMetrics = isAlbumData ? `
             <div style="margin-top:6px;display:flex;gap:10px;font-size:11px;color:var(--text-tertiary);flex-wrap:wrap;">
-              ${m.neteaseFav > 0 ? `<span style="color:#FE2C55;">网易云 ${m.neteaseFav}k收藏</span>` : ''}
-              ${m.neteaseCmt > 0 ? `<span style="color:#FE2C55;">网易云 ${m.neteaseCmt}k评论</span>` : ''}
-              ${m.qqPlays > 0 ? `<span style="color:#31A5E8;">QQ音乐 ${m.qqPlays}w播放</span>` : ''}
-              ${m.biliPlays > 0 ? `<span style="color:#FB7299;">B站 ${m.biliPlays}w播放</span>` : ''}
+              ${m.neteaseCmt !== null && m.neteaseCmt !== undefined ? `<span style="color:#FE2C55;">网易云 ${fmt(m.neteaseCmt)} 评论</span>` : ''}
+              ${m.biliPlay !== null && m.biliPlay !== undefined ? `<span style="color:#FB7299;">B站 ${fmt(m.biliPlay)} 播放</span>` : ''}
             </div>` : `
-            <div style="margin-top:6px;display:flex;gap:8px;font-size:11px;color:var(--text-tertiary);">
-              <span>${icSm('assets/img/deco/UI_ItemIcon_202.png')}${fmt(m.fav * 1000)} 收藏</span>
-              <span>${icSm('assets/img/deco/UI_ItemIcon_210.png')}${fmt(m.cmt * 1000)} 评论</span>
-              <span>${icSm('assets/img/deco/UI_ItemIcon_211.png')}${fmt(m.play * 1000)} 播放</span>
-            </div>`;
+            <div style="margin-top:6px;font-size:11px;color:var(--text-quaternary);">暂无真实平台数据</div>`;
           
           const trackLinks = isAlbumData ? `
             <div style="margin-top:6px;display:flex;gap:6px;">
@@ -275,7 +267,7 @@ function renderCharacterDetail(char) {
             </div>
           </div>
           `;
-        }).join('')}
+        }).join('') : '<div style="padding:16px;text-align:center;font-size:12px;color:var(--text-quaternary);">该角色暂无可核实的官方专辑曲目</div>'}
       </div>
     </div>
 
@@ -321,7 +313,7 @@ function renderCharacterDetail(char) {
             ? albumRegionTracks.slice(0, 8) 
             : regionTracks.slice(0, 5);
           return combinedTracks.map(t => {
-            const isAlbumData = t.heatScore !== undefined;
+            const isAlbumData = !!(t.albumId || t.ncmId || t.trackName);
             return `
             <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:8px;transition:all 0.2s;">
               <div style="width:40px;height:40px;border-radius:6px;background:${color}22;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -335,8 +327,8 @@ function renderCharacterDetail(char) {
                     : `<span>发行版本: v${t.version}</span>`
                   }
                   ${isAlbumData 
-                    ? `${t.neteaseFav > 0 ? `<span style="color:#FE2C55;">网易云${t.neteaseFav}k</span>` : ''}${t.qqPlays > 0 ? `<span style="color:#31A5E8;">QQ音乐${t.qqPlays}w</span>` : ''}${t.biliPlays > 0 ? `<span style="color:#FB7299;">B站${t.biliPlays}w</span>` : ''}`
-                    : `<span>收藏 ${fmt(t.fav*1000)} · 评论 ${fmt(t.cmt*1000)}</span>`
+                    ? `${t.neteaseCmt !== null && t.neteaseCmt !== undefined ? `<span style="color:#FE2C55;">网易云${fmt(t.neteaseCmt)}评论</span>` : ''}${t.biliPlay !== null && t.biliPlay !== undefined ? `<span style="color:#FB7299;">B站${fmt(t.biliPlay)}播放</span>` : ''}`
+                    : `<span>暂无真实平台数据</span>`
                   }
                 </div>
               </div>
@@ -364,26 +356,4 @@ function renderCharacterDetail(char) {
   }
   const crumbName = document.getElementById('breadcrumbName');
   if (crumbName) crumbName.textContent = char.name;
-}
-
-function getCharacterMusic(char) {
-  const baseFav = char.netease;
-  const baseCmt = char.cmt;
-
-  if (CHARACTER_MUSIC[char.name]) {
-    return CHARACTER_MUSIC[char.name].sort((a, b) => b.fav - a.fav);
-  }
-
-  const specific = [
-    { name: `${char.name} Theme`, type: '角色主题曲', duration: '2:45', composer: '陈致逸', fav: baseFav, cmt: baseCmt, play: Math.round(baseFav * 3) },
-    { name: `${char.name} Battle Theme`, type: '战斗配乐', duration: '1:58', composer: '陈致逸', fav: Math.round(baseFav * 0.6), cmt: Math.round(baseCmt * 0.6), play: Math.round(baseFav * 2) }
-  ];
-
-  const generic = [
-    { name: `${char.name} Character PV BGM`, type: 'PV背景音乐', duration: '3:20', composer: '陈致逸', fav: Math.round(baseFav * 0.8), cmt: Math.round(baseCmt * 0.8), play: Math.round(baseFav * 2.5) },
-    { name: `${char.name} Story Theme`, type: '剧情音乐', duration: '2:30', composer: '苑迪萌', fav: Math.round(baseFav * 0.5), cmt: Math.round(baseCmt * 0.5), play: Math.round(baseFav * 1.5) },
-    { name: `${char.name} Combat OST`, type: '战斗配乐', duration: '2:15', composer: '陈致逸', fav: Math.round(baseFav * 0.4), cmt: Math.round(baseCmt * 0.4), play: Math.round(baseFav * 1.8) }
-  ];
-
-  return [...specific, ...generic].sort((a, b) => b.fav - a.fav);
 }

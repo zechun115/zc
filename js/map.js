@@ -318,14 +318,21 @@
   }
 
   // 获取该地区播放量/热度最高的音乐（按 fav 为主、cmt 为辅排序）
+  // 曲目真实指标（网易云评论数 + B站相关视频播放量），无真实数据返回 null
+  function trackRealOf(t) {
+    const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+    if (!r || (typeof r.neteaseCmt !== 'number' && typeof r.biliPlay !== 'number')) return null;
+    return r;
+  }
+
   function getRegionTopTrack(rid) {
     const tracks = REGION_TRACKS[rid] || [];
     if (!tracks.length) return null;
-    return tracks.slice().sort((a, b) => {
-      const scoreA = (a.fav || 0) * 1000 + (a.cmt || 0) * 100;
-      const scoreB = (b.fav || 0) * 1000 + (b.cmt || 0) * 100;
-      return scoreB - scoreA;
-    })[0];
+    // 仅按真实指标排序：评论数 + 播放量/10（两者量级差约一个数量级）
+    return tracks.map(t => {
+      const r = trackRealOf(t);
+      return { t, score: r ? (r.neteaseCmt || 0) + (r.biliPlay || 0) / 10 : -1 };
+    }).filter(x => x.score >= 0).sort((a, b) => b.score - a.score)[0]?.t || null;
   }
 
   // ----- 共享：选中国家（渲染角色列表 + 高亮标记 + 代表音乐）-----
@@ -337,12 +344,15 @@
     const chars = CHARACTERS.filter(c => c.region === rid);
     const tracks = REGION_TRACKS[rid] || [];
     const topTrack = getRegionTopTrack(rid);
+    const topTrackReal = topTrack ? trackRealOf(topTrack) : null;
     // pv 字段已是"万"为单位，直接累加；netease/cmt/qq 字段为"千"为单位
     const totalPv = chars.reduce((s, c) => s + c.pv, 0);
     const totalNetease = chars.reduce((s, c) => s + c.netease, 0);
     const totalQq = chars.reduce((s, c) => s + c.qq, 0);
-    const totalFav = totalNetease + totalQq + tracks.reduce((s, t) => s + t.fav, 0);
-    const totalCmt = chars.reduce((s, c) => s + c.cmt, 0) + tracks.reduce((s, t) => s + t.cmt, 0);
+    const totalFav = totalNetease + totalQq;
+    // 曲目级只用真实数据：网易云评论数 / B站相关视频播放量（绝对值）
+    const trackCmt = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.neteaseCmt || 0); }, 0);
+    const trackPlay = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.biliPlay || 0); }, 0);
 
     // 元素分布统计
     const elementCounts = {};
@@ -356,8 +366,8 @@
         <div style="font-size:16px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${topTrack.name}</div>
         <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;display:flex;gap:12px;">
           <span>v${topTrack.version}</span>
-          <span>${fmtCN(topTrack.fav * 1000)}收藏</span>
-          <span>${fmtCN(topTrack.cmt * 1000)}评论</span>
+          ${topTrackReal ? `<span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 评${fmtCN(topTrackReal.neteaseCmt || 0)}</span>
+          <span><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 播${fmtCN(topTrackReal.biliPlay || 0)}</span>` : ''}
         </div>
       </div>
     ` : '';
@@ -387,8 +397,9 @@
       ${topTrackHtml}
       <div class="rip-stats">
         <div class="rip-stat">PV总播放 <span class="v">${fmtCN(totalPv * 10000)}</span></div>
-        <div class="rip-stat">音乐总收藏 <span class="v">${fmtCN(totalFav * 1000)}</span></div>
-        <div class="rip-stat">总评论 <span class="v">${fmtCN(totalCmt * 1000)}</span></div>
+        <div class="rip-stat">角色音乐收藏 <span class="v">${fmtCN(totalFav * 1000)}</span></div>
+        <div class="rip-stat">曲目评论 <span class="v">${trackCmt > 0 ? fmtCN(trackCmt) : '—'}</span></div>
+        <div class="rip-stat">曲目播放 <span class="v">${trackPlay > 0 ? fmtCN(trackPlay) : '—'}</span></div>
         <div class="rip-stat">热门角色 <span class="v">${chars.sort((a, b) => b.pv - a.pv)[0]?.name || '-'}</span></div>
       </div>
       ${elementList.length > 1 ? `
@@ -398,13 +409,16 @@
       </div>` : ''}
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
         <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px;" onerror="this.style.display='none'"/> 热门地区音乐</div>
-        ${tracks.slice(0, 3).map(t => `
+        ${tracks.map(t => ({ t, r: trackRealOf(t) }))
+          .filter(x => x.r)
+          .sort((a, b) => ((b.r.neteaseCmt || 0) + (b.r.biliPlay || 0) / 10) - ((a.r.neteaseCmt || 0) + (a.r.biliPlay || 0) / 10))
+          .slice(0, 3).map(({ t, r }) => `
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">
             <span style="color:var(--text-tertiary);font-size:10px;">v${t.version}</span>
             <span style="flex:1;color:var(--text-primary);">${t.name}</span>
-            <span style="color:var(--text-tertiary);font-size:11px;">${fmtCN(t.fav * 1000)}收藏</span>
+            <span style="color:var(--text-tertiary);font-size:11px;">评${fmtCN(r.neteaseCmt || 0)} · 播${fmtCN(r.biliPlay || 0)}</span>
           </div>
-        `).join('')}
+        `).join('') || '<div style="font-size:11px;color:var(--text-quaternary);">暂无真实平台数据</div>'}
       </div>
       <div class="region-char-list">
         <div class="rcl-title">全部角色（点击查看详情）→</div>
@@ -547,9 +561,12 @@
       const chars = CHARACTERS.filter(c => c.region === r.id);
       const tracks = REGION_TRACKS[r.id] || [];
       const storyT = STORY_TRACKS.filter(t => t.region === r.id);
-      // 综合热度 = 角色网易云收藏 + 地区音乐收藏 + 剧情音乐收藏
+      // 综合热度 = 角色网易云收藏（千）+ 地区曲目真实评论数（÷1000 折算千）+ 剧情曲目真实评论数（千）
       const charFav = chars.reduce((s, c) => s + c.netease, 0);
-      const trackFav = tracks.reduce((s, t) => s + (t.fav || 0), 0);
+      const trackFav = tracks.reduce((s, t) => {
+        const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+        return s + ((r && typeof r.neteaseCmt === 'number') ? r.neteaseCmt / 1000 : 0);
+      }, 0);
       const storyFav = storyT.reduce((s, t) => s + (t.netease || 0), 0);
       heats[r.id] = charFav + trackFav + storyFav;
     });

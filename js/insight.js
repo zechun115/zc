@@ -216,51 +216,47 @@ function renderPlatformMatrix() {
 function renderKeyFindings() {
   const topChar = [...CHARACTERS].sort((a, b) => b.pv - a.pv)[0];
   
-  // 合成曲目数据：优先使用ALBUMS的真实数据
+  // 合成曲目数据：仅使用真实平台数据（网易云评论数 + B站相关视频播放量）
   let allTracks = [];
   if (typeof getAllTracksSummary === 'function') {
-    allTracks = getAllTracksSummary().map(t => ({
-      name: t.trackName,
-      region: t.albumRegion,
-      // 统一排序口径为「收藏量·千」：优先取 neteaseFav（单位千）；
-      // 无收藏数据时用 heatScore(0-100) 线性映射 ×1.5（100分≈150千）
-      heat: t.neteaseFav > 0 ? t.neteaseFav : Math.round(t.heatScore * 1.5),
-      version: t.albumVersion,
-      type: t.albumType + ' OST',
-      neteaseFav: t.neteaseFav,
-      qqPlays: t.qqPlays,
-      biliPlays: t.biliPlays,
-      albumName: t.albumName,
-      neteaseUrl: t.neteaseUrl,
-      qqUrl: t.qqUrl,
-      bilibiliUrl: t.bilibiliUrl,
-      source: 'album'
-    }));
+    allTracks = getAllTracksSummary()
+      .filter(t => t.dataSource === 'real')
+      .map(t => ({
+        name: t.trackName,
+        region: t.albumRegion,
+        heat: t.neteaseCmt || 0,          // 网易云评论数（真实）
+        heatPlay: t.biliPlay || 0,        // B站相关视频播放量（真实）
+        version: t.albumVersion,
+        type: t.albumType + ' OST',
+        neteaseCmt: t.neteaseCmt,
+        biliPlay: t.biliPlay,
+        albumName: t.albumName,
+        neteaseUrl: t.neteaseUrl,
+        qqUrl: t.qqUrl,
+        bilibiliUrl: t.bilibiliUrl,
+        source: 'album'
+      }));
   }
-  
-  // 补足基础数据
-  const basicTracks = [
-    ...STORY_TRACKS.map(t => ({ name: t.name, region: t.region, heat: t.netease, version: t.version, type: '剧情曲', source: 'basic' })),
-    ...Object.entries(REGION_TRACKS).flatMap(([rid, arr]) => arr.map(t => ({ name: t.name, region: rid, heat: t.fav, version: t.version, type: '地区BGM', source: 'basic' })))
-  ];
-  
-  // 合并：如果有ALBUMS数据则优先，否则用基础数据
-  if (allTracks.length === 0) {
-    allTracks = basicTracks;
-  } else {
-    // 补充基础数据中独有的曲目
-    basicTracks.forEach(bt => {
-      if (!allTracks.find(at => at.name === bt.name)) {
-        allTracks.push(bt);
-      }
-    });
-  }
+
+  // 补足 STORY/REGION 中的曲目：按曲名取真实数据，无真实数据者丢弃
+  const extraTracks = [...STORY_TRACKS.map(t => ({ name: t.name, region: t.region, version: t.version, type: '剧情曲' })),
+    ...Object.entries(REGION_TRACKS).flatMap(([rid, arr]) => arr.map(t => ({ name: t.name, region: rid, version: t.version, type: '地区BGM' })))]
+    .map(t => {
+      const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+      if (!r || (typeof r.neteaseCmt !== 'number' && typeof r.biliPlay !== 'number')) return null;
+      return { ...t, heat: r.neteaseCmt || 0, heatPlay: r.biliPlay || 0, neteaseCmt: r.neteaseCmt, biliPlay: r.biliPlay, source: 'basic' };
+    })
+    .filter(Boolean);
+
+  extraTracks.forEach(bt => {
+    if (!allTracks.find(at => at.name === bt.name)) allTracks.push(bt);
+  })
   
   const topTrack = [...allTracks].sort((a, b) => b.heat - a.heat)[0];
 
-  const netEaseTotal = CHARACTERS.reduce((s, c) => s + c.netease, 0);
-  const qqTotal = CHARACTERS.reduce((s, c) => s + c.qq, 0);
-  const platformDiff = ((netEaseTotal - qqTotal) / qqTotal * 100).toFixed(0);
+  // 全站真实数据汇总（曲目级）
+  const cmtTotal = allTracks.reduce((s, t) => s + (t.neteaseCmt || 0), 0);
+  const playTotal = allTracks.reduce((s, t) => s + (t.biliPlay || 0), 0);
 
   const t1 = document.getElementById('insightTop1');
   const t2 = document.getElementById('insightTop2');
@@ -279,14 +275,6 @@ function renderKeyFindings() {
   }
   if (t2 && topTrack) {
     const isAlbumTrack = topTrack.source === 'album';
-    // heat 已统一为「收藏量·千」口径，直接展示
-    const heatDisplay = `${topTrack.heat.toLocaleString()}千`;
-    const platformDetail = isAlbumTrack ? `
-      <div style="display:flex;gap:6px;margin-top:4px;">
-        ${topTrack.neteaseFav > 0 ? `<span style="color:#FE2C55;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${topTrack.neteaseFav}k</span>` : ''}
-        ${topTrack.qqPlays > 0 ? `<span style="color:#31A5E8;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${topTrack.qqPlays}w</span>` : ''}
-        ${topTrack.biliPlays > 0 ? `<span style="color:#FB7299;font-size:10px;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${topTrack.biliPlays}w</span>` : ''}
-      </div>` : '';
     const trackLinks = isAlbumTrack ? `
       <div style="display:flex;gap:4px;margin-top:3px;">
         ${topTrack.neteaseUrl ? `<a href="${topTrack.neteaseUrl}" target="_blank" rel="noopener" style="color:#FE2C55;font-size:10px;text-decoration:none;">网易云</a>` : ''}
@@ -296,28 +284,36 @@ function renderKeyFindings() {
     t2.innerHTML = `
       <strong style="color:var(--gold-light);font-size:16px;">《${topTrack.name}》</strong><br>
       <span style="color:var(--text-secondary);font-size:12px;">${rName(topTrack.region)} · v${topTrack.version} · ${topTrack.type}${topTrack.albumName ? ' · ' + topTrack.albumName : ''}</span><br>
-      <span style="display:inline-flex;align-items:center;gap:2px;margin-top:4px;">
-        <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
-        <span style="color:#FE2C55;font-weight:600;">${heatDisplay}</span>
-        <span style="color:var(--text-tertiary);font-size:10px;margin-left:4px;">网易云收藏</span>
+      <span style="display:inline-flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">
+        ${typeof topTrack.neteaseCmt === 'number' ? `<span style="display:inline-flex;align-items:center;gap:3px;">
+          <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
+          <span style="color:#FE2C55;font-weight:600;">${fmt(topTrack.neteaseCmt)}</span>
+          <span style="color:var(--text-tertiary);font-size:10px;">网易云评论</span>
+        </span>` : ''}
+        ${typeof topTrack.biliPlay === 'number' ? `<span style="display:inline-flex;align-items:center;gap:3px;">
+          <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
+          <span style="color:#FB7299;font-weight:600;">${fmt(topTrack.biliPlay)}</span>
+          <span style="color:var(--text-tertiary);font-size:10px;">B站播放</span>
+        </span>` : ''}
       </span>
-      ${platformDetail}
       ${trackLinks}
     `;
   }
   if (t3) {
     t3.innerHTML = `
-      <strong style="color:var(--gold-light);font-size:16px;">网易云领先 ${platformDiff}%</strong><br>
-      <span style="color:var(--text-secondary);font-size:12px;">角色音乐收藏量对比</span><br>
+      <strong style="color:var(--gold-light);font-size:16px;">${allTracks.length} 首可核实曲目</strong><br>
+      <span style="color:var(--text-secondary);font-size:12px;">全站曲目真实互动总量</span><br>
       <span style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
         <span style="display:inline-flex;align-items:center;gap:1px;">
           <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
-          <span style="color:#FE2C55;font-weight:600;font-size:11px;">${fmt(netEaseTotal * 1000)}</span>
+          <span style="color:#FE2C55;font-weight:600;font-size:11px;">${fmt(cmtTotal)}</span>
+          <span style="color:var(--text-tertiary);font-size:10px;">评论</span>
         </span>
         <span style="color:var(--text-quaternary);">|</span>
         <span style="display:inline-flex;align-items:center;gap:1px;">
-          <img src="assets/img/deco/UI_ItemIcon_211.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
-          <span style="color:#31A5E8;font-weight:600;font-size:11px;">${fmt(qqTotal * 1000)}</span>
+          <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
+          <span style="color:#FB7299;font-weight:600;font-size:11px;">${fmt(playTotal)}</span>
+          <span style="color:var(--text-tertiary);font-size:10px;">播放</span>
         </span>
       </span>
     `;
@@ -1140,15 +1136,24 @@ function renderPhenomenon() {
   const el = document.getElementById('phenomenonAnalysis');
   if (!el) return;
 
-  // 合并剧情曲与地区BGM，按曲目名去重（同名优先保留 STORY_TRACKS 中字段更全的记录），避免重复计数
+  // 合并剧情曲与地区BGM，按曲目名去重；仅保留网易云评论数（真实）可查的曲目
   const seenTrackNames = new Set();
   const allTracks = [];
   [
-    ...STORY_TRACKS.map(t => ({ name: t.name, region: t.region, heat: t.netease, version: t.version, type: '剧情曲' })),
-    ...Object.entries(REGION_TRACKS).flatMap(([rid, arr]) => arr.map(t => ({ name: t.name, region: rid, heat: t.fav, version: t.version, type: '地区BGM' })))
+    ...(window.STORY_TRACKS || []).map(t => ({ name: t.name, region: t.region, version: t.version, type: '剧情曲' })),
+    ...Object.entries(REGION_TRACKS).flatMap(([rid, arr]) => arr.map(t => ({ name: t.name, region: rid, version: t.version, type: '地区BGM' })))
   ].forEach(t => {
-    if (!seenTrackNames.has(t.name)) { seenTrackNames.add(t.name); allTracks.push(t); }
+    if (seenTrackNames.has(t.name)) return;
+    const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+    if (!r || typeof r.neteaseCmt !== 'number') return;
+    seenTrackNames.add(t.name);
+    allTracks.push({ ...t, heat: r.neteaseCmt, play: typeof r.biliPlay === 'number' ? r.biliPlay : 0 });
   });
+  if (!allTracks.length) {
+    el.innerHTML = `<div class="insight-card" style="padding:32px;text-align:center;">
+      <div class="insight-label">暂无真实平台数据（未采集到对应曲目的网易云评论数）</div></div>`;
+    return;
+  }
   const heats = allTracks.map(t => t.heat).sort((a, b) => a - b);
   const median = heats[Math.floor(heats.length * 0.5)];
   const q3 = heats[Math.floor(heats.length * 0.75)];
@@ -1165,7 +1170,7 @@ function renderPhenomenon() {
     <div class="insight-card" style="border-top:3px solid #3b82f6;">
       <div class="insight-icon">${icoPng('assets/img/items/UI_ItemIcon_202.png','','')}</div>
       <div class="insight-value">${median}</div>
-      <div class="insight-label">全曲目热度中位数</div>
+      <div class="insight-label">曲目评论数中位数</div>
     </div>
     <div class="insight-card" style="border-top:3px solid #f59e0b;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_105.png','','')}</div>
@@ -1180,7 +1185,7 @@ function renderPhenomenon() {
     <div class="insight-card" style="border-top:3px solid #10b981;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_211.png','','')}</div>
       <div class="insight-value">${avgHeat.toFixed(0)}</div>
-      <div class="insight-label">平均热度</div>
+      <div class="insight-label">平均评论数</div>
     </div>
     <div class="insight-card" style="border-top:3px solid #8B5CF6;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_102.png','','')}</div>
@@ -1202,13 +1207,13 @@ function renderPhenomenon() {
         <h3>"神女劈观" —— 京剧跨界的现象级出圈</h3>
       </div>
       <div class="featured-content">
-        <p><strong>${sng.name}</strong>（${rName(sng.region)} · v${sng.version}）以 <span class="highlight">${sng.heat}千</span> 收藏量位居全曲目前列，
-        是全曲目平均热度（${avgHeat.toFixed(0)}）的 <span class="highlight">${ratio}倍</span>。</p>
+        <p><strong>${sng.name}</strong>（${rName(sng.region)} · v${sng.version}）以 <span class="highlight">${fmt(sng.heat)}</span> 条网易云评论位居全曲目前列，
+        是曲目平均评论数（${avgHeat.toFixed(0)}）的 <span class="highlight">${ratio}倍</span>。</p>
         <p>该曲由云堇以京剧唱腔演绎，将中国传统戏曲融入游戏音乐，在2.4版本海灯节期间引发全网传播，
         成为原神音乐文化输出的标志性作品，体现了"传统艺术×游戏媒介"的创新传播价值。</p>
       </div>
       <div class="featured-stats">
-        <div class="stat-item"><span><img src="assets/img/deco/UI_ItemIcon_105.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${sng.heat.toLocaleString()}千 收藏</span></div>
+        <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${fmt(sng.heat)} 评论</span></div>
         <div class="stat-item"><span><img src="assets/img/deco/UI_NameCardIcon_0.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>v${sng.version} 上线</span></div>
         <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${rName(sng.region)} 剧情曲</span></div>
       </div>

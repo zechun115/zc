@@ -10,9 +10,19 @@ function fmtNum(n) {
   if (n >= 10) return n.toFixed(1).replace(/\.0$/, '') + 'k';
   return n.toFixed(1).replace(/\.0$/, '') + 'k';
 }
-// 万单位数值格式化（qqPlays/biliPlays 口径为万，直接保留一位小数）
+// 真实指标格式化：评论数 / 播放量（输入为实际值）
+function fmtCmt(n) {
+  if (typeof n !== 'number' || isNaN(n) || n <= 0) return '—';
+  if (n >= 100000000) return (n / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
+  if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + '万';
+  return String(n);
+}
+function fmtPlay(n) {
+  return fmtCmt(n);
+}
+// 万单位数值格式化（保留兼容，避免旧调用报错）
 function fmtWan(n) {
-  if (typeof n !== 'number' || isNaN(n) || n <= 0) return '0万';
+  if (typeof n !== 'number' || isNaN(n) || n <= 0) return '—';
   const v = n >= 100 ? Math.round(n) : parseFloat(n.toFixed(1));
   return v + '万';
 }
@@ -21,7 +31,7 @@ function fmtTableNum(n) {
   if (typeof n !== 'number' || isNaN(n)) return '0';
   if (n >= 100000000) return (n / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
   if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + '万';
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + '千';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
   return Math.round(n).toString();
 }
 function showRadarTooltip(x, y, html) {
@@ -132,11 +142,11 @@ function renderRegion() {
   albumTracks.forEach(at => {
     if (!combinedTracks.find(ct => (ct.trackName || ct.name) === at.trackName)) {
       if (typeof getTrackHeatScore === 'function') at.heatScore = getTrackHeatScore(at);
-      combinedTracks.push({ ...at, name: at.trackName, fav: at.neteaseFav, cmt: at.neteaseCmt, version: at.albumVersion, _source: 'album_only' });
+      combinedTracks.push({ ...at, name: at.trackName, cmt: at.neteaseCmt, version: at.albumVersion, _source: 'album_only' });
     }
   });
   
-  const sorted = [...combinedTracks].sort((a, b) => (b.heatScore || 0) - (a.heatScore || 0) || (b.fav || 0) - (a.fav || 0));
+  const sorted = [...combinedTracks].sort((a, b) => (b.heatScore || 0) - (a.heatScore || 0));
   
   // 去重：同一曲目名只保留首条（避免无平台数据的基础曲目被误判为重复）
   const seen = new Set();
@@ -159,11 +169,10 @@ function renderRegion() {
           ${t.bilibiliUrl ? `<a href="${t.bilibiliUrl}" target="_blank" rel="noopener" style="color:#FB7299;font-size:10px;text-decoration:none;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>` : ''}
         </div>` : '';
       const metrics = isAlbum ? `
-        <div style="font-size:10px;color:var(--text-tertiary);display:flex;gap:4px;flex-wrap:wrap;">
-          ${t.neteaseFav > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>${fmtNum(t.neteaseFav)}</span>` : ''}
-          ${t.qqPlays > 0 ? `<span style="color:#31A5E8;"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>${fmtWan(t.qqPlays)}</span>` : ''}
-          ${t.biliPlays > 0 ? `<span style="color:#FB7299;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>${fmtWan(t.biliPlays)}</span>` : ''}
-        </div>` : '';
+        <div style="font-size:10px;color:var(--text-tertiary);display:flex;gap:6px;flex-wrap:wrap;">
+          ${t.neteaseCmt !== null && t.neteaseCmt !== undefined ? `<span style="color:#FE2C55;" title="网易云评论数（真实）"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>评${fmtCmt(t.neteaseCmt)}</span>` : ''}
+          ${t.biliPlay !== null && t.biliPlay !== undefined ? `<span style="color:#FB7299;" title="B站相关视频播放量（真实）"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>播${fmtPlay(t.biliPlay)}</span>` : ''}
+        </div>` : '<div style="font-size:10px;color:var(--text-quaternary);">暂无真实平台数据</div>';
       return `
         <li class="rank-item">
           <div class="rank-num ${i < 3 ? 'top' : ''}">${i + 1}</div>
@@ -174,7 +183,7 @@ function renderRegion() {
             ${platformIcons}
           </div>
           <div class="rank-val">
-            ${score > 0 ? `<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${score}` : fmtNum(t.fav || 0)}
+            ${score > 0 ? `<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${score}` : '—'}
           </div>
         </li>`;
     }).join('');
@@ -188,17 +197,19 @@ function renderRegion() {
 
   const tableEl = document.getElementById('regionTable');
   if (tableEl) {
-    const rows = Object.entries(REGION_TRACKS).map(([rid, tks]) => {
-      const r = REGIONS.find(x => x.id === rid);
-      const tf = tks.reduce((s, t) => s + t.fav, 0);
-      const tc = tks.reduce((s, t) => s + t.cmt, 0);
-      return { name: r ? r.name : rid, version: r?.version || '', n: tks.length, tf, tc };
-    }).sort((a, b) => b.tf - a.tf);
+    // 仅统计真实专辑曲目（网易云评论 + B站播放），无真实数据的地区不计入
+    const rows = REGIONS.map(r => {
+      const tks = (typeof getTracksByRegion === 'function') ? getTracksByRegion(r.id) : [];
+      const withData = tks.filter(t => (t.neteaseCmt !== null) || (t.biliPlay !== null));
+      const tc = withData.reduce((s, t) => s + (t.neteaseCmt || 0), 0);
+      const tp = withData.reduce((s, t) => s + (t.biliPlay || 0), 0);
+      return { name: r.name, version: r.version || '', n: withData.length, tc, tp };
+    }).filter(r => r.n > 0).sort((a, b) => b.tc - a.tc);
     tableEl.innerHTML = rows.map(r => {
-      const avgFav = r.n > 0 ? r.tf / r.n : 0;
-      const avgCmt = r.n > 0 ? r.tc / r.n : 0;
-      return `<tr><td>${r.name}</td><td>${r.version && r.version !== '0.0' ? 'v' + r.version : '--'}</td><td>${r.n}</td><td>${fmtTableNum(r.tf * 1000)}</td><td>${fmtTableNum(r.tc * 1000)}</td>
-      <td>${fmtNum(avgFav)}</td><td>${fmtNum(avgCmt)}</td></tr>`;
+      const avgCmt = r.tc / r.n;
+      const avgPlay = r.tp / r.n;
+      return `<tr><td>${r.name}</td><td>${r.version && r.version !== '0.0' ? 'v' + r.version : '--'}</td><td>${r.n}</td><td>${fmtTableNum(r.tc)}</td><td>${fmtTableNum(r.tp)}</td>
+      <td>${fmtTableNum(avgCmt)}</td><td>${fmtTableNum(avgPlay)}</td></tr>`;
     }).join('');
   }
 
@@ -219,28 +230,31 @@ function renderRadar() {
   svg.innerHTML = '';
 
   const dims = [
-    { key: 'avgFav', label: '平均收藏' },
     { key: 'avgCmt', label: '平均评论' },
-    { key: 'peakFav', label: '传播峰值' },
+    { key: 'avgPlay', label: '平均播放' },
+    { key: 'peakPlay', label: '播放峰值' },
     { key: 'trackScale', label: '曲目规模' },
     { key: 'interaction', label: '互动深度' }
   ];
 
-  // 计算所有地区的原始指标
+  // 计算所有地区的原始指标（仅基于真实数据）
   const regionMetrics = {};
-  Object.entries(REGION_TRACKS).forEach(([rid, tracks]) => {
-    if (!tracks.length) return;
-    const tf = tracks.reduce((s, t) => s + (t.fav || 0), 0);
-    const tc = tracks.reduce((s, t) => s + (t.cmt || 0), 0);
-    const mf = Math.max(...tracks.map(t => t.fav || 0));
-    const af = tf / tracks.length;
-    const ac = tc / tracks.length;
-    regionMetrics[rid] = {
-      avgFav: af,
+  REGIONS.forEach(r => {
+    const tracks = (typeof getTracksByRegion === 'function') ? getTracksByRegion(r.id) : [];
+    const withData = tracks.filter(t => (t.neteaseCmt !== null) || (t.biliPlay !== null));
+    if (!withData.length) return;
+    const tc = withData.reduce((s, t) => s + (t.neteaseCmt || 0), 0);
+    const tp = withData.reduce((s, t) => s + (t.biliPlay || 0), 0);
+    const peak = Math.max(...withData.map(t => t.biliPlay || 0), 0);
+    const ac = tc / withData.length;
+    const ap = tp / withData.length;
+    regionMetrics[r.id] = {
       avgCmt: ac,
-      peakFav: mf,
-      trackScale: tracks.length,
-      interaction: af > 0 ? ac / af : 0
+      avgPlay: ap,
+      peakPlay: peak,
+      trackScale: withData.length,
+      // 互动深度：每万次播放对应的评论数
+      interaction: ap > 0 ? ac / (ap / 10000) : 0
     };
   });
 

@@ -18,8 +18,12 @@ let albumFilter = 'all';
 function renderStats() {
   const total = ALBUMS.length;
   const totalTracks = ALBUMS.reduce((s, a) => s + a.trackCount, 0);          // 官方专辑总曲目数（真实元数据）
-  const verifiedTracks = ALBUMS.flatMap(a => a.tracks).length;                // 我们已核实公开可搜的曲目数（真实统计）
-  const coverage = ((verifiedTracks / totalTracks) * 100).toFixed(1);         // 覆盖比例
+  // 有真实平台指标（网易云评论数 或 B站播放量）的曲目数，绝不把「仅收录」算作「已核实」
+  const realTracks = ALBUMS.flatMap(a => a.tracks).filter(t => {
+    const r = (typeof TRACK_REAL !== 'undefined' && t.ncmId) ? TRACK_REAL[t.ncmId] : null;
+    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
+  }).length;
+  const coverage = ((realTracks / totalTracks) * 100).toFixed(1);              // 实测覆盖比例
   const latest = ALBUMS.reduce((m, a) => parseFloat(a.version) > parseFloat(m) ? a.version : m, '0');
   const sceneAlbums = ALBUMS.filter(a => a.type === 'scene').length;
   const charAlbums = ALBUMS.filter(a => a.type === 'character').length;
@@ -47,15 +51,15 @@ function renderStats() {
       <div class="stat-icon" style="background:linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);display:flex;align-items:center;justify-content:center;">
         <img src="assets/img/deco/UI_ItemIcon_210.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
       </div>
-      <div class="stat-value">${verifiedTracks}</div>
-      <div class="stat-label">已核实公开曲目</div>
+      <div class="stat-value">${realTracks}</div>
+      <div class="stat-label">有实测数据的曲目</div>
     </div>
     <div class="album-stat">
       <div class="stat-icon" style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);display:flex;align-items:center;justify-content:center;">
         <img src="assets/img/deco/UI_ItemIcon_202.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
       </div>
       <div class="stat-value">${coverage}%</div>
-      <div class="stat-label">核实覆盖率</div>
+      <div class="stat-label">实测覆盖率</div>
     </div>
     <div class="album-stat">
       <div class="stat-icon" style="background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);display:flex;align-items:center;justify-content:center;">
@@ -116,22 +120,12 @@ function renderAlbumGrid() {
     const region = a.region ? REGIONS.find(r => r.id === a.region) : null;
     const color = region ? region.color : '#8B5CF6';
 
-    // 分离「有热度」与「无热度」曲目：结合TRACK_PLATFORM_DATA和ALBUMS原始数据
+    // 曲目数据：只取真实平台数据（网易云评论数 / B站相关视频播放量）
     const tracksWithData = a.tracks.map(t => {
-      const fullData = (typeof getTrackFullData === 'function') 
-        ? getTrackFullData(a, t) 
-        : { neteaseFav: t.popularity || 0, neteaseCmt: 0, qqPlays: 0, biliPlays: 0, dataSource: t.source || 'estimated' };
-      // realData:false 的曲目不做任何估算，避免把地区均值当成真实热度
-      if (t.realData === false) {
-        fullData.neteaseFav = 0; fullData.neteaseCmt = 0;
-        fullData.qqPlays = 0; fullData.biliPlays = 0;
-        fullData.popularity = 0; fullData.dataSource = 'unverified';
-      }
-      if (typeof getTrackHeatScore === 'function') {
-        fullData.heatScore = getTrackHeatScore(fullData);
-      } else {
-        fullData.heatScore = t.popularity || 0;
-      }
+      const fullData = (typeof getTrackFullData === 'function')
+        ? getTrackFullData(a, t)
+        : { neteaseCmt: null, biliPlay: null, dataSource: 'unverified' };
+      fullData.heatScore = (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(fullData) : 0;
       fullData._raw = t;
       return fullData;
     });
@@ -175,12 +169,7 @@ function renderAlbumGrid() {
                  style="color:#FB7299;text-decoration:none;font-size:11px;" data-track="bili"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>`;
         
         const hasHeat = td.heatScore > 0;
-        const dataLabel = td.dataSource === 'netease_api' ? '✓实测' 
-          : td.dataSource === 'region_data' ? '◈区域' 
-          : td.dataSource === 'popularity_data' ? '★热度' 
-          : td.dataSource === 'region_avg' ? '◇均估' 
-          : td.dataSource === 'unverified' ? '未核实' 
-          : '◇估算';
+        const dataLabel = td.dataSource === 'real' ? '✓实测' : '未核实';
         // TOP 曲目标记（前 topTracks.length 首标为热门）
         const isTopTrack = idx < topTracks.length && hasHeat;
         // 曲目自身热度等级颜色
@@ -189,40 +178,26 @@ function renderAlbumGrid() {
         
         if (hasHeat) {
           const w = td.heatScore;
-          // 格式化数字（输入单位为千，千→万除以10），避免浮点数精度问题
-          const fmt = (n) => {
-            if (typeof n !== 'number' || isNaN(n)) return '0';
-            if (n >= 1000) return (n / 10).toFixed(1).replace(/\.0$/, '') + 'w';
-            if (n >= 100) return Math.round(n) + 'k';
-            if (n >= 10) return n.toFixed(1).replace(/\.0$/, '') + 'k';
-            return n.toFixed(1).replace(/\.0$/, '') + 'k';
+          // 真实指标格式化：评论数用完整数值，播放量换算为万/亿
+          const fmtCmt = (n) => {
+            if (typeof n !== 'number' || isNaN(n)) return '—';
+            return n >= 10000 ? (n / 10000).toFixed(1).replace(/\.0$/, '') + '万' : String(n);
           };
-          // qqPlays/biliPlays 口径为万，单独按万格式化
-          const fmtWan = (n) => {
-            if (typeof n !== 'number' || isNaN(n) || n <= 0) return '0万';
-            const v = n >= 100 ? Math.round(n) : parseFloat(n.toFixed(1));
-            return v + '万';
+          const fmtPlay = (n) => {
+            if (typeof n !== 'number' || isNaN(n)) return '—';
+            if (n >= 100000000) return (n / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
+            if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + '万';
+            return String(n);
           };
-          // 多平台指标显示
+          // 双指标并列：网易云评论 + B站播放（无真实值的不显示）
           const platformMetrics = [];
-          if (td.neteaseFav > 0) platformMetrics.push(`<span style="color:#FE2C55;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmt(td.neteaseFav)}</span>`);
-          if (td.qqPlays > 0) platformMetrics.push(`<span style="color:#31A5E8;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtWan(td.qqPlays)}</span>`);
-          if (td.biliPlays > 0) platformMetrics.push(`<span style="color:#FB7299;font-size:10px;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtWan(td.biliPlays)}</span>`);
-          // 如果有 popularity 但无平台指标，显示综合热度值
-          if (td.popularity > 0 && platformMetrics.length === 0) {
-            platformMetrics.push(`<span style="color:var(--gold);font-size:10px;font-weight:600;">热度${td.popularity}</span>`);
-          }
+          if (td.neteaseCmt !== null) platformMetrics.push(`<span style="color:#FE2C55;font-size:10px;" title="网易云评论数（真实）"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${fmtCmt(td.neteaseCmt)}</span>`);
+          if (td.biliPlay !== null) platformMetrics.push(`<span style="color:#FB7299;font-size:10px;" title="B站相关视频播放量（真实）"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>播${fmtPlay(td.biliPlay)}</span>`);
           // 热度等级标签
           const heatLabel = td.heatScore >= 75 ? '<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display=\'none\'"/>现象级' : td.heatScore >= 50 ? '<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display=\'none\'"/>高热度' : td.heatScore >= 25 ? '中等' : '常规';
-          // tooltip 专用格式化，保留单位后缀，避免浮点数精度
-          const fmtTip = (n, unit) => {
-            if (typeof n !== 'number' || isNaN(n)) return '0' + unit;
-            const v = n >= 100 ? Math.round(n) : parseFloat(n.toFixed(1));
-            return v + unit;
-          };
-          
+
           return `
-          <div class="mini-bar-row ${isTopTrack ? 'top-track' : ''}" title="曲目热度${td.heatScore}/100 (${heatLabel}) · 数据来源:${dataLabel} · 网易云${fmtTip(td.neteaseFav, 'k')} · QQ${fmtTip(td.qqPlays, 'w')} · B站${fmtTip(td.biliPlays, 'w')}${td.popularity > 0 ? ' · 综合热度:' + td.popularity : ''}">
+          <div class="mini-bar-row ${isTopTrack ? 'top-track' : ''}" title="曲目热度${td.heatScore}/100 (${heatLabel}) · 数据来源:${dataLabel} · 网易云评论${fmtCmt(td.neteaseCmt)} · B站播放${fmtPlay(td.biliPlay)}">
             <div class="mini-bar-label" style="font-weight:${isTopTrack ? '600' : '500'};">
               ${topBadge}<a href="${linkNetease}" target="_blank" rel="noopener"
                  style="color:var(--text-primary);text-decoration:none;">${displayName}</a>
@@ -366,9 +341,9 @@ function renderAlbumGrid() {
         版本: 'v' + a.version,
         关联地区: a.region ? (REGIONS.find(r => r.id === a.region)?.name || a.region) : '全角色合集',
         曲目标题: t.name,
-        热度popularity: (t.popularity != null && !isNaN(t.popularity)) ? t.popularity : '—',
-        数据真实性: '公开数据可追溯（网易云/QQ音乐官方专辑直达，逐首可点击收听）',
-        追溯链路: t.source + ' → 网易云×0.4 + QQ×0.35 + B站PV×0.25 → ×1.2',
+        热度popularity: t.heatScore,
+        数据真实性: '真实平台数据（网易云评论数 + B站相关视频播放量，爬虫实测）',
+        追溯链路: '网易云评论数 + B站相关视频播放量 → 对数归一化加权(0.4/0.6) → 0-100热度分',
         网易云音乐专辑直达: a.neteaseUrl,
         QQ音乐专辑直达: a.qqUrl,
         B站专辑相关PV: a.bilibiliUrl,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -80,7 +80,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本热度趋势图 -->
   <div class="card">
     <h3>剧情音乐版本热度趋势 <span class="method-tag">趋势分析</span></h3>
-    <p class="subtitle">各版本剧情原声在网易云平台的收藏量变化。方法：按发行版本排序追踪热度演变，标注版本热点事件以揭示热度驱动因素。</p>
+    <p class="subtitle">各版本剧情原声在网易云平台的真实评论数变化。方法：按发行版本排序追踪数据演变，标注版本热点事件以揭示热度驱动因素。</p>
     <svg id="versionTrendSvg" viewBox="0 0 720 320" style="width:100%;height:auto;"></svg>
     <div id="versionTrendLegend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;"></div>
   </div>
@@ -102,14 +102,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 剧情音乐热度对比 -->
   <div class="card">
     <h3>剧情音乐热度对比</h3>
-    <p class="subtitle">网易云收藏量 vs QQ音乐收藏量</p>
+    <p class="subtitle">网易云评论数 vs B站相关视频播放量（均为爬虫实测真实数据）</p>
     <div class="bar-chart" id="storyBars" style="margin-top:16px;"></div>
   </div>
 
   <!-- 版本 × 地区 热度矩阵 -->
   <div class="card">
     <h3>版本 × 地区 热度矩阵 <span class="method-tag">交叉分析</span></h3>
-    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按版本-地区分组统计平均收藏量，色块深浅映射热度强度，识别版本迭代中的地区偏好迁移。</p>
+    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按版本-地区分组统计平均网易云评论数，色块深浅映射热度强度，识别版本迭代中的地区偏好迁移。</p>
     <div id="versionRegionMatrix" style="margin-top:16px;overflow-x:auto;"></div>
   </div>
 
@@ -126,7 +126,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div style="overflow-x:auto;">
       <table>
         <thead>
-          <tr><th>排名</th><th>曲目</th><th>地区</th><th>版本</th><th>热度/网易云收藏</th><th>平台数据明细</th><th>QQ音乐收藏</th><th>链接</th></tr>
+          <tr><th>排名</th><th>曲目</th><th>地区</th><th>版本</th><th>热度/100</th><th>网易云评论</th><th>B站播放</th><th>链接</th></tr>
         </thead>
         <tbody id="storyTable"></tbody>
       </table>
@@ -160,11 +160,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js"></script>
-<script src="js/avatar-map.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/story.js"></script>
-<script src="js/page-hero.js"></script>
-<script src="js/optimize.js"></script>
+<script src="js/data.js?v=20261029h"></script>
+<script src="js/avatar-map.js?v=20261029h"></script>
+<script src="js/nav.js?v=20261029h"></script>
+<script src="js/story.js?v=20261029h"></script>
+<script src="js/page-hero.js?v=20261029h"></script>
+<script src="js/optimize.js?v=20261029h"></script>
 </body>
 </html>
