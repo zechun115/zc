@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """把 tracks_real.json 的真实数据写回 data.js：
    - 给每首曲目注入 ncmCmt(网易云评论真实值) 与 biliPlay(B站相关视频播放真实值)
-   - 移除/清空 qqPlays 推算值相关展示由前端控制，这里只注入真实字段
    - 生成 window.TRACK_REAL = { ncmId: {neteaseCmt, biliPlay} }
 """
 import os, re, json
@@ -28,7 +27,7 @@ src = re.sub(r'\n/\* =+ 真实平台数据.*?const TRACK_REAL[\s\S]*?;\n', '\n',
 block = '\n/* ======== 真实平台数据（爬虫采集于网易云评论数 + B站相关视频播放量，2026-10） ========\n'
 block += ' * neteaseCmt → 网易云单曲评论总数（真实接口）\n'
 block += ' * biliPlay   → B站「原神+曲名」搜索最相关视频播放量（真实接口）；null 表示未搜到，前端清空不显示\n'
-block += ' * 网易云收藏数、QQ音乐收藏/评论均无公开接口，故曲目级不展示，仅保留跳转链接（不捏造）\n'
+block += ' * 网易云收藏数及单曲收藏/评论均无公开接口，故曲目级不展示，仅保留跳转链接（不捏造）\n'
 block += ' */\n'
 block += 'const TRACK_REAL = ' + json.dumps(realmap, ensure_ascii=False, separators=(',', ':')) + ';\n'
 

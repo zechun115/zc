@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -9,10 +9,10 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>音乐专辑 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261031a">
-<link rel="stylesheet" href="css/optimize.css?v=20261031a">
-<link rel="stylesheet" href="css/album.css?v=20261031a">
-<link rel="stylesheet" href="css/page-hero.css?v=20261031a">
+<link rel="stylesheet" href="css/style.css?v=20261031b">
+<link rel="stylesheet" href="css/optimize.css?v=20261031b">
+<link rel="stylesheet" href="css/album.css?v=20261031b">
+<link rel="stylesheet" href="css/page-hero.css?v=20261031b">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="character.html">
@@ -73,7 +73,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>官方音乐专辑</h1>
       <div class="hero-line"></div>
-      <p>43张原神官方原声专辑 · 已同步至7.1版本 · 仅展示网易云/QQ音乐/B站可直接核实的公开曲目 · 每条数据附三平台搜索直达链接</p>
+      <p>43张原神官方原声专辑 · 已同步至7.1版本 · 仅展示网易云/B站可直接核实的公开曲目 · 每条数据附平台搜索直达链接</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
@@ -89,11 +89,10 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(168,85,247,0.18);background:rgba(168,85,247,0.03);">
         <div class="ds-title-sub" style="font-weight:700;color:var(--chart-4);margin-bottom:8px;">✓ 零虚构承诺</div>
         <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.9;color:var(--text-secondary);">
-          <li>所有<strong style="color:var(--text-primary);">曲目标题、专辑名称、发行日期、总曲目数</strong>均与网易云音乐/QQ音乐官方专辑标题完全一致。</li>
-          <li>所有展示的<strong style="color:var(--text-primary);">具体曲目</strong>均为网易云音乐/QQ音乐/B站<strong style="color:var(--chart-1);">可直接搜索到的公开曲目</strong>（非自创）。</li>
+          <li>所有<strong style="color:var(--text-primary);">曲目标题、专辑名称、发行日期、总曲目数</strong>均与网易云音乐官方专辑标题完全一致。</li>
+          <li>所有展示的<strong style="color:var(--text-primary);">具体曲目</strong>均为网易云音乐/B站<strong style="color:var(--chart-1);">可直接搜索到的公开曲目</strong>（非自创）。</li>
           <li>对平台搜索结果不唯一、无法逐一核实的氛围BGM，<strong style="color:var(--chart-1);">宁空勿假</strong>，在专辑卡片上直接提示「完整曲目请前往官方音乐平台」。</li>
           <li><strong style="color:var(--chart-1);">不做任何估算</strong>：仅展示爬虫实测的「网易云评论数」与「B站相关视频播放量」；无真实来源的曲目数字一律留空显示「—」，不填充、不推算。</li>
-          <li>QQ音乐不公开单曲收藏/播放数，故曲目级不展示其数字，仅保留跳转链接供人工核对。</li>
         </ul>
       </div>
       <!-- 右栏：热度计算依据 -->
@@ -108,12 +107,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 <span style="color:var(--gold-light);">【数据来源】</span><br>
 &nbsp;&nbsp;✓ 网易云单曲评论总数（官方接口）<br>
 &nbsp;&nbsp;✓ B站「原神+曲名」相关视频播放量（官方接口）<br>
-&nbsp;&nbsp;— 无实测来源：数字留空，不估算<br>
-&nbsp;&nbsp;— QQ音乐：不公开单曲数据，仅提供链接
+&nbsp;&nbsp;— 无实测来源：数字留空，不估算
         </div>
         <div style="font-size:11px;color:var(--text-tertiary);line-height:1.7;">
           <div>每首曲目以<strong style="color:var(--gold);">热度条</strong>直观展示综合热度（0-100分），热度条颜色反映等级：现象级(≥75红色) · 高热度(≥50金色) · 中等(≥25紫色) · 常规(&gt;0灰色)</div>
-          <div style="margin-top:6px;">核对方式：每首曲目名旁均有<strong style="color:var(--gold);">「<img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> · <img src="assets/img/items/UI_ItemIcon_112002.png" alt="QQ音乐" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> · <img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'">」</strong>三个图标按钮，点击直达平台搜索结果，约10秒即可人工核实。</div>
+          <div style="margin-top:6px;">核对方式：每首曲目名旁均有<strong style="color:var(--gold);">「<img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> · <img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'">」</strong>两个图标按钮，点击直达平台搜索结果，约10秒即可人工核实。</div>
         </div>
       </div>
     </div>
@@ -144,7 +142,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 专辑网格 -->
   <div class="card" style="margin-bottom:24px;">
     <h3><img src="assets/img/icons/精致的宝箱.png" onerror="this.style.display='none'" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"/>专辑曲目热度（仅展示已核实公开曲目）</h3>
-    <p class="subtitle">每张专辑仅展示网易云/QQ音乐/B站可直接搜索核实的核心曲目；其余氛围BGM或搜索结果不唯一的曲目不展示数字，请通过卡片底部的三平台链接直达官方专辑页面查看完整曲目</p>
+    <p class="subtitle">每张专辑仅展示网易云/B站可直接搜索核实的核心曲目；其余氛围BGM或搜索结果不唯一的曲目不展示数字，请通过卡片底部的平台链接直达官方专辑页面查看完整曲目</p>
     <div class="album-grid" id="albumGrid"></div>
   </div>
 
@@ -154,7 +152,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="ds-grid">
       <div class="ds-item">
         <span class="ds-label">专辑信息 · 曲目列表</span>
-        <span class="ds-value">网易云音乐 music.163.com · QQ音乐 y.qq.com</span>
+        <span class="ds-value">网易云音乐 music.163.com</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">曲目级数据（评论·播放）</span>
@@ -162,23 +160,23 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="ds-item">
         <span class="ds-label">采集核对时间</span>
-        <span class="ds-value">2026年10月（三平台公开页面）</span>
+        <span class="ds-value">2026年10月（平台公开页面）</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">用户核对方式</span>
-        <span class="ds-value">点击专辑卡片底部 <img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/items/UI_ItemIcon_112002.png" alt="QQ音乐" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> 按钮直达三平台搜索</span>
+        <span class="ds-value">点击专辑卡片底部 <img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> 按钮直达平台搜索</span>
       </div>
     </div>
-    <div class="ds-note" style="color:var(--text-quaternary);">B站播放量口径：按「原神 + 曲名」搜索最相关视频的累计播放量；同一专辑的曲目可能命中同一支官方专辑PV，因此同专辑内数值可能相同。<br>© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network · 若展示数值与平台实时数据存在细微差异，以三平台官方页面为准。</div>
+    <div class="ds-note" style="color:var(--text-quaternary);">B站播放量口径：按「原神 + 曲名」搜索最相关视频的累计播放量；同一专辑的曲目可能命中同一支官方专辑PV，因此同专辑内数值可能相同。<br>© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network · 若展示数值与平台实时数据存在细微差异，以平台官方页面为准。</div>
   </div>
 
 </div>
 
-<script src="js/data.js?v=20261031a"></script>
-<script src="js/avatar-map.js?v=20261031a"></script>
-<script src="js/nav.js?v=20261031a"></script>
-<script src="js/album.js?v=20261031a"></script>
-<script src="js/page-hero.js?v=20261031a"></script>
-<script src="js/optimize.js?v=20261031a"></script>
+<script src="js/data.js?v=20261031b"></script>
+<script src="js/avatar-map.js?v=20261031b"></script>
+<script src="js/nav.js?v=20261031b"></script>
+<script src="js/album.js?v=20261031b"></script>
+<script src="js/page-hero.js?v=20261031b"></script>
+<script src="js/optimize.js?v=20261031b"></script>
 </body>
 </html>

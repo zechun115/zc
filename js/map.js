@@ -303,7 +303,6 @@
           <div class="map-detail-stat"><div class="v">${fmtCN(char.pv * 10000)}</div><div class="l">PV播放</div></div>
           <div class="map-detail-stat"><div class="v">${fmtCN(char.netease * 1000)}</div><div class="l">网易云收藏</div></div>
           <div class="map-detail-stat"><div class="v">${fmtCN(char.cmt * 1000)}</div><div class="l">网易云评论</div></div>
-          <div class="map-detail-stat"><div class="v">${fmtCN(char.qq * 1000)}</div><div class="l">QQ音乐收藏</div></div>
         </div>
         <div class="map-detail-actions">
           <a href="character-detail.html?name=${encodeURIComponent(char.name)}" class="map-detail-btn primary">查看详情页 →</a>
@@ -355,11 +354,10 @@
     const tracks = REGION_TRACKS[rid] || [];
     const topTrack = getRegionTopTrack(rid);
     const topTrackReal = topTrack ? trackRealOf(topTrack) : null;
-    // pv 字段已是"万"为单位，直接累加；netease/cmt/qq 字段为"千"为单位
+    // pv 字段已是"万"为单位，直接累加；netease/cmt 字段为"千"为单位
     const totalPv = chars.reduce((s, c) => s + c.pv, 0);
     const totalNetease = chars.reduce((s, c) => s + c.netease, 0);
-    const totalQq = chars.reduce((s, c) => s + c.qq, 0);
-    const totalFav = totalNetease + totalQq;
+    const totalFav = totalNetease;
     // 曲目级只用真实数据：网易云评论数 / B站相关视频播放量（绝对值）
     const trackCmt = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.neteaseCmt || 0); }, 0);
     const trackPlay = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.biliPlay || 0); }, 0);

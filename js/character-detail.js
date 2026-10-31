@@ -57,12 +57,10 @@ function renderCharacterDetail(char) {
   const allPv = CHARACTERS.map(c => c.pv);
   const allNetease = CHARACTERS.map(c => c.netease);
   const allCmt = CHARACTERS.map(c => c.cmt);
-  const allQq = CHARACTERS.map(c => c.qq);
   const pctOf = (arr, v) => (typeof statPercentileRank === 'function') ? Math.round(statPercentileRank(arr, v)) : null;
   const pvPct = pctOf(allPv, char.pv);
   const neteasePct = pctOf(allNetease, char.netease);
   const cmtPct = pctOf(allCmt, char.cmt);
-  const qqPct = pctOf(allQq, char.qq);
   const pvMedian = (typeof statMedian === 'function') ? statMedian(allPv) : null;
   const pvQ1 = (typeof statQ1 === 'function') ? statQ1(allPv) : null;
   const pvQ3 = (typeof statQ3 === 'function') ? statQ3(allPv) : null;
@@ -76,7 +74,6 @@ function renderCharacterDetail(char) {
   const platformBars = [
     { label: '网易云收藏', val: char.netease, max: Math.max(...allNetease), scale: 1000, pct: neteasePct, color: 'var(--chart-1)' },
     { label: '网易云评论', val: char.cmt, max: Math.max(...allCmt), scale: 1000, pct: cmtPct, color: 'var(--chart-3)' },
-    { label: 'QQ音乐收藏', val: char.qq, max: Math.max(...allQq), scale: 1000, pct: qqPct, color: 'var(--chart-5)' },
     { label: 'B站PV播放', val: char.pv, max: Math.max(...allPv), scale: 10000, pct: pvPct, color: 'var(--chart-4)' }
   ];
 
@@ -180,10 +177,6 @@ function renderCharacterDetail(char) {
             <div class="v">${fmt(char.cmt * 1000)}</div>
             <div class="l">网易云评论 · ${pctTag(cmtPct)}</div>
           </div>
-          <div class="char-stat">
-            <div class="v">${fmt(char.qq * 1000)}</div>
-            <div class="l">QQ音乐收藏 · ${pctTag(qqPct)}</div>
-          </div>
         </div>
       </div>
     </div>
@@ -257,7 +250,7 @@ function renderCharacterDetail(char) {
             </div>
           `).join('')}
           <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(212,168,86,0.1);font-size:11px;line-height:1.8;color:var(--text-tertiary);">
-            网易云/QQ 收藏为平台公开收藏量，B站 PV 为角色 PV 视频累计播放量。三项指标来源不同、用户群体不重合，<strong>不可相加，也不可换算为同一批用户的行为</strong>；条形仅反映该角色在同一平台内的相对位置。
+            网易云收藏为平台公开收藏量，B站 PV 为角色 PV 视频累计播放量。两项指标来源不同、用户群体不重合，<strong>不可相加，也不可换算为同一批用户的行为</strong>；条形仅反映该角色在同一平台内的相对位置。
           </div>
         </div>
       </div>
@@ -284,7 +277,6 @@ function renderCharacterDetail(char) {
           const trackLinks = isAlbumData ? `
             <div style="margin-top:6px;display:flex;gap:6px;">
               ${m.neteaseUrl ? `<a href="${m.neteaseUrl}" target="_blank" rel="noopener" style="color:#FE2C55;font-size:11px;text-decoration:none;">${ic('assets/img/items/UI_ItemIcon_112001.png')}网易云</a>` : ''}
-              ${m.qqUrl ? `<a href="${m.qqUrl}" target="_blank" rel="noopener" style="color:#31A5E8;font-size:11px;text-decoration:none;">${ic('assets/img/items/UI_ItemIcon_112002.png')}QQ音乐</a>` : ''}
               ${m.bilibiliUrl ? `<a href="${m.bilibiliUrl}" target="_blank" rel="noopener" style="color:#FB7299;font-size:11px;text-decoration:none;">${ic('assets/img/deco/UI_NameCardIcon_0.png')}B站</a>` : ''}
             </div>` : '';
             
@@ -369,10 +361,9 @@ function renderCharacterDetail(char) {
                 </div>
               </div>
               <div style="font-size:12px;color:var(--text-tertiary);flex-shrink:0;">${rName(char.region)}</div>
-              ${isAlbumData && (t.neteaseUrl || t.qqUrl || t.bilibiliUrl) ? `
+              ${isAlbumData && (t.neteaseUrl || t.bilibiliUrl) ? `
                 <div style="display:flex;gap:4px;flex-shrink:0;">
                   ${t.neteaseUrl ? `<a href="${t.neteaseUrl}" target="_blank" rel="noopener" style="color:#FE2C55;font-size:11px;text-decoration:none;">${ic('assets/img/items/UI_ItemIcon_112001.png')}网易云</a>` : ''}
-                  ${t.qqUrl ? `<a href="${t.qqUrl}" target="_blank" rel="noopener" style="color:#31A5E8;font-size:11px;text-decoration:none;">${ic('assets/img/items/UI_ItemIcon_112002.png')}QQ音乐</a>` : ''}
                   ${t.bilibiliUrl ? `<a href="${t.bilibiliUrl}" target="_blank" rel="noopener" style="color:#FB7299;font-size:11px;text-decoration:none;">${ic('assets/img/deco/UI_NameCardIcon_0.png')}B站</a>` : ''}
                 </div>
               ` : ''}

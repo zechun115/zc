@@ -165,7 +165,6 @@ function renderRegion() {
       const platformIcons = isAlbum ? `
         <div style="display:flex;gap:3px;margin-top:3px;">
           ${t.neteaseUrl ? `<a href="${t.neteaseUrl}" target="_blank" rel="noopener" style="color:#FE2C55;font-size:10px;text-decoration:none;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>` : ''}
-          ${t.qqUrl ? `<a href="${t.qqUrl}" target="_blank" rel="noopener" style="color:#31A5E8;font-size:10px;text-decoration:none;"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>` : ''}
           ${t.bilibiliUrl ? `<a href="${t.bilibiliUrl}" target="_blank" rel="noopener" style="color:#FB7299;font-size:10px;text-decoration:none;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>` : ''}
         </div>` : '';
       const metrics = isAlbum ? `

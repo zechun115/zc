@@ -1,6 +1,6 @@
 function renderRankLists() {
   const pvRank = [...CHARACTERS].sort((a, b) => b.pv - a.pv).slice(0, 6);
-  const musicRank = [...CHARACTERS].sort((a, b) => (b.netease + b.qq) - (a.netease + a.qq)).slice(0, 6);
+  const musicRank = [...CHARACTERS].sort((a, b) => b.netease - a.netease).slice(0, 6);
 
   const pvList = document.getElementById('pvRankList');
   const musicList = document.getElementById('musicRankList');
@@ -17,7 +17,7 @@ function renderRankLists() {
     <div class="rank-item" onclick="window.location.href='character-detail.html?name=${encodeURIComponent(c.name)}'">
       <div class="rank-num ${i < 3 ? 'top top' + (i + 1) : ''}">${i + 1}</div>
       <div class="rank-name">${c.name} <span style="color:var(--text-tertiary);font-size:11px;">· ${rName(c.region)}</span></div>
-      <div class="rank-value">${fmt((c.netease + c.qq) * 1000)}</div>
+      <div class="rank-value">${fmt(c.netease * 1000)}</div>
     </div>
   `).join('');
 }
@@ -59,10 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 统计数据
   const totalPv = CHARACTERS.reduce((s, c) => s + c.pv, 0);
   const totalNetease = CHARACTERS.reduce((s, c) => s + c.netease, 0);
-  const totalQQ = CHARACTERS.reduce((s, c) => s + c.qq, 0);
   const totalCmt = CHARACTERS.reduce((s, c) => s + c.cmt, 0);
-  // 音乐总收藏：统一使用角色数据中的 netease + qq 字段，覆盖全部角色
-  const totalFav = CHARACTERS.reduce((s, c) => s + c.netease + c.qq, 0);
+  // 音乐总收藏：使用角色数据中的 netease 字段，覆盖全部角色
+  const totalFav = CHARACTERS.reduce((s, c) => s + c.netease, 0);
 
   const statEl = (id, val) => {
     const el = document.getElementById(id);

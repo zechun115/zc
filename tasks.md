@@ -17,9 +17,9 @@
 
 ## T3 数据层 · 专辑
 - [x] `ALBUMS` 末尾追加《珍珠之歌6》（version/other/92/2026-07-22/6.8，tracks:[] + notice）
-- [x] 追加《悯宥慈怜之垠》（ep/snezhnaya/102/2026-09-14/7.0，7 首已核实曲名仅给直达链接，QQ 102291928 / Apple 6810715095）
-- [x] 追加《愿逐月华照君明》（ep/liyue/3/2026-10-21/7.1，tracks:[] + notice，QQ 105292823）
-- **验收**：`ALBUMS.length === 43`；三张卡片三平台按钮均可点击
+- [x] 追加《悯宥慈怜之垠》（ep/snezhnaya/102/2026-09-14/7.0，7 首已核实曲名仅给直达链接，Apple 6810715095）
+- [x] 追加《愿逐月华照君明》（ep/liyue/3/2026-10-21/7.1，tracks:[] + notice）
+- **验收**：`ALBUMS.length === 43`；三张卡片平台按钮均可点击
 
 ## T4 地图 · 至冬补全
 - [x] `js/map.js:57` `TILE_SOURCES` 米哈游条目替换为 `ys-map-op/map/2/eea752b746ae1f2e0c1988a574f2b7b0/{x}_{y}_N1.webp` 并加注释

@@ -181,7 +181,7 @@ function renderKPI() {
 function renderPlatformMatrix() {
   const el = document.getElementById('platformMatrix');
   if (!el) return;
-  const platforms = ['B站PV', '网易云', 'QQ音乐'];
+  const platforms = ['B站PV', '网易云'];
   const regionColors = {};
   REGIONS.forEach(r => { regionColors[r.id] = r.color; });
   
@@ -193,8 +193,7 @@ function renderPlatformMatrix() {
    * ═══════════════════════════════════════════════════════════ */
   const pfmCfg = [
     { name: 'B站PV',   png: 'assets/img/deco/UI_NameCardIcon_0.png', color: '#FB7299', src: 'bilibili.com 官方账号角色PV播放量' },
-    { name: '网易云',  png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'music.163.com 角色OST收藏量' },
-    { name: 'QQ音乐',  png: 'assets/img/deco/UI_ItemIcon_211.png',     color: '#31A5E8', src: 'y.qq.com 角色数字专辑收藏量' }
+    { name: '网易云',  png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'music.163.com 角色OST收藏量' }
   ];
 
   const ratioList = [];
@@ -203,11 +202,9 @@ function renderPlatformMatrix() {
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
     const nf = chars.reduce((s, c) => s + c.netease, 0);
-    const qf = chars.reduce((s, c) => s + c.qq, 0);
     const mpv = Math.max(...CHARACTERS.map(c => c.pv)) * chars.length;
     const mnf = Math.max(...CHARACTERS.map(c => c.netease)) * chars.length;
-    const mqf = Math.max(...CHARACTERS.map(c => c.qq)) * chars.length;
-    [pv / mpv, nf / mnf, qf / mqf].forEach(ratio => ratioList.push(ratio));
+    [pv / mpv, nf / mnf].forEach(ratio => ratioList.push(ratio));
   });
   const maxR = Math.max(...ratioList);
 
@@ -224,13 +221,11 @@ function renderPlatformMatrix() {
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
     const nf = chars.reduce((s, c) => s + c.netease, 0);
-    const qf = chars.reduce((s, c) => s + c.qq, 0);
     const mpv = Math.max(...CHARACTERS.map(c => c.pv)) * chars.length;
     const mnf = Math.max(...CHARACTERS.map(c => c.netease)) * chars.length;
-    const mqf = Math.max(...CHARACTERS.map(c => c.qq)) * chars.length;
 
     html += `<div class="heatmap-cell heat-cell h r-label" style="background:var(--surface-elevated);padding:12px 14px;font-size:12px;font-weight:600;color:${regionColors[r.id]};text-align:left;border-top:1px solid rgba(201,162,39,0.1);">${r.name}</div>`;
-    [pv / mpv, nf / mnf, qf / mqf].forEach(ratio => {
+    [pv / mpv, nf / mnf].forEach(ratio => {
       const inten = Math.round(ratio * 100);
       const norm = maxR > 0 ? ratio / maxR : 0;
       let lvl = inten === 0 ? 0 : (norm < 0.22 ? 1 : (norm < 0.42 ? 2 : (norm < 0.62 ? 3 : (norm < 0.82 ? 4 : 5))));
@@ -261,8 +256,7 @@ function renderPlatformMatrix() {
         地区: r.name,
         角色数: chars.length,
         PV总播放量万: chars.reduce((s, c) => s + c.pv, 0),
-        网易云总收藏: chars.reduce((s, c) => s + c.netease, 0) * 1000,
-        QQ音乐总收藏: chars.reduce((s, c) => s + c.qq, 0) * 1000
+        网易云总收藏: chars.reduce((s, c) => s + c.netease, 0) * 1000
       };
     });
     const btn = document.createElement('button');
@@ -551,14 +545,12 @@ function renderSankey() {
 
   const totalPv = CHARACTERS.reduce((s, c) => s + c.pv, 0) * 10000;
   const totalNetease = CHARACTERS.reduce((s, c) => s + c.netease, 0) * 1000;
-  const totalQQ = CHARACTERS.reduce((s, c) => s + c.qq, 0) * 1000;
   const totalComments = CHARACTERS.reduce((s, c) => s + c.cmt, 0) * 1000;
 
-  // 四个阶段：曝光、收藏、收藏、互动（统计对象不同，仅比较量级）
+  // 三个阶段：曝光、收藏、互动（统计对象不同，仅比较量级）
   const stages = [
     { name: 'B站PV曝光', value: totalPv, color: '#FB7299', iconPng: 'assets/img/deco/UI_NameCardIcon_0.png', desc: '官方角色PV总播放量' },
     { name: '网易云收藏', value: totalNetease, color: '#FE2C55', iconPng: 'assets/img/items/UI_ItemIcon_112001.png', desc: '网易云音乐总收藏量' },
-    { name: 'QQ音乐收藏', value: totalQQ, color: '#31A5E8', iconPng: 'assets/img/items/UI_ItemIcon_112002.png', desc: 'QQ音乐总收藏量' },
     { name: '评论互动', value: totalComments, color: '#F59E0B', iconPng: 'assets/img/deco/UI_ItemIcon_202.png', desc: 'B站PV总评论量' }
   ];
 
@@ -681,7 +673,7 @@ function renderSankey() {
   sourceNote.setAttribute('text-anchor', 'middle');
   sourceNote.setAttribute('font-size', '9');
   sourceNote.setAttribute('fill', 'var(--text-tertiary)');
-  sourceNote.textContent = '数据来源：B站PV · 网易云收藏 · QQ音乐收藏 · B站评论';
+  sourceNote.textContent = '数据来源：B站PV · 网易云收藏 · B站评论';
   svg.appendChild(sourceNote);
 
   // 添加数据导出

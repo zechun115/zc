@@ -176,13 +176,10 @@ function renderAlbumGrid() {
         const t = td._raw;
         const displayName = t.name.length > 14 ? t.name.substring(0, 14) + '…' : t.name;
         const linkNetease = t.neteaseUrl || '#';
-        const linkQQ = t.qqUrl || '#';
         const linkBili = t.bilibiliUrl || '#';
         const platformIcons = `
               <a href="${linkNetease}"  target="_blank" rel="noopener" title="网易云音乐直达"
                  style="color:#FE2C55;text-decoration:none;font-size:11px;" data-track="netease"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>
-              <a href="${linkQQ}"       target="_blank" rel="noopener" title="QQ音乐直达"
-                 style="color:#31A5E8;text-decoration:none;font-size:11px;" data-track="qq"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>
               <a href="${linkBili}"     target="_blank" rel="noopener" title="B站PV"
                  style="color:#FB7299;text-decoration:none;font-size:11px;" data-track="bili"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>`;
         
@@ -249,7 +246,7 @@ function renderAlbumGrid() {
       // 底部统计：超出预览数则引导至平台完整曲库
       const footerNote = hasMore
         ? `<a href="${a.neteaseUrl}" target="_blank" rel="noopener" style="color:${color};text-decoration:none;font-weight:600;">共 ${a.tracks.length} 首 · 查看完整曲库 →</a>`
-        : `<span><span class="swatch" style="background:${color};"></span>已收录 ${a.tracks.length} 首（三平台可直接收听）</span>`;
+        : `<span><span class="swatch" style="background:${color};"></span>已收录 ${a.tracks.length} 首（网易云/B站可直接查看）</span>`;
       tracksBlock += `
         <div class="mini-bar-chart">${bars}</div>
         <div class="legend-row" style="margin-top:8px;">
@@ -266,7 +263,7 @@ function renderAlbumGrid() {
         </div>`;
     }
 
-    // 每张专辑底部统一的三平台跳转大按钮
+    // 每张专辑底部统一的平台跳转大按钮
     const platformLinks = `
       <div style="margin-top:10px;padding:10px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span style="font-size:10.5px;color:var(--text-tertiary);margin-right:2px;">点击跳转 →</span>
@@ -275,12 +272,6 @@ function renderAlbumGrid() {
            title="在网易云音乐搜索官方专辑「${a.name}」">
           <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;" onerror="this.style.display='none'"/>
           网易云
-        </a>
-        <a href="${a.qqUrl}" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;background:#31A5E812;color:#31A5E8;font-size:11px;font-weight:600;text-decoration:none;flex:1;justify-content:center;min-width:90px;"
-           title="在QQ音乐搜索官方专辑「${a.name}」">
-          <img src="assets/img/items/UI_ItemIcon_112002.png" style="width:11px;height:11px;" onerror="this.style.display='none'"/>
-          QQ音乐
         </a>
         <a href="${a.bilibiliUrl}" target="_blank" rel="noopener"
            style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;background:#FB729912;color:#FB7299;font-size:11px;font-weight:600;text-decoration:none;flex:1;justify-content:center;min-width:90px;"
@@ -327,7 +318,7 @@ function renderAlbumGrid() {
     `;
   }).join('');
 
-  // 添加专辑数据导出（严格真实性版：每条都带三平台搜索URL + 验证方法）
+  // 添加专辑数据导出（严格真实性版：每条都带平台搜索URL + 验证方法）
   const albumCard = grid.closest('.card');
   if (albumCard && !albumCard.querySelector('.export-btn')) {
     const exportData = list.flatMap(a => {
@@ -341,15 +332,13 @@ function renderAlbumGrid() {
           关联地区: a.region ? (REGIONS.find(r => r.id === a.region)?.name || a.region) : '全角色合集',
           曲目标题: '（仅展示已核实公开曲目）',
           热度popularity: '—',
-          数据真实性: '该专辑曲目为氛围/过渡BGM，三平台搜索结果不唯一，宁空勿假。请点击右侧网易云/QQ音乐直达链接在官方平台查看完整曲目。',
+          数据真实性: '该专辑曲目为氛围/过渡BGM，平台搜索结果不唯一，宁空勿假。请点击右侧网易云直达链接在官方平台查看完整曲目。',
           追溯链路: a.notice || '无法逐一核实 → 仅保留专辑元信息',
           网易云音乐专辑直达: a.neteaseUrl,
-          QQ音乐专辑直达: a.qqUrl,
           B站专辑相关PV: a.bilibiliUrl,
           网易云曲目直达: '—',
-          QQ音乐曲目直达: '—',
           B站曲目PV: '—',
-          人工验证指引: a.notice || '点击上方三个平台链接直达官方专辑页面，在完整曲目列表中逐条核对。'
+          人工验证指引: a.notice || '点击上方平台链接直达官方专辑页面，在完整曲目列表中逐条核对。'
         }];
       }
       return a.tracks.map(t => ({
@@ -363,19 +352,17 @@ function renderAlbumGrid() {
         数据真实性: '真实平台数据（网易云评论数 + B站相关视频播放量，爬虫实测）',
         追溯链路: '网易云评论数 + B站相关视频播放量 → 对数归一化加权(0.4/0.6) → 0-100热度分',
         网易云音乐专辑直达: a.neteaseUrl,
-        QQ音乐专辑直达: a.qqUrl,
         B站专辑相关PV: a.bilibiliUrl,
         网易云曲目直达: t.neteaseUrl,
-        QQ音乐曲目直达: t.qqUrl,
         B站曲目PV: t.bilibiliUrl,
         人工验证指引: t.verifyHint
       }));
     });
     const btn = document.createElement('button');
     btn.className = 'export-btn';
-    btn.textContent = '导出数据（16列·含三平台链接·可追溯）';
-    btn.setAttribute('aria-label', '导出专辑曲目数据，含网易云/QQ/B站三平台直达链接及人工验证指引');
-    btn.addEventListener('click', () => window.exportData(exportData, '专辑曲目热度_严格真实性版_含三平台追溯链接', 'csv'));
+    btn.textContent = '导出数据（14列·含平台链接·可追溯）';
+    btn.setAttribute('aria-label', '导出专辑曲目数据，含网易云/B站平台直达链接及人工验证指引');
+    btn.addEventListener('click', () => window.exportData(exportData, '专辑曲目热度_严格真实性版_含平台追溯链接', 'csv'));
     albumCard.appendChild(btn);
   }
 }

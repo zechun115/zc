@@ -222,7 +222,7 @@ function weaponEmblemHtml(wp) {
 
 /* ==================== 全局共享：角色卡片渲染 ====================
  * 所有页面（角色音乐/地区探索等）统一调用此函数渲染角色卡片，
- * 保证视觉与功能一致：元素徽章、星级图标、地区徽章、热度依据、三平台直达链接。
+ * 保证视觉与功能一致：元素徽章、星级图标、地区徽章、热度依据、平台直达链接。
  * 依赖：CHARACTERS, ELEMENT_COLORS, REGIONS, getElementSvgUrl, getRegionSvgUrl,
  *        elementEmblem, rName, getLocalAvatarUrl (由 data.js / avatar-map.js 提供)
  * ================================================================ */
@@ -236,15 +236,14 @@ window.renderCharCard = function(c) {
   const regionSvgUrl = getRegionSvgUrl(c.region);
   const avatarUrl = getCharAvatarUrl(c.name);
 
-  // 热度依据徽章（三个平台来源，可点击追溯）
+  // 热度依据徽章（两个平台来源，可点击追溯）
   const heatBasisHtml = `
     <div class="char-card-heat-basis"
-         data-tooltip="热度依据三支柱：
+         data-tooltip="热度依据两平台：
 • B站PV：角色宣传PV播放量 ${c.pv}万（来源：bilibili.com官方账号）
 • 网易云：角色BGM收藏 ${c.netease}千（来源：music.163.com专辑数据）
-• QQ音乐：角色曲收藏 ${c.qq}千（来源：y.qq.com数字专辑）
-综合热度按加权计算：HP ×0.4 + 网易云×0.35 + QQ×0.25"
-         style="margin-top:8px;padding:6px 8px;border-radius:8px;background:linear-gradient(90deg,rgba(251,114,153,0.06),rgba(254,44,85,0.06),rgba(49,165,232,0.06));border:1px solid rgba(201,162,39,0.18);display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:var(--text-tertiary);">
+综合热度按加权计算：B站PV ×0.55 + 网易云×0.45"
+         style="margin-top:8px;padding:6px 8px;border-radius:8px;background:linear-gradient(90deg,rgba(251,114,153,0.06),rgba(254,44,85,0.06));border:1px solid rgba(201,162,39,0.18);display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:var(--text-tertiary);">
       <span style="display:flex;align-items:center;gap:2px;color:#FB7299;font-weight:600;" title="来源：bilibili.com 角色PV总播放">
         <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
         ${c.pv}万
@@ -253,11 +252,6 @@ window.renderCharCard = function(c) {
       <span style="display:flex;align-items:center;gap:2px;color:#FE2C55;font-weight:600;" title="来源：music.163.com 网易云音乐 角色OST收藏">
         <img src="assets/img/icons/旋曜玉帛.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
         ${c.netease}k
-      </span>
-      <span style="width:1px;height:8px;background:rgba(201,162,39,0.15);"></span>
-      <span style="display:flex;align-items:center;gap:2px;color:#31A5E8;font-weight:600;" title="来源：y.qq.com QQ音乐 数字专辑收藏">
-        <img src="assets/img/deco/UI_ItemIcon_211.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
-        ${c.qq}k
       </span>
     </div>`;
 
@@ -690,7 +684,7 @@ function renderScatter() {
   }
 
   const pvRank = [...data].sort((a, b) => b.pv - a.pv);
-  const musicRank = [...data].sort((a, b) => (b.netease + b.qq) - (a.netease + a.qq));
+  const musicRank = [...data].sort((a, b) => b.netease - a.netease);
 
   // 统计信息
   const fiveStar = data.filter(c => c.rarity === 5).length;
@@ -794,7 +788,6 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">PV:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${(c.netease * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">评论:</span> <strong style="color:var(--gold-light);">${(c.cmt * 1000).toLocaleString()}</strong></div>
-          <div><span style="color:var(--text-tertiary);">QQ收藏:</span> <strong style="color:var(--gold-light);">${(c.qq * 1000).toLocaleString()}</strong></div>
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">点击查看角色详情</div>
       `;
@@ -882,7 +875,6 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">PV:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${(c.netease * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">评论:</span> <strong style="color:var(--gold-light);">${(c.cmt * 1000).toLocaleString()}</strong></div>
-          <div><span style="color:var(--text-tertiary);">QQ收藏:</span> <strong style="color:var(--gold-light);">${(c.qq * 1000).toLocaleString()}</strong></div>
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">按 Enter 查看角色详情</div>
       `;
@@ -1028,8 +1020,7 @@ function renderScatter() {
       星级: c.rarity,
       PV播放量万: c.pv,
       网易云收藏: c.netease * 1000,
-      网易云评论: c.cmt * 1000,
-      QQ音乐收藏: c.qq * 1000
+      网易云评论: c.cmt * 1000
     }));
     scatterCard.setAttribute('data-export', JSON.stringify(exportData));
     scatterCard.setAttribute('data-export-file', '角色双平台热度数据');
@@ -1097,7 +1088,7 @@ function renderCharRanks() {
             <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：music.163.com 网易云音乐 角色OST收藏量"/>
             ${(c.netease * 1000).toLocaleString()}
           </div>
-          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">网易云收藏 · QQ:${c.qq}k</div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">网易云收藏</div>
         </div>
       </li>`;
     }).join('');
@@ -1128,7 +1119,6 @@ function renderCharHeatmap() {
     { k: 'pv', l: 'PV播放', unit: '万' },
     { k: 'netease', l: '网易收藏', unit: '' },
     { k: 'cmt', l: '网易评论', unit: '' },
-    { k: 'qq', l: 'QQ收藏', unit: '' },
     { k: 'rarity', l: '星级', unit: '' }
   ];
   const maxs = {};
@@ -1149,7 +1139,7 @@ function renderCharHeatmap() {
   const sortedData = [...data].sort((a, b) => b.pv - a.pv).slice(0, 15);
   sortedData.forEach((c, idx) => {
     const color = ELEMENT_COLORS[c.element] || '#999';
-    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>PV播放：${c.pv}万<br>网易收藏：${c.netease}千<br>网易评论：${c.cmt}千<br>QQ收藏：${c.qq}千`;
+    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>PV播放：${c.pv}万<br>网易收藏：${c.netease}千<br>网易评论：${c.cmt}千`;
     html += `<div class="heatmap-cell heat-cell" data-char="${c.name}" data-v="${100}" style="background:linear-gradient(180deg,var(--surface-elevated),${color}15);padding:10px 8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-primary);cursor:pointer;border-left:3px solid ${color};" data-tooltip="${tooltip}">
       <a href="character-detail.html?name=${encodeURIComponent(c.name)}" style="color:inherit;text-decoration:none;font-weight:600;">${c.name}</a>
     </div>`;

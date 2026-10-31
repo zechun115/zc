@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="原神音乐热度跨平台数据可视化平台，整合B站PV、网易云音乐、QQ音乐数据，提供地图探索、角色分析、剧情追踪、数据洞察等功能。">
-<meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact,PV播放量,网易云,QQ音乐">
+<meta name="description" content="原神音乐热度跨平台数据可视化平台，整合B站PV、网易云音乐数据，提供地图探索、角色分析、剧情追踪、数据洞察等功能。">
+<meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact,PV播放量,网易云">
 <meta name="author" content="提瓦特音乐数据可视化团队">
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <link rel="preconnect" href="https://act-webstatic.mihoyo.com">
-<link rel="stylesheet" href="css/style.css?v=20261031a">
-<link rel="stylesheet" href="css/map.css?v=20261031a">
-<link rel="stylesheet" href="css/map-page.css?v=20261031a">
-<link rel="stylesheet" href="css/optimize.css?v=20261031a">
-<link rel="stylesheet" href="css/page-hero.css?v=20261031a">
+<link rel="stylesheet" href="css/style.css?v=20261031b">
+<link rel="stylesheet" href="css/map.css?v=20261031b">
+<link rel="stylesheet" href="css/map-page.css?v=20261031b">
+<link rel="stylesheet" href="css/optimize.css?v=20261031b">
+<link rel="stylesheet" href="css/page-hero.css?v=20261031b">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <title>原神音乐热度数据可视化 - 地图中枢</title>
 <!-- 页面预加载：优化导航切换体验 -->
@@ -172,7 +172,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="data-card">
         <div class="value" id="statFav"></div>
-        <div class="label">角色音乐收藏（网易云+QQ）</div>
+        <div class="label">角色音乐收藏（网易云）</div>
       </div>
       <div class="data-card">
         <div class="value" id="statCmt"></div>
@@ -218,28 +218,28 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         </div>
         <div class="ds-item">
           <span class="ds-label">音乐平台</span>
-          <span class="ds-value">网易云音乐 · QQ音乐公开数据</span>
+          <span class="ds-value">网易云音乐公开数据</span>
         </div>
         <div class="ds-item">
           <span class="ds-label">数据版本</span>
           <span class="ds-value">原神7.1版本</span>
         </div>
       </div>
-      <div class="ds-note" style="margin-bottom:8px;"><strong>指标口径：</strong>角色级 = B站角色 PV 播放量 + 网易云/QQ 音乐收藏量 + PV 评论数；曲目级 = 网易云单曲评论总数 + B站「原神+曲名」相关视频播放量。两级指标<strong>不同源、不同样本，不可相加或换算</strong>；无法从平台核实到的字段一律留空，不做估算。</div>
+      <div class="ds-note" style="margin-bottom:8px;"><strong>指标口径：</strong>角色级 = B站角色 PV 播放量 + 网易云音乐收藏量 + PV 评论数；曲目级 = 网易云单曲评论总数 + B站「原神+曲名」相关视频播放量。两级指标<strong>不同源、不同样本，不可相加或换算</strong>；无法从平台核实到的字段一律留空，不做估算。</div>
       <div class="ds-note"><img src="assets/img/deco/UI_ItemIcon_210.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>向下滚动查看数据概览 · 点击国家区域查看代表音乐 · 点击角色标记查看详情 · 滚轮缩放浏览全图</div>
       <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
     </div>
   </div>
 </div>
 
-<script src="js/data.js?v=20261031a"></script>
-<script src="js/avatar-map.js?v=20261031a"></script>
-<script src="js/nav.js?v=20261031a"></script>
+<script src="js/data.js?v=20261031b"></script>
+<script src="js/avatar-map.js?v=20261031b"></script>
+<script src="js/nav.js?v=20261031b"></script>
 <script src="vendor/leaflet.js"></script>
-<script src="js/map-presets.js?v=20261031a"></script>
-<script src="js/map.js?v=20261031a"></script>
-<script src="js/index.js?v=20261031a"></script>
-<script src="js/page-hero.js?v=20261031a"></script>
-<script src="js/optimize.js?v=20261031a"></script>
+<script src="js/map-presets.js?v=20261031b"></script>
+<script src="js/map.js?v=20261031b"></script>
+<script src="js/index.js?v=20261031b"></script>
+<script src="js/page-hero.js?v=20261031b"></script>
+<script src="js/optimize.js?v=20261031b"></script>
 </body>
 </html>

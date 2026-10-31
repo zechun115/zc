@@ -1,12 +1,12 @@
 // ==================== 剧情场景页 ====================
 // 剧情曲目真实数据：为每首剧情曲目关联真实平台指标（无真实数据者剔除，不估算）
-// netease/cmt 字段承载「网易云评论数（千）」，qq 字段承载「B站相关视频播放量（千）」
+// netease/cmt 字段承载「网易云评论数（千）」，biliK 字段承载「B站相关视频播放量（千）」
 const ST = ((typeof STORY_TRACKS !== 'undefined' ? STORY_TRACKS : null) || []).map(t => {
   const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
   const cmtK = r && typeof r.neteaseCmt === 'number' ? +(r.neteaseCmt / 1000).toFixed(1) : null;
   const playK = r && typeof r.biliPlay === 'number' ? +(r.biliPlay / 1000).toFixed(1) : null;
   if (cmtK === null && playK === null) return null;
-  return { ...t, netease: cmtK ?? 0, qq: playK ?? 0, cmt: cmtK ?? 0 };
+  return { ...t, netease: cmtK ?? 0, biliK: playK ?? 0, cmt: cmtK ?? 0 };
 }).filter(Boolean);
 
 // 版本热点事件数据（基于各版本剧情与音乐传播热点整理）
@@ -192,7 +192,7 @@ function renderVersionTrend() {
       曲目: t.name,
       地区: rName(t.region),
       网易云评论千: t.netease,
-      B站播放千: t.qq
+      B站播放千: t.biliK
     }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
@@ -240,7 +240,7 @@ function renderVersionHotspots() {
             <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:14px;height:14px;vertical-align:-2px;margin-right:2px;" onerror="this.style.display='none'" title="来源：music.163.com 网易云单曲评论数（真实）"/>
             ${t.netease}k
           </div>
-          <div style="font-size:10px;color:var(--text-tertiary);">中位数 ${heatRatio}倍 · 分位 ${pct === null ? '—' : 'P' + pct.toFixed(0)} · B站 ${t.qq}k</div>
+          <div style="font-size:10px;color:var(--text-tertiary);">中位数 ${heatRatio}倍 · 分位 ${pct === null ? '—' : 'P' + pct.toFixed(0)} · B站 ${t.biliK}k</div>
         </div>
       </div>
       <div style="font-size:13px;color:var(--text-primary);margin-bottom:6px;font-weight:500;"><img src="assets/img/deco/UI_ItemIcon_201.png" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"/> ${evt.event}</div>
@@ -253,7 +253,7 @@ function renderVersionHotspots() {
         </span>
         <span style="background:rgba(251,114,153,0.06);padding:2px 6px;border-radius:4px;font-weight:600;color:#FB7299;">
           <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>
-          B站播放 ${t.qq}k
+          B站播放 ${t.biliK}k
         </span>
       </div>
     </div>`;
@@ -335,7 +335,7 @@ function renderStoryBars() {
     </div>
     <div style="display:flex;gap:12px;margin-left:112px;margin-top:-4px;margin-bottom:6px;font-size:11px;color:var(--text-tertiary);">
       <span>发行版本: v${t.version}</span>
-      <span>网易云评论 ${t.netease}k</span><span>B站播放 ${t.qq}k</span>
+      <span>网易云评论 ${t.netease}k</span><span>B站播放 ${t.biliK}k</span>
     </div>
   `).join('');
 }
@@ -414,7 +414,6 @@ function renderStoryTable() {
       <td>
         <div style="display:flex;gap:3px;">
           ${ad.neteaseUrl ? `<a href="${ad.neteaseUrl}" target="_blank" rel="noopener" style="color:#FE2C55;font-size:11px;text-decoration:none;" title="网易云"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/></a>` : ''}
-          ${ad.qqUrl ? `<a href="${ad.qqUrl}" target="_blank" rel="noopener" style="color:#31A5E8;font-size:11px;text-decoration:none;" title="QQ音乐"><img src="assets/img/items/UI_ItemIcon_112002.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/></a>` : ''}
           ${ad.bilibiliUrl ? `<a href="${ad.bilibiliUrl}" target="_blank" rel="noopener" style="color:#FB7299;font-size:11px;text-decoration:none;" title="B站"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/></a>` : ''}
         </div>
       </td>` : '<td>—</td>';
@@ -433,7 +432,7 @@ function renderStoryTable() {
       <td style="font-size:11px;">
         ${t.netease > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${t.netease}k</span>` : '—'}
       </td>
-      <td>${t.qq > 0 ? `${t.qq}k` : '—'}</td>
+      <td>${t.biliK > 0 ? `${t.biliK}k` : '—'}</td>
       ${platformLinks}
     </tr>`;
   }).join('');
@@ -459,13 +458,13 @@ function renderVersionTimeline() {
   const heats = ST.map(t => t.netease).filter(v => v > 0);
   const median = (typeof statMedian === 'function') ? statMedian(heats) : 0;
   const maxHeat = Math.max(...heats, 1);
-  const maxPlay = Math.max(...versions.map(v => byVersion[v].qq), 1);
+  const maxPlay = Math.max(...versions.map(v => byVersion[v].biliK), 1);
 
   let html = versions.map((v, idx) => {
     const t = byVersion[v];
     const color = rColor(t.region);
     const realHeat = t.netease > 0 ? t.netease : null;
-    const play = t.qq > 0 ? t.qq : null;
+    const play = t.biliK > 0 ? t.biliK : null;
     const heatPct = realHeat !== null ? (realHeat / maxHeat) * 100 : 0;
     const playPct = play !== null ? (play / maxPlay) * 100 : 0;
     const pct = (realHeat !== null && typeof statPercentileRank === 'function') ? statPercentileRank(heats, realHeat) : null;

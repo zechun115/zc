@@ -69,7 +69,7 @@
    | 薇斯纳 | 5 | 风 | 单手剑 | 7.1 | snezhnaya |
    | 沃雅妮莎 | 5 | 水 | 法器 | 7.1 | snezhnaya |
    | 旅行者·冰 | 5 | 冰 | 单手剑 | 7.0 | other |
-   字段与现有条目一致（`pv/netease/cmt/qq/theme/desc/version`），热度值为同地区同星级均值估算，`desc` 使用官方公告措辞。
+   字段与现有条目一致（`pv/netease/cmt/theme/desc/version`），热度值为同地区同星级均值估算，`desc` 使用官方公告措辞。
 4. **CHARACTER_MUSIC**（569 行 `};` 前）：为上述 5 人各追加 2 首（角色主题曲 + 战斗配乐），`composer` 用 `HOYO-MiX`，`fav=netease`、`cmt` 同角色值、`play=fav*3`。
 5. **STORY_TRACKS**（598 行后）追加 6 首：
    - 无神怜爱的雪国（snezhnaya, 7.0, 62/12.8/44）
@@ -82,11 +82,11 @@
 7. **ALBUMS**（8034 行 `];` 前）追加 3 张（均保持“宁空勿假”）：
    | 专辑 | 类型 | 地区 | 曲目数 | 日期 | 版本 | 备注 |
    |---|---|---|---|---|---|---|
-   | 珍珠之歌6 The Shimmering Voyage Vol. 6 | version | other | 92（4 分碟） | 2026-07-22 | 6.8 | 曲名未逐一核实 → `tracks:[]` + `notice` + 三平台搜索链接 |
-   | 悯宥慈怜之垠 Where Mercy Endures | ep | snezhnaya | 102（4 分碟） | 2026-09-14 | 7.0 | 收录 7 首已核实曲名（至冬、银昼寒光、夜隐晓至、零露漙然、隙光浮影、黑雪鹄的夜梦、无眠之惘），仅给搜索直达、不给热度数字；QQ albumId `102291928`，Apple `6810715095` |
-   | 愿逐月华照君明 A Lyght of the Mone for Thee | ep | liyue | 3 | 2026-10-21 | 7.1 | 曲名未核实 → `tracks:[]` + `notice`；QQ albumId `105292823` |
+   | 珍珠之歌6 The Shimmering Voyage Vol. 6 | version | other | 92（4 分碟） | 2026-07-22 | 6.8 | 曲名未逐一核实 → `tracks:[]` + `notice` + 平台搜索链接 |
+   | 悯宥慈怜之垠 Where Mercy Endures | ep | snezhnaya | 102（4 分碟） | 2026-09-14 | 7.0 | 收录 7 首已核实曲名（至冬、银昼寒光、夜隐晓至、零露漙然、隙光浮影、黑雪鹄的夜梦、无眠之惘），仅给搜索直达、不给热度数字；Apple `6810715095` |
+   | 愿逐月华照君明 A Lyght of the Mone for Thee | ep | liyue | 3 | 2026-10-21 | 7.1 | 曲名未核实 → `tracks:[]` + `notice` |
    `notice` 文案统一说明“平台曲目列表未逐一核实，点击下方官方链接查看完整曲目”。
-   `neteaseUrl/qqUrl` 使用官方搜索直达（无确定 albumId 时），有 albumId 时用 `albumDetail` 直链。
+   `neteaseUrl` 使用官方搜索直达（无确定 albumId 时），有 albumId 时用 `albumDetail` 直链。
 
 ### 4.2 `js/map.js`
 1. `TILE_SOURCES`（57-68 行）：把米哈游条目 URL 改为
@@ -114,7 +114,7 @@
 - `album.html:6` meta description：40 → 43 张，补“7.1 最新”。
 - `album.html:76` hero：`43张原神官方原声专辑 · 已同步至7.1版本`。
 - 132-138 行 chips 追加 `data-f="snezhnaya"` 至冬。
-- 162 行采集核对时间 → `2026年10月（三平台公开页面）`。
+- 162 行采集核对时间 → `2026年10月（平台公开页面）`。
 - `album.js:276-278` 类型徽章改为映射：
   | type | 图标 | 文案 |
   |---|---|---|
@@ -143,7 +143,7 @@
 ## 6. 验收标准
 1. `python -m http.server 8080` 启动后，7 个页面无 JS 报错（浏览器 console 为空）。
 2. `index.html`：地区 tab 出现“至冬”；点击后地图飞到至冬区域、详情面板显示 5 个主要区域、角色数与音乐数非 0；搜索“奥黛塔/薇斯纳/沃雅妮莎”可定位标记。
-3. `album.html`：统计显示 43 张专辑、最新版本 v7.1；筛选“至冬”“EP专辑”“版本合集”有结果；3 张新专辑卡片正常渲染且三平台链接可点。
+3. `album.html`：统计显示 43 张专辑、最新版本 v7.1；筛选“至冬”“EP专辑”“版本合集”有结果；3 张新专辑卡片正常渲染且平台链接可点。
 4. `region.html`：切换至冬后曲目排行 ≥ 9 首、角色列表含 7.x 角色；雷达图对比默认包含至冬。
 5. `story.html`：时间轴出现 7.0、7.1 两条，关键词云与趋势图正常。
 6. `insight.html`、`character.html`、`character-detail.html`：新角色可检索/可打开详情，日期文案为 2026年10月。
