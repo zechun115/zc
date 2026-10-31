@@ -22,25 +22,6 @@ function renderRankLists() {
   `).join('');
 }
 
-function initRegionTabs() {
-  const tabs = document.querySelectorAll('.region-tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const region = tab.dataset.region;
-      // 「全大陆」按钮带 data-region="all"，交由下方 selectRegion（map.js 内部按 'all' 处理）；
-      // 只有「全部地图」视图按钮没有 data-region，这里直接跳过
-      if (!region) return;
-      // 地图飞行和详情面板更新由 map.js 中的 selectRegion 统一处理
-      // selectRegion 内部会调用 flyToRegion / fitToMondstadt
-      if (typeof window.selectRegion === 'function') {
-        window.selectRegion(region);
-      }
-    });
-  });
-}
-
 function initSearch() {
   const search = document.getElementById('mapSearch');
   const input = document.getElementById('searchInput');
@@ -96,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   statEl('statTracks', typeof ALBUMS !== 'undefined' ? ALBUMS.reduce((s, a) => s + (a.trackCount || 0), 0) : STORY_TRACKS.length + Object.values(REGION_TRACKS).flat().length);
 
   renderRankLists();
-  initRegionTabs();
   initSearch();
   initMapLoading();
 });

@@ -1350,6 +1350,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 5px;
+  pointer-events: auto; /* 胶囊可点击切换子区域视图 */
 }
 .mrb-area {
   padding: 3px 12px;
@@ -1362,6 +1363,38 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.mrb-area:hover {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgba(212,168,86,0.16);
+}
+.mrb-area.on {
+  background: linear-gradient(135deg, rgba(212,168,86,0.32), rgba(212,168,86,0.12));
+  border-color: var(--gold);
+  color: var(--gold-light);
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(212,168,86,0.25);
+}
+/* 独立金字塔地图胶囊：冷暗色区分 */
+.mrb-area.alt {
+  border-color: rgba(139,160,190,0.35);
+  color: #C8D4E2;
+}
+.mrb-area.alt:hover {
+  border-color: #9FB6CE;
+  color: #E6EEF7;
+  background: rgba(90,110,140,0.20);
+}
+.mrb-area.alt.on {
+  background: linear-gradient(135deg, rgba(126,160,200,0.30), rgba(126,160,200,0.10));
+  border-color: #9FB6CE;
+  color: #EAF2FB;
 }
 
 /* ---- 通用浮层按钮 ---- */
@@ -1428,69 +1461,228 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- 右上角：更换地区按钮 + 下拉面板 ---- */
+/* ---- 右上角：更换地区（空荧酒馆 v3 式折叠态） ---- */
 .map-ctl-topright {
   position: absolute;
   top: 14px;
   right: 264px; /* 避开右侧筛选面板 */
   z-index: 520;
 }
-.region-switch-btn {
+.area-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.area-switch-btn {
   height: 38px;
   padding: 0 14px;
   font-size: 13px;
   letter-spacing: 1px;
 }
-.region-switch-btn img {
+.area-switch-btn img {
   width: 18px;
   height: 18px;
 }
-.region-switch-panel {
-  position: absolute;
-  top: 46px;
-  right: 0;
-  width: 308px;
-  background: rgba(20,17,12,0.94);
-  border: 1px solid var(--border-gold);
-  border-radius: 12px;
-  padding: 12px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+.area-names {
+  text-align: right;
+  line-height: 1.35;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.85);
 }
-.region-switch-panel[hidden] {
+.area-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 3px;
+}
+.area-child-name {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.area-emblem {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.7));
+}
+
+/* ---- 顶部中央：地区选择横幅（空荧酒馆 v3 式展开态） ---- */
+.area-selector {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 640;
+  width: min(780px, calc(100% - 560px));
+  min-width: 520px;
+  background: linear-gradient(180deg, rgba(15,13,8,0.94), rgba(20,17,12,0.88));
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  padding: 14px 20px 13px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,230,163,0.08);
+}
+.area-selector[hidden] {
   display: none;
 }
-.rsp-title {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  letter-spacing: 2px;
-  margin-bottom: 10px;
+.as-deco-line {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, var(--gold) 50%, transparent 95%);
+  opacity: 0.6;
+  margin-bottom: 12px;
 }
-/* 覆盖 .region-tabs 的横向布局，面板内改为 3 列网格 */
-.rsp-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  background: transparent;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  max-width: none;
-  overflow: visible;
+.as-diamond {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--gold);
+  box-shadow: 0 0 10px var(--gold);
 }
-.rsp-grid .region-tab {
+.as-parents {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 4px;
-  padding: 7px 4px;
-  font-size: 12px;
+  gap: 6px;
 }
-.rsp-grid .region-tab img {
-  width: 15px;
-  height: 15px;
+.as-parent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 62px;
+  padding: 6px 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.as-parent img {
+  width: 36px;
+  height: 36px;
   object-fit: contain;
+  opacity: 0.55;
+  filter: grayscale(0.5);
+  transition: all 0.2s;
+}
+.as-parent-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.as-parent:hover img {
+  opacity: 0.9;
+  filter: none;
+  transform: translateY(-2px);
+}
+.as-parent:hover .as-parent-name {
+  color: var(--gold-light);
+}
+.as-parent.on {
+  background: linear-gradient(180deg, rgba(212,168,86,0.14), rgba(212,168,86,0.04));
+  border-color: rgba(212,168,86,0.35);
+}
+.as-parent.on img {
+  opacity: 1;
+  filter: none;
+}
+.as-parent.on .as-parent-name {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+.as-parent.on::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--rc, var(--gold));
+  box-shadow: 0 0 10px var(--rc, var(--gold));
+}
+.as-area-name {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 4px;
+  margin: 10px 0 8px;
+}
+.as-children {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.as-child {
+  padding: 5px 14px;
+  background: rgba(212,168,86,0.07);
+  border: 1px solid rgba(212,168,86,0.28);
+  border-radius: 999px;
+  color: #E8DCC8;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.18s;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.as-child:hover {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgba(212,168,86,0.16);
+  transform: translateY(-1px);
+}
+.as-child.on {
+  background: linear-gradient(135deg, rgba(212,168,86,0.32), rgba(212,168,86,0.12));
+  border-color: var(--gold);
+  color: var(--gold-light);
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(212,168,86,0.25);
+}
+/* 独立金字塔地图（空之神殿/渊下宫/活动图等）：冷暗色区分，参考 v3 */
+.as-child.alt {
+  background: rgba(90,110,140,0.10);
+  border-color: rgba(139,160,190,0.30);
+  color: #C8D4E2;
+}
+.as-child.alt:hover {
+  border-color: #9FB6CE;
+  color: #E6EEF7;
+  background: rgba(90,110,140,0.18);
+}
+.as-child.alt.on {
+  background: linear-gradient(135deg, rgba(126,160,200,0.30), rgba(126,160,200,0.10));
+  border-color: #9FB6CE;
+  color: #EAF2FB;
+  box-shadow: 0 0 12px rgba(126,160,200,0.25);
+}
+.as-event-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(212,168,86,0.22);
+}
+.as-event-title {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 3px;
+  margin-bottom: 6px;
 }
 
 /* ---- 左下角：图层开关 ---- */
@@ -1772,6 +1964,10 @@
   .map-stage .map-coords-display {
     right: 224px;
   }
+  .area-selector {
+    width: calc(100% - 470px);
+    min-width: 440px;
+  }
 }
 @media (max-width: 640px) {
   .map-filter-panel {
@@ -1779,6 +1975,29 @@
   }
   .map-ctl-topright {
     right: 12px;
+  }
+  .area-emblem {
+    width: 34px;
+    height: 34px;
+  }
+  .area-name {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  .area-child-name {
+    max-width: 130px;
+  }
+  .area-selector {
+    width: calc(100% - 20px);
+    min-width: 0;
+    padding: 10px 10px 9px;
+  }
+  .as-parent {
+    width: 52px;
+  }
+  .as-parent img {
+    width: 28px;
+    height: 28px;
   }
   .map-stage .map-coords-display {
     right: 12px;
@@ -1793,8 +2012,5 @@
     font-size: 14px;
     letter-spacing: 1px;
     padding: 6px 14px;
-  }
-  .region-switch-panel {
-    width: 260px;
   }
 }

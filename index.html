@@ -9,11 +9,11 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <link rel="preconnect" href="https://act-webstatic.mihoyo.com">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/map.css">
-<link rel="stylesheet" href="css/map-page.css">
-<link rel="stylesheet" href="css/optimize.css">
-<link rel="stylesheet" href="css/page-hero.css">
+<link rel="stylesheet" href="css/style.css?v=20261031a">
+<link rel="stylesheet" href="css/map.css?v=20261031a">
+<link rel="stylesheet" href="css/map-page.css?v=20261031a">
+<link rel="stylesheet" href="css/optimize.css?v=20261031a">
+<link rel="stylesheet" href="css/page-hero.css?v=20261031a">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <title>原神音乐热度数据可视化 - 地图中枢</title>
 <!-- 页面预加载：优化导航切换体验 -->
@@ -105,24 +105,27 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <button class="map-ctl-btn" id="mapFullscreenBtn" title="全屏"><img src="assets/img/deco/UI_ItemIcon_114.png" alt="全屏" onerror="this.style.display='none'"/>全屏</button>
     </div>
 
-    <!-- 右上角：更换地区按钮 + 下拉面板 -->
+    <!-- 右上角：更换地区（空荧酒馆 v3 式折叠态：按钮 + 当前地区名 + 子区域名 + 地区徽记） -->
     <div class="map-ctl-topright">
-      <button class="map-ctl-btn region-switch-btn" id="regionSwitchBtn"><img src="assets/img/icons/七天神像.png" alt="" onerror="this.style.display='none'"/>更换地区</button>
-      <div class="region-switch-panel" id="regionSwitchPanel" hidden>
-        <div class="rsp-title">选择地区</div>
-        <div class="region-tabs rsp-grid" id="regionTabs">
-          <button class="region-tab active" data-region="all" style="--rc:#C9A227"><img src="assets/img/icons/传送锚点.png" onerror="this.style.display='none'"/>全大陆</button>
-          <button class="region-tab" data-region="mondstadt" style="--rc:#6BCB77"><img src="assets/img/regions/蒙德.png" onerror="this.style.display='none'"/>蒙德</button>
-          <button class="region-tab" data-region="liyue" style="--rc:#C44A4A"><img src="assets/img/regions/璃月.png" onerror="this.style.display='none'"/>璃月</button>
-          <button class="region-tab" data-region="inazuma" style="--rc:#9B4AD9"><img src="assets/img/regions/稻妻.png" onerror="this.style.display='none'"/>稻妻</button>
-          <button class="region-tab" data-region="sumeru" style="--rc:#5AAD67"><img src="assets/img/regions/须弥.png" onerror="this.style.display='none'"/>须弥</button>
-          <button class="region-tab" data-region="fontaine" style="--rc:#4AD9D9"><img src="assets/img/regions/枫丹.png" onerror="this.style.display='none'"/>枫丹</button>
-          <button class="region-tab" data-region="natlan" style="--rc:#FF5A36"><img src="assets/img/regions/纳塔.png" onerror="this.style.display='none'"/>纳塔</button>
-          <button class="region-tab" data-region="nodkrai" style="--rc:#8B5CF6"><img src="assets/img/regions/挪德卡莱.png" onerror="this.style.display='none'"/>挪德卡莱</button>
-          <button class="region-tab" data-region="snezhnaya" style="--rc:#7ED2F7"><img src="assets/img/regions/至冬.png" onerror="this.style.display='none'"/>至冬</button>
+      <div class="area-info">
+        <button class="map-ctl-btn area-switch-btn" id="regionSwitchBtn" title="更换地区"><img src="assets/img/icons/七天神像.png" alt="" onerror="this.style.display='none'"/>更换地区</button>
+        <div class="area-names">
+          <div class="area-name" id="areaName">提瓦特</div>
+          <div class="area-child-name" id="areaChildName">全大陆</div>
         </div>
-        <div class="rsp-title">全部地图</div>
-        <div class="region-tabs rsp-grid" id="mapViewTabs"></div>
+        <img class="area-emblem" id="areaEmblem" src="assets/img/icons/传送锚点.png" alt="地区徽记" onerror="this.style.display='none'"/>
+      </div>
+    </div>
+
+    <!-- 顶部中央：地区选择横幅（空荧酒馆 v3 式展开态：国家徽记行 + 该国子区域胶囊行 + 限时区域行） -->
+    <div class="area-selector" id="areaSelector" hidden>
+      <div class="as-deco-line"><span class="as-diamond"></span></div>
+      <div class="as-parents" id="asParents"><!-- 由 map.js 渲染八国徽记 --></div>
+      <div class="as-area-name" id="asAreaName">提瓦特</div>
+      <div class="as-children" id="asChildren"><!-- 由 map.js 渲染选中国家的子区域 --></div>
+      <div class="as-event-block">
+        <div class="as-event-title">往期限时区域</div>
+        <div class="as-children" id="asEvents"><!-- 由 map.js 渲染活动地图 --></div>
       </div>
     </div>
 
@@ -229,14 +232,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   </div>
 </div>
 
-<script src="js/data.js?v=20261030i"></script>
-<script src="js/avatar-map.js?v=20261030i"></script>
-<script src="js/nav.js?v=20261030i"></script>
+<script src="js/data.js?v=20261031a"></script>
+<script src="js/avatar-map.js?v=20261031a"></script>
+<script src="js/nav.js?v=20261031a"></script>
 <script src="vendor/leaflet.js"></script>
-<script src="js/map-presets.js?v=20261030i"></script>
-<script src="js/map.js?v=20261030i"></script>
-<script src="js/index.js?v=20261030i"></script>
-<script src="js/page-hero.js?v=20261030i"></script>
-<script src="js/optimize.js?v=20261030i"></script>
+<script src="js/map-presets.js?v=20261031a"></script>
+<script src="js/map.js?v=20261031a"></script>
+<script src="js/index.js?v=20261031a"></script>
+<script src="js/page-hero.js?v=20261031a"></script>
+<script src="js/optimize.js?v=20261031a"></script>
 </body>
 </html>

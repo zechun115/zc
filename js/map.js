@@ -241,10 +241,19 @@
   const mapCoords = document.getElementById('mapCoordsDisplay');
   // 覆盖式浮层元素（空荧酒馆式布局）
   const mapStage = document.getElementById('mapStage');
+  const mapRegionBanner = document.getElementById('mapRegionBanner');
   const mrbName = document.getElementById('mrbName');
   const mrbAreas = document.getElementById('mrbAreas');
   const regionSwitchBtn = document.getElementById('regionSwitchBtn');
-  const regionSwitchPanel = document.getElementById('regionSwitchPanel');
+  // 空荧酒馆 v3 式地区选择器元素
+  const areaSelectorEl = document.getElementById('areaSelector');
+  const areaNameEl = document.getElementById('areaName');
+  const areaChildEl = document.getElementById('areaChildName');
+  const areaEmblemEl = document.getElementById('areaEmblem');
+  const asParentsEl = document.getElementById('asParents');
+  const asAreaNameEl = document.getElementById('asAreaName');
+  const asChildrenEl = document.getElementById('asChildren');
+  const asEventsEl = document.getElementById('asEvents');
   const layerCharsToggle = document.getElementById('layerCharsToggle');
   const mfpTree = document.getElementById('mfpTree');
   let charMarkersRefs = [];   // [{name, region, marker, pos}] —— 跨实现共享
@@ -483,6 +492,7 @@
     }
     currentPreset = target;
     leafletMap.flyTo(target.center, target.zoom, { duration: 0.6 });
+    onViewChanged();
   }
 
   // 恢复默认视图：铺满当前地图的完整瓦片范围
@@ -517,9 +527,9 @@
       m.markerEl.style.opacity = '1';
     });
     applyMarkerVisibility();
-    // 恢复顶部横幅为全大陆，地区标签回到「全大陆」
-    updateBanner(null);
-    syncRegionTabs('all');
+    // 恢复顶部横幅与地区选择器到当前视图状态
+    refreshBannerByView();
+    syncAreaUI();
     // 恢复全图默认视图
     if (activeImpl === 'leaflet' && leafletMap) fitToFullMap();
   }
@@ -773,10 +783,16 @@
   function switchMapView(key) {
     const target = findPreset(key);
     if (!target) return;
+    if (activeImpl === 'legacy') return;   // 旧版降级实现不支持多视图
     if (activeImpl === 'leaflet' && leafletMap && currentPreset && target.code === currentPreset.code) {
       currentPreset = target;
-      leafletMap.flyTo(target.center, target.zoom, { duration: 0.6 });
-      fitBaseZoom = target.zoom === 'fit' ? fitBaseZoom : target.zoom;
+      if (target.zoom === 'fit') {
+        fitToFullMap();
+      } else {
+        leafletMap.flyTo(target.center, target.zoom, { duration: 0.6 });
+        fitBaseZoom = target.zoom;
+      }
+      onViewChanged();
       return;
     }
     if (leafletMap) {
@@ -787,25 +803,159 @@
     }
     activeImpl = null;
     initLeafletMap(target.key);
+    onViewChanged();
   }
   window.switchMapView = switchMapView;
 
-  // 「全部地图」视图列表（右上角更换地区面板内）
-  function renderMapViewTabs() {
-    const host = document.getElementById('mapViewTabs');
-    if (!host || !PRESETS.length) return;
-    host.innerHTML = PRESETS.map(p =>
-      `<button class="region-tab" data-view="${p.key}" style="--rc:#C9A227">${p.name}</button>`
-    ).join('');
-    host.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-view]');
-      if (!btn) return;
-      host.querySelectorAll('.region-tab').forEach(b => b.classList.toggle('active', b === btn));
-      switchMapView(btn.dataset.view);
-      if (regionSwitchPanel) regionSwitchPanel.hidden = true;
-    });
+  // ═══════ 空荧酒馆 v3 式「更换地区」选择器 ═══════
+  // 折叠态（右上角）：更换地区按钮 + 当前地区名 + 子区域名 + 地区徽记
+  // 展开态（顶部横幅）：八国徽记行 → 选中国家的子区域胶囊行 → 往期限时区域行
+  const AREA_COUNTRIES = ['mondstadt', 'liyue', 'inazuma', 'sumeru', 'fontaine', 'natlan', 'nodkrai', 'snezhnaya'];
+  let panelCountry = 'mondstadt';   // 展开面板中当前展示子区域的国家
+
+  function childViewsOf(country) {
+    return PRESETS.filter(p => p.country === country);
   }
-  renderMapViewTabs();
+
+  // 折叠态显示：当前地区名 + 子区域名 + 徽记（徽记加载失败自动隐藏）
+  function updateAreaInfo() {
+    if (!areaNameEl || !areaChildEl) return;
+    const p = currentPreset;
+    const setEmblem = (src) => {
+      if (!areaEmblemEl) return;
+      areaEmblemEl.style.display = '';
+      areaEmblemEl.src = src;
+    };
+    if (!p || p.country === 'all') {
+      areaNameEl.textContent = '提瓦特';
+      areaChildEl.textContent = '全大陆';
+      setEmblem('assets/img/icons/传送锚点.png');
+      return;
+    }
+    if (p.country === 'event') {
+      areaNameEl.textContent = '往期限时区域';
+      areaChildEl.textContent = p.label;
+      setEmblem('assets/img/icons/传送锚点.png');
+      return;
+    }
+    const r = REGIONS.find(x => x.id === p.country);
+    areaNameEl.textContent = r ? r.name : p.label;
+    areaChildEl.textContent = p.label;
+    setEmblem('assets/img/regions/' + (r ? r.name : '蒙德') + '.png');
+  }
+
+  // 展开面板：八国徽记行
+  function renderAreaParents() {
+    if (!asParentsEl) return;
+    asParentsEl.innerHTML = AREA_COUNTRIES.map(id => {
+      const r = REGIONS.find(x => x.id === id);
+      if (!r) return '';
+      return `<button class="as-parent" data-country="${id}" style="--rc:${r.color}" title="${r.name}">
+        <img src="assets/img/regions/${r.name}.png" alt="${r.name}" onerror="this.style.display='none'"/>
+        <span class="as-parent-name">${r.name}</span>
+      </button>`;
+    }).join('');
+  }
+
+  // 展开面板：选中国家的子区域胶囊（独立金字塔地图用 alt 暗色区分，参考 v3）
+  function renderAreaChildren(country) {
+    if (!asChildrenEl) return;
+    const r = REGIONS.find(x => x.id === country);
+    if (asAreaNameEl) asAreaNameEl.textContent = r ? r.name : '';
+    asChildrenEl.innerHTML = childViewsOf(country).map(v =>
+      `<button class="as-child${v.code !== 'twt672' ? ' alt' : ''}" data-view="${v.key}" title="${v.label}${v.code !== 'twt672' ? '（独立地图）' : ''}">${v.label}</button>`
+    ).join('');
+  }
+
+  // 展开面板：往期限时区域
+  function renderAreaEvents() {
+    if (!asEventsEl) return;
+    asEventsEl.innerHTML = PRESETS.filter(p => p.country === 'event').map(v =>
+      `<button class="as-child alt" data-view="${v.key}" title="${v.label}">${v.label}</button>`
+    ).join('');
+  }
+
+  // 同步所有选中态（徽记行 / 子区域胶囊 / 顶部横幅胶囊 / 折叠显示）
+  function syncAreaUI() {
+    const ck = currentPreset ? currentPreset.key : '';
+    const cc = currentPreset ? currentPreset.country : '';
+    if (asParentsEl) asParentsEl.querySelectorAll('.as-parent').forEach(b => b.classList.toggle('on', b.dataset.country === cc));
+    document.querySelectorAll('.as-child').forEach(b => b.classList.toggle('on', b.dataset.view === ck));
+    if (mrbAreas) mrbAreas.querySelectorAll('.mrb-area').forEach(b => b.classList.toggle('on', b.dataset.view === ck));
+    updateAreaInfo();
+  }
+
+  // 面板开合：打开时隐藏顶部区域横幅避免遮挡，并联动到当前视图所属国家
+  function setAreaSelector(open) {
+    if (!areaSelectorEl) return;
+    areaSelectorEl.hidden = !open;
+    if (mapRegionBanner) mapRegionBanner.style.visibility = open ? 'hidden' : '';
+    if (open) {
+      if (currentPreset && currentPreset.country !== 'all' && currentPreset.country !== 'event') {
+        panelCountry = currentPreset.country;
+      }
+      renderAreaParents();
+      renderAreaChildren(panelCountry);
+      renderAreaEvents();
+      syncAreaUI();
+    }
+  }
+
+  // 点击国家徽记：切到该国主视图并刷新子区域行（面板保持打开，便于继续挑选子区域）
+  function selectAreaCountry(id) {
+    panelCountry = id;
+    renderAreaChildren(id);
+    const mainKey = REGION_VIEW[id];
+    if (mainKey) switchMapView(mainKey);
+    else syncAreaUI();
+  }
+
+  // 点击子区域/活动地图胶囊：切换视图并收起面板
+  function selectAreaView(key) {
+    const p = findPreset(key);
+    if (!p) return;
+    if (p.country !== 'all' && p.country !== 'event') panelCountry = p.country;
+    switchMapView(key);
+    setAreaSelector(false);
+  }
+
+  // 视图切换后统一刷新：折叠显示 + 选择器选中态 + 顶部横幅
+  function onViewChanged() {
+    syncAreaUI();
+    refreshBannerByView();
+  }
+
+  // 顶部横幅跟随当前视图：国家视图显示该国子区域胶囊，活动区域显示活动胶囊组
+  function refreshBannerByView() {
+    const p = currentPreset;
+    if (!p || p.country === 'all') { updateBanner(null); return; }
+    if (p.country === 'event') { updateBanner(null, p.label); return; }
+    const r = REGIONS.find(x => x.id === p.country);
+    updateBanner(r || null);
+  }
+
+  // 面板事件委托
+  if (asParentsEl) asParentsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.as-parent');
+    if (btn) selectAreaCountry(btn.dataset.country);
+  });
+  const onChildCapsuleClick = (e) => {
+    const btn = e.target.closest('.as-child');
+    if (btn) selectAreaView(btn.dataset.view);
+  };
+  if (asChildrenEl) asChildrenEl.addEventListener('click', onChildCapsuleClick);
+  if (asEventsEl) asEventsEl.addEventListener('click', onChildCapsuleClick);
+  // 顶部横幅子区域胶囊：点击直接切换视图
+  if (mrbAreas) mrbAreas.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-view]');
+    if (el) selectAreaView(el.dataset.view);
+  });
+
+  // 初始渲染（此时地图尚未初始化，选中态由 doInitMap 后的视图切换逐步同步）
+  renderAreaParents();
+  renderAreaChildren(panelCountry);
+  renderAreaEvents();
+  updateAreaInfo();
 
   // ============================================================
   //  实现 B：旧版单图 CSS Transform（降级回退）
@@ -922,23 +1072,27 @@
     charMarkersRefs.forEach(m => setMarkerVisible(m, !isMarkerHidden(m)));
   }
 
-  // 顶部横幅：显示当前区域名 + 子区域胶囊
-  function updateBanner(region) {
+  // 顶部横幅：显示当前区域名 + 子区域胶囊（胶囊可点击切换视图，参考空荧酒馆 v3）
+  function updateBanner(region, eventLabel) {
     if (!mrbName || !mrbAreas) return;
+    const capsule = (v) =>
+      `<span class="mrb-area${v.code !== 'twt672' ? ' alt' : ''}${currentPreset && currentPreset.key === v.key ? ' on' : ''}" data-view="${v.key}" title="${v.label}${v.code !== 'twt672' ? '（独立地图）' : ''}">${v.label}</span>`;
     if (region) {
       mrbName.innerHTML = `<span class="mrb-dot" style="background:${region.color};box-shadow:0 0 8px ${region.color}"></span>${region.name}<span class="mrb-ver">v${region.version}</span>`;
-      mrbAreas.innerHTML = (region.areas || []).map(a => `<span class="mrb-area">${a}</span>`).join('');
+      mrbAreas.innerHTML = childViewsOf(region.id).map(capsule).join('');
+    } else if (eventLabel) {
+      mrbName.innerHTML = `<span class="mrb-dot" style="background:#C9A227;box-shadow:0 0 8px #C9A227"></span>${eventLabel}<span class="mrb-ver">往期限时区域</span>`;
+      mrbAreas.innerHTML = PRESETS.filter(p => p.country === 'event').map(capsule).join('');
     } else {
       mrbName.innerHTML = `<img src="assets/img/icons/传送锚点.png" alt="" onerror="this.style.display='none'"/>提瓦特大陆`;
       mrbAreas.innerHTML = '';
     }
   }
 
-  // 同步「更换地区」面板中的标签选中态（点击地图区域时也能联动）
+  // 同步「更换地区」选择器选中态（点击地图区域/筛选树时联动）
   function syncRegionTabs(rid) {
-    document.querySelectorAll('.region-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.region === rid);
-    });
+    if (rid && rid !== 'all' && AREA_COUNTRIES.includes(rid)) panelCountry = rid;
+    syncAreaUI();
   }
 
   // 飞行定位到角色标记
@@ -1007,20 +1161,15 @@
     });
   }
 
-  // 右上角「更换地区」面板开合：点击外部或选中地区后自动收起
-  if (regionSwitchBtn && regionSwitchPanel) {
+  // 右上角「更换地区」面板开合：点击外部自动收起（选中子区域后由 selectAreaView 收起）
+  if (regionSwitchBtn && areaSelectorEl) {
     regionSwitchBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      regionSwitchPanel.hidden = !regionSwitchPanel.hidden;
+      setAreaSelector(areaSelectorEl.hidden);
     });
     document.addEventListener('click', (e) => {
-      if (!regionSwitchPanel.hidden && !e.target.closest('.map-ctl-topright')) {
-        regionSwitchPanel.hidden = true;
-      }
-    });
-    regionSwitchPanel.addEventListener('click', (e) => {
-      if (e.target.closest('.region-tab')) {
-        setTimeout(() => { regionSwitchPanel.hidden = true; }, 60);
+      if (!areaSelectorEl.hidden && !e.target.closest('.area-selector') && !e.target.closest('.map-ctl-topright')) {
+        setAreaSelector(false);
       }
     });
   }
