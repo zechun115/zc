@@ -186,7 +186,7 @@
     "珐露珊": { x: 82.4, y: 50.2 }, "莱依拉": { x: 79.6, y: 53.0 }, "卡维": { x: 77.2, y: 53.2 },
     "赛索斯": { x: 80.6, y: 54.2 },
     // 沙漠
-    "赛诺": { x: 73.6, y: 57.2 }, "坎蒂丝": { x: 74.8, y: 58.2 }, "迪希亚": { x: 75.8, y: 59.4 },
+    "赛诺": { x: 73.6, y: 57.2 }, "坎蒂丝": { x: 74.8, y: 58.2 }, "迪希雅": { x: 75.8, y: 59.4 },
     // 流浪者（曾在须弥活动）
     "流浪者": { x: 75.6, y: 53.8 },
 
@@ -300,9 +300,9 @@
           </div>
         </div>
         <div class="map-detail-stats">
-          <div class="map-detail-stat"><div class="v">${fmtCN(char.pv * 10000)}</div><div class="l">PV播放</div></div>
-          <div class="map-detail-stat"><div class="v">${fmtCN(char.netease * 1000)}</div><div class="l">网易云收藏</div></div>
-          <div class="map-detail-stat"><div class="v">${fmtCN(char.cmt * 1000)}</div><div class="l">网易云评论</div></div>
+          <div class="map-detail-stat"><div class="v">${char.pv === null ? '—' : fmtCN(char.pv * 10000)}</div><div class="l">演示播放</div></div>
+          <div class="map-detail-stat"><div class="v">${char.fav === null ? '—' : fmtCN(char.fav * 1000)}</div><div class="l">B站收藏</div></div>
+          <div class="map-detail-stat"><div class="v">${char.danmaku === null ? '—' : fmtCN(char.danmaku * 1000)}</div><div class="l">B站弹幕</div></div>
         </div>
         <div class="map-detail-actions">
           <a href="character-detail.html?name=${encodeURIComponent(char.name)}" class="map-detail-btn primary">查看详情页 →</a>
@@ -354,10 +354,10 @@
     const tracks = REGION_TRACKS[rid] || [];
     const topTrack = getRegionTopTrack(rid);
     const topTrackReal = topTrack ? trackRealOf(topTrack) : null;
-    // pv 字段已是"万"为单位，直接累加；netease/cmt 字段为"千"为单位
-    const totalPv = chars.reduce((s, c) => s + c.pv, 0);
-    const totalNetease = chars.reduce((s, c) => s + c.netease, 0);
-    const totalFav = totalNetease;
+    // 角色级指标仅来自 B站官方角色视频（pv=万，fav/danmaku=千），无数据的角色按 0 累加
+    const totalPv = chars.reduce((s, c) => s + (c.pv || 0), 0);
+    const totalFav = chars.reduce((s, c) => s + (c.fav || 0), 0);
+    const totalDanmaku = chars.reduce((s, c) => s + (c.danmaku || 0), 0);
     // 曲目级只用真实数据：网易云评论数 / B站相关视频播放量（绝对值）
     const trackCmt = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.neteaseCmt || 0); }, 0);
     const trackPlay = tracks.reduce((s, t) => { const r = trackRealOf(t); return s + (r && r.biliPlay || 0); }, 0);
@@ -404,11 +404,12 @@
       ${region.areas ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${region.areas.map(a => `<span style="padding:2px 7px;border-radius:10px;background:${region.color}18;color:var(--text-secondary);font-size:11px;">${a}</span>`).join('')}</div>` : ''}
       ${topTrackHtml}
       <div class="rip-stats">
-        <div class="rip-stat">角色PV总播放 <span class="v">${fmtCN(totalPv * 10000)}</span></div>
-        <div class="rip-stat">角色音乐收藏 <span class="v">${fmtCN(totalFav * 1000)}</span></div>
+        <div class="rip-stat">官方角色视频总播放 <span class="v">${totalPv > 0 ? fmtCN(totalPv * 10000) : '—'}</span></div>
+        <div class="rip-stat">官方角色视频总收藏 <span class="v">${totalFav > 0 ? fmtCN(totalFav * 1000) : '—'}</span></div>
+        <div class="rip-stat">官方角色视频总弹幕 <span class="v">${totalDanmaku > 0 ? fmtCN(totalDanmaku * 1000) : '—'}</span></div>
         <div class="rip-stat">曲目网易云评论 <span class="v">${trackCmt > 0 ? fmtCN(trackCmt) : '—'}</span></div>
         <div class="rip-stat">曲目B站播放 <span class="v">${trackPlay > 0 ? fmtCN(trackPlay) : '—'}</span></div>
-        <div class="rip-stat">热门角色 <span class="v">${chars.sort((a, b) => b.pv - a.pv)[0]?.name || '-'}</span></div>
+        <div class="rip-stat">热门角色 <span class="v">${chars.filter(c => typeof c.pv === 'number').sort((a, b) => b.pv - a.pv)[0]?.name || '—'}</span></div>
       </div>
       ${elementList.length > 1 ? `
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
@@ -435,7 +436,7 @@
       <div class="region-char-list">
         <div class="rcl-title">全部角色（点击查看详情）→</div>
         <div style="max-height:220px;overflow-y:auto;">
-          ${chars.sort((a, b) => b.pv - a.pv).map(c => {
+          ${chars.slice().sort((a, b) => (typeof b.pv === 'number' ? b.pv : -1) - (typeof a.pv === 'number' ? a.pv : -1)).map(c => {
             const color = EC[c.element] || rColor(c.region);
             const au = (typeof getLocalAvatarUrl === 'function') ? getLocalAvatarUrl(c.name) : '';
             const elIcon = (typeof ELEMENT_CDN_MAP !== 'undefined' && ELEMENT_CDN_MAP[c.element]) ? `<img src="assets/img/elements/${ELEMENT_CDN_MAP[c.element]}" style="width:12px;height:12px;vertical-align:-1px;" onerror="this.style.display='none'"/>` : '';
@@ -449,8 +450,8 @@
                 <div style="font-size:11px;color:var(--text-tertiary);">${elIcon}${c.element} · ${c.weapon} · v${c.version}</div>
               </div>
               <div style="text-align:right;flex-shrink:0;">
-                <div style="font-size:13px;font-weight:600;color:${color};">${c.pv.toLocaleString()}万</div>
-                <div style="font-size:10px;color:var(--text-tertiary);">网易云 ${fmtCN(c.netease * 1000)}</div>
+                <div style="font-size:13px;font-weight:600;color:${color};">${c.pv === null ? '暂无数据' : c.pv.toLocaleString() + '万'}</div>
+                <div style="font-size:10px;color:var(--text-tertiary);">${c.fav === null ? '无官方角色视频' : 'B站收藏 ' + fmtCN(c.fav * 1000)}</div>
               </div>
             </div>
             `;
@@ -571,17 +572,19 @@
   function getRegionMusicHeat() {
     const heats = {};
     REGIONS.forEach(r => {
-      const chars = CHARACTERS.filter(c => c.region === r.id);
       const tracks = REGION_TRACKS[r.id] || [];
       const storyT = STORY_TRACKS.filter(t => t.region === r.id);
-      // 综合热度 = 角色网易云收藏（千）+ 地区曲目真实评论数（÷1000 折算千）+ 剧情曲目真实评论数（千）
-      const charFav = chars.reduce((s, c) => s + c.netease, 0);
+      // 地区热度 = 该地区曲目（地区曲目 + 剧情曲目）的网易云真实评论总数折算千条，
+      // 只用曲目级同源指标，不与角色级指标相加
       const trackFav = tracks.reduce((s, t) => {
         const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
         return s + ((r && typeof r.neteaseCmt === 'number') ? r.neteaseCmt / 1000 : 0);
       }, 0);
-      const storyFav = storyT.reduce((s, t) => s + (t.netease || 0), 0);
-      heats[r.id] = charFav + trackFav + storyFav;
+      const storyFav = storyT.reduce((s, t) => {
+        const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
+        return s + ((r && typeof r.neteaseCmt === 'number') ? r.neteaseCmt / 1000 : 0);
+      }, 0);
+      heats[r.id] = trackFav + storyFav;
     });
     const maxHeat = Math.max(...Object.values(heats), 1);
     // 归一化到 0-1

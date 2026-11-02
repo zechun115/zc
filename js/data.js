@@ -10,10 +10,12 @@ window.globalImgFallback = function (img) {
 /* ════════════════════════════════════════════════════════════════
    数据来源统一声明
    ════════════════════════════════════════════════════════════════
-   角色级指标（CHARACTERS）：
-   ① B 站  (bilibili.com)      → pv 字段      单位：「万」角色 PV 播放量
-   ② 网易云音乐 (music.163.com) → netease 字段  单位：「千」角色音乐收藏量
-   ③ cmt 字段：角色 PV 评论量（单位：千）
+   角色级指标（CHARACTERS）：三项均取自 B 站「原神」官方账号（uid 401742377）
+   同一支官方角色视频（角色演示 / 角色PV / 角色预告）的实测数据
+   ① pv      → 播放量，单位「万」
+   ② fav     → 收藏数，单位「千」
+   ③ danmaku → 弹幕数，单位「千」
+   未发布官方角色视频的角色，三项一律为 null，不参与任何统计与排名。
 
    曲目级指标（ALBUMS / TRACK_REAL / TRACK_EXTRA）：仅使用两项实测数据
    ① neteaseCmt：网易云单曲评论总数（原始条数）
@@ -141,151 +143,151 @@ const CHARACTER_AVATARS = {};
 
 /* ════════════════════════════════════════════════════════════════
  * CHARACTERS 数据来源
- *   pv  → B站角色PV/角色演示累计播放量（单位：万次），截至 2026-07
- *   netease → 网易云音乐对应角色 OST / 角色曲 收藏量（单位：千）
- *   cmt   → 网易云评论数（单位：千条）
- *   未上线角色（v6.2 之后新增的杜林/菈乌玛/法尔伽等）：
- *   pv / netease / cmt 标注为「待上线参考值」，取同星级同地区历史均值拟合。
+ *   pv      → B站「原神」官方账号角色视频（角色演示/角色PV/角色预告）播放量（万次）
+ *   fav     → 同上视频的收藏数（千）
+ *   danmaku → 同上视频的弹幕数（千）
+ *   三项均来自 B站公开视频接口（x/web-interface/view）实测，同一视频同源。
+ *   未发布官方角色视频的角色三项为 null，不做任何估算或拟合。
  * ════════════════════════════════════════════════════════════════ */
-// 角色数据（截至6.4版本完整列表，PV播放量为B站真实数据/万）
+// 角色数据（截至 7.1 版本完整列表；视频指标为 B站官方账号实测值）
 const CHARACTERS = [
   // 蒙德
-  { name: "温迪",     region: "mondstadt", rarity: 5, pv: 761,  netease: 52, cmt: 9.8, element: "风", weapon: "弓", theme: "风与自由之歌", desc: "自由城邦蒙德的风神化身，吟游诗人的外表下隐藏着千年的守望。", version: "1.0" },
-  { name: "可莉",     region: "mondstadt", rarity: 5, pv: 2006, netease: 48, cmt: 8.9, element: "火", weapon: "法器", theme: "哒哒哒", desc: "火花骑士，总是带来麻烦和欢笑的小小冒险家。", version: "1.0" },
-  { name: "阿贝多",   region: "mondstadt", rarity: 5, pv: 732,  netease: 35, cmt: 6.2, element: "岩", weapon: "单手剑", theme: "冬日叙事曲", desc: "炼金术的天才，骑士团首席炼金研究员。", version: "1.2" },
-  { name: "优菈",     region: "mondstadt", rarity: 5, pv: 1054,  netease: 38, cmt: 6.8, element: "冰", weapon: "双手剑", theme: "骑士团的饮宴", desc: "旧贵族后裔，蒙德城的复仇之舞者。", version: "1.5" },
-  { name: "迪卢克",   region: "mondstadt", rarity: 5, pv: 581,  netease: 28, cmt: 5.1, element: "火", weapon: "双手剑", theme: "拂晓的曙光", desc: "晨曦酒庄的主人，蒙德城的暗夜英雄。", version: "1.0" },
-  { name: "琴",       region: "mondstadt", rarity: 5, pv: 412,  netease: 22, cmt: 4.2, element: "风", weapon: "单手剑", theme: "蒲公英的守护", desc: "西风骑士团代理团长，守护蒙德的坚强女性。", version: "1.0" },
-  { name: "莫娜",     region: "mondstadt", rarity: 5, pv: 339,  netease: 18, cmt: 3.5, element: "水", weapon: "法器", theme: "星天水镜", desc: "神秘的占星术士，用星星的语言解读命运。", version: "1.0" },
-  { name: "菲谢尔",   region: "mondstadt", rarity: 4, pv: 374,  netease: 15, cmt: 2.8,  element: "雷", weapon: "弓", theme: "幽夜净土", desc: "自称断罪之皇女，沉迷中二幻想的冒险家。", version: "1.0" },
-  { name: "班尼特",   region: "mondstadt", rarity: 4, pv: 280,  netease: 28, cmt: 4.8, element: "火", weapon: "双手剑", theme: "好运剑", desc: "倒霉但善良的冒险家，总能在绝境中创造奇迹。", version: "1.0" },
-  { name: "诺艾尔",   region: "mondstadt", rarity: 4, pv: 240,  netease: 22, cmt: 3.8, element: "岩", weapon: "双手剑", theme: "女仆的誓言", desc: "西风骑士团女仆，梦想成为正式骑士的勤劳少女。", version: "1.0" },
-  { name: "砂糖",     region: "mondstadt", rarity: 4, pv: 180,  netease: 12, cmt: 2.2,  element: "风", weapon: "法器", theme: "炼金的回响", desc: "对炼金术充满热情的学者，有点迷糊的助手。", version: "1.0" },
-  { name: "安柏",     region: "mondstadt", rarity: 4, pv: 220,  netease: 8,  cmt: 1.5,  element: "火", weapon: "弓", theme: "侦察骑士", desc: "西风骑士团侦察骑士，热情活泼的少女。", version: "1.0" },
-  { name: "凯亚",     region: "mondstadt", rarity: 4, pv: 280,  netease: 14, cmt: 2.5,  element: "冰", weapon: "单手剑", theme: "寒冰咏叹调", desc: "西风骑士团骑兵队长，神秘优雅的贵族。", version: "1.0" },
-  { name: "丽莎",     region: "mondstadt", rarity: 4, pv: 240,  netease: 10, cmt: 1.8,  element: "雷", weapon: "法器", theme: "蔷薇魔女", desc: "西风骑士团图书管理员，博学的魔女。", version: "1.0" },
-  { name: "芭芭拉",   region: "mondstadt", rarity: 4, pv: 350,  netease: 25, cmt: 4.2, element: "水", weapon: "法器", theme: "祈礼牧师", desc: "西风教会祈礼牧师，蒙德城的偶像少女。", version: "1.0" },
-  { name: "雷泽",     region: "mondstadt", rarity: 4, pv: 180,  netease: 6,  cmt: 1.2,  element: "雷", weapon: "双手剑", theme: "狼之子", desc: "在野外长大的少年，与狼为伴的战士。", version: "1.0" },
-  { name: "迪奥娜",   region: "mondstadt", rarity: 4, pv: 353,  netease: 20, cmt: 3.5, element: "冰", weapon: "弓", theme: "猫尾特调", desc: "猫尾酒馆的调酒师，追求完美口感的猫耳少女。", version: "1.4" },
-  { name: "法尔伽",   region: "mondstadt", rarity: 5, pv: 480,  netease: 42, cmt: 8.2, element: "风", weapon: "双手剑", theme: "北风凯歌", desc: "西风骑士团大团长，率领远征军征伐狂猎的传奇统帅。", version: "6.4" },
-  { name: "罗莎莉亚", region: "mondstadt", rarity: 4, pv: 360,  netease: 18, cmt: 3.2, element: "冰", weapon: "长柄武器", theme: "午夜祷告", desc: "西风教会的修女，在黑夜中执行秘密任务的冷酷刺客。", version: "1.4" },
-  { name: "米卡",     region: "mondstadt", rarity: 4, pv: 280,  netease: 14, cmt: 2.5,  element: "冰", weapon: "长柄武器", theme: "侦察小队", desc: "西风骑士团侦察小队的成员，擅长使用长枪的后勤支援。", version: "3.5" },
+  { name: "温迪",   region: "mondstadt",  rarity: 5, pv: 1024.9,  fav: 108.2, danmaku: 28.2, element: "风", weapon: "弓", theme: "风与自由之歌", desc: "自由城邦蒙德的风神化身，吟游诗人的外表下隐藏着千年的守望。", version: "1.0" },
+  { name: "可莉",   region: "mondstadt",  rarity: 5, pv: 2096.4,  fav: 162.5, danmaku: 50.5, element: "火", weapon: "法器", theme: "哒哒哒", desc: "火花骑士，总是带来麻烦和欢笑的小小冒险家。", version: "1.0" },
+  { name: "阿贝多",  region: "mondstadt",  rarity: 5, pv: 829.0,  fav: 69.9, danmaku: 29.5, element: "岩", weapon: "单手剑", theme: "冬日叙事曲", desc: "炼金术的天才，骑士团首席炼金研究员。", version: "1.2" },
+  { name: "优菈",   region: "mondstadt",  rarity: 5, pv: 671.3,  fav: 72.2, danmaku: 39.7, element: "冰", weapon: "双手剑", theme: "骑士团的饮宴", desc: "旧贵族后裔，蒙德城的复仇之舞者。", version: "1.5" },
+  { name: "迪卢克",  region: "mondstadt",  rarity: 5, pv: null,  fav: null, danmaku: null, element: "火", weapon: "双手剑", theme: "拂晓的曙光", desc: "晨曦酒庄的主人，蒙德城的暗夜英雄。", version: "1.0" },
+  { name: "琴",     region: "mondstadt",  rarity: 5, pv: null,  fav: null, danmaku: null, element: "风", weapon: "单手剑", theme: "蒲公英的守护", desc: "西风骑士团代理团长，守护蒙德的坚强女性。", version: "1.0" },
+  { name: "莫娜",   region: "mondstadt",  rarity: 5, pv: 360.8,  fav: 18.8, danmaku: 4.5, element: "水", weapon: "法器", theme: "星天水镜", desc: "神秘的占星术士，用星星的语言解读命运。", version: "1.0" },
+  { name: "菲谢尔",  region: "mondstadt",  rarity: 4, pv: 405.7,  fav: 24.6, danmaku: 3.3,  element: "雷", weapon: "弓", theme: "幽夜净土", desc: "自称断罪之皇女，沉迷中二幻想的冒险家。", version: "1.0" },
+  { name: "班尼特",  region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "火", weapon: "双手剑", theme: "好运剑", desc: "倒霉但善良的冒险家，总能在绝境中创造奇迹。", version: "1.0" },
+  { name: "诺艾尔",  region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "岩", weapon: "双手剑", theme: "女仆的誓言", desc: "西风骑士团女仆，梦想成为正式骑士的勤劳少女。", version: "1.0" },
+  { name: "砂糖",   region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "风", weapon: "法器", theme: "炼金的回响", desc: "对炼金术充满热情的学者，有点迷糊的助手。", version: "1.0" },
+  { name: "安柏",   region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "火", weapon: "弓", theme: "侦察骑士", desc: "西风骑士团侦察骑士，热情活泼的少女。", version: "1.0" },
+  { name: "凯亚",   region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "冰", weapon: "单手剑", theme: "寒冰咏叹调", desc: "西风骑士团骑兵队长，神秘优雅的贵族。", version: "1.0" },
+  { name: "丽莎",   region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "雷", weapon: "法器", theme: "蔷薇魔女", desc: "西风骑士团图书管理员，博学的魔女。", version: "1.0" },
+  { name: "芭芭拉",  region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "水", weapon: "法器", theme: "祈礼牧师", desc: "西风教会祈礼牧师，蒙德城的偶像少女。", version: "1.0" },
+  { name: "雷泽",   region: "mondstadt",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "雷", weapon: "双手剑", theme: "狼之子", desc: "在野外长大的少年，与狼为伴的战士。", version: "1.0" },
+  { name: "迪奥娜",  region: "mondstadt",  rarity: 4, pv: 366.6,  fav: 20.0, danmaku: 5.0, element: "冰", weapon: "弓", theme: "猫尾特调", desc: "猫尾酒馆的调酒师，追求完美口感的猫耳少女。", version: "1.4" },
+  { name: "法尔伽",  region: "mondstadt",  rarity: 5, pv: 266.8,  fav: 39.7, danmaku: 12.7, element: "风", weapon: "双手剑", theme: "北风凯歌", desc: "西风骑士团大团长，率领远征军征伐狂猎的传奇统帅。", version: "6.4" },
+  { name: "罗莎莉亚",  region: "mondstadt",  rarity: 4, pv: 338.4,  fav: 24.1, danmaku: 7.2, element: "冰", weapon: "长柄武器", theme: "午夜祷告", desc: "西风教会的修女，在黑夜中执行秘密任务的冷酷刺客。", version: "1.4" },
+  { name: "米卡",   region: "mondstadt",  rarity: 4, pv: 221.2,  fav: 15.6, danmaku: 5.6,  element: "冰", weapon: "长柄武器", theme: "侦察小队", desc: "西风骑士团侦察小队的成员，擅长使用长枪的后勤支援。", version: "3.5" },
   
-  { name: "洛恩",     region: "mondstadt", rarity: 5, pv: 420,  netease: 38, cmt: 7.2, element: "冰", weapon: "长柄武器", theme: "恣锐锋镞", desc: "西风骑士团远程小队副队长，行事不拘一格，钟情于非常规战术的冰元素输出型角色。", version: "6.7" },
-  { name: "布伦妮",   region: "mondstadt", rarity: 4, pv: 260,  netease: 12, cmt: 2.2,  element: "风", weapon: "法器", theme: "稚梦归心", desc: "小小的「魔女猎人」，从挪德卡莱跋涉而来，能为队友提供伤害加成的风元素辅助角色。", version: "6.7" },
-  { name: "尼可",     region: "mondstadt", rarity: 5, pv: 420,  netease: 45, cmt: 8.5, element: "火", weapon: "法器", theme: "喧寂于心", desc: "无言的「魔女」，弃声的天使，可为全队提供攻击力加成与护盾的后台辅助型角色。", version: "6.7" },
-  { name: "塔利雅",   region: "mondstadt", rarity: 4, pv: 220,  netease: 12, cmt: 2.2,  element: "水", weapon: "单手剑", theme: "颂礼祝祭", desc: "枫丹著名服装设计师千织的学徒，水元素单手剑角色。", version: "6.7" },
-  { name: "杜林",     region: "mondstadt", rarity: 5, pv: 680,  netease: 52, cmt: 10.2, element: "火", weapon: "单手剑", theme: "不熄灭的火", desc: "在魔女M笔下诞生的龙，最终来到人类世界，可在「白化之是」与「黑度之否」两种状态间切换的火元素角色。", version: "6.2" },
+  { name: "洛恩",   region: "mondstadt",  rarity: 5, pv: 243.1,  fav: 54.5, danmaku: 11.5, element: "冰", weapon: "长柄武器", theme: "恣锐锋镞", desc: "西风骑士团远程小队副队长，行事不拘一格，钟情于非常规战术的冰元素输出型角色。", version: "6.7" },
+  { name: "布伦妮",  region: "mondstadt",  rarity: 4, pv: 158.6,  fav: 15.7, danmaku: 1.4,  element: "风", weapon: "法器", theme: "稚梦归心", desc: "小小的「魔女猎人」，从挪德卡莱跋涉而来，能为队友提供伤害加成的风元素辅助角色。", version: "6.7" },
+  { name: "尼可",   region: "mondstadt",  rarity: 5, pv: 327.1,  fav: 43.2, danmaku: 22.7, element: "火", weapon: "法器", theme: "喧寂于心", desc: "无言的「魔女」，弃声的天使，可为全队提供攻击力加成与护盾的后台辅助型角色。", version: "6.7" },
+  { name: "塔利雅",  region: "mondstadt",  rarity: 4, pv: 71.3,  fav: 10.9, danmaku: 1.6,  element: "水", weapon: "单手剑", theme: "颂礼祝祭", desc: "枫丹著名服装设计师千织的学徒，水元素单手剑角色。", version: "6.7" },
+  { name: "杜林",   region: "mondstadt",  rarity: 5, pv: 276.2,  fav: 64.3, danmaku: 26.5, element: "火", weapon: "单手剑", theme: "不熄灭的火", desc: "在魔女M笔下诞生的龙，最终来到人类世界，可在「白化之是」与「黑度之否」两种状态间切换的火元素角色。", version: "6.2" },
   // 璃月
-  { name: "钟离",     region: "liyue",     rarity: 5, pv: 5767, netease: 78, cmt: 15.2, element: "岩", weapon: "长柄武器", theme: "尘世闲游", desc: "往生堂的神秘客卿，实为上古岩神摩拉克斯。", version: "1.1" },
-  { name: "胡桃",     region: "liyue",     rarity: 5, pv: 1472, netease: 65, cmt: 12.8, element: "火", weapon: "长柄武器", theme: "丘丘人之诗", desc: "往生堂第七十七代堂主，古灵精怪的送葬人。", version: "1.3" },
-  { name: "甘雨",     region: "liyue",     rarity: 5, pv: 1029, netease: 55, cmt: 10.2, element: "冰", weapon: "弓", theme: "璃月之忆", desc: "璃月七星秘书，半仙之兽的千年守护者。", version: "1.2" },
-  { name: "魈",       region: "liyue",     rarity: 5, pv: 1454, netease: 58, cmt: 11.2, element: "风", weapon: "长柄武器", theme: "护法夜叉", desc: "守护璃月的夜叉，三眼五显仙人之一。", version: "1.3" },
-  { name: "云堇",     region: "liyue",     rarity: 4, pv: 620,  netease: 125, cmt: 28.5, element: "岩", weapon: "长柄武器", theme: "神女劈观", desc: "璃月戏班名角，将传统戏曲融入战斗的奇女子。", version: "2.4" },
-  { name: "申鹤",     region: "liyue",     rarity: 5, pv: 735,  netease: 42, cmt: 7.8, element: "冰", weapon: "长柄武器", theme: "孤辰之霜", desc: "被仙人收养的孤女，手持红缨枪的冷冽仙子。", version: "2.4" },
-  { name: "瑶瑶",     region: "liyue",     rarity: 4, pv: 316,  netease: 22, cmt: 4.2, element: "草", weapon: "长柄武器", theme: "月桂小徒弟", desc: "绝云间的小小弟子，善良可爱的胡萝卜使者。", version: "3.4" },
-  { name: "刻晴",     region: "liyue",     rarity: 5, pv: 836,  netease: 32, cmt: 5.8, element: "雷", weapon: "单手剑", theme: "霆霓快雨", desc: "璃月七星中的玉衡星，追求效率的工作狂。", version: "1.0" },
-  { name: "凝光",     region: "liyue",     rarity: 4, pv: 420,  netease: 22, cmt: 4.0, element: "岩", weapon: "法器", theme: "掩月天权", desc: "璃月七星中的天权星，掌控经济的女强人。", version: "1.0" },
-  { name: "香菱",     region: "liyue",     rarity: 4, pv: 480,  netease: 28, cmt: 4.8, element: "火", weapon: "长柄武器", theme: "万民百味", desc: "万民堂的天才厨师，喜欢尝试各种新奇料理。", version: "1.0" },
-  { name: "行秋",     region: "liyue",     rarity: 4, pv: 520,  netease: 30, cmt: 5.2, element: "水", weapon: "单手剑", theme: "古华剑", desc: "飞云商会的二少爷，热爱读书的文雅少年。", version: "1.0" },
-  { name: "重云",     region: "liyue",     rarity: 4, pv: 320,  netease: 15, cmt: 2.8,  element: "冰", weapon: "双手剑", theme: "驱邪术师", desc: "驱邪世家的少年，天生纯阳之体的修行者。", version: "1.0" },
-  { name: "北斗",     region: "liyue",     rarity: 4, pv: 350,  netease: 18, cmt: 3.2, element: "雷", weapon: "双手剑", theme: "南十字", desc: "南十字船队的大姐头，勇猛豪爽的航海家。", version: "1.0" },
-  { name: "辛焱",     region: "liyue",     rarity: 4, pv: 183,  netease: 8,  cmt: 1.5,  element: "火", weapon: "双手剑", theme: "摇滚少女", desc: "璃月的摇滚歌手，用音乐点燃热情的少女。", version: "1.1" },
-  { name: "白术",     region: "liyue",     rarity: 5, pv: 580,  netease: 35, cmt: 6.5, element: "草", weapon: "法器", theme: "悬壶济世", desc: "不卜庐的主人，精通药理的神秘医师。", version: "3.6" },
-  { name: "七七",     region: "liyue",     rarity: 5, pv: 420,  netease: 28, cmt: 5.2, element: "冰", weapon: "法器", theme: "冻冻回魂夜", desc: "不卜庐的采药少女，被仙术复活的僵尸女孩。", version: "1.0" },
-  { name: "烟绯",     region: "liyue",     rarity: 4, pv: 320,  netease: 18, cmt: 3.2, element: "火", weapon: "法器", theme: "律法咨询师", desc: "璃月的律法咨询师，半人半仙的精明少女。", version: "2.3" },
-  { name: "夜兰",     region: "liyue",     rarity: 5, pv: 680,  netease: 42, cmt: 7.8, element: "水", weapon: "长柄武器", theme: "秘密情报网", desc: "璃月总务司的神秘情报官，行踪不定的干练女性。", version: "2.7" },
-  { name: "嘉明",     region: "liyue",     rarity: 4, pv: 280,  netease: 15, cmt: 2.5,  element: "火", weapon: "单手剑", theme: "戏耍江湖", desc: "云瀚社的武生，武艺高强的年轻戏子。", version: "4.4" },
-  { name: "蓝砚",     region: "liyue",     rarity: 4, pv: 220,  netease: 12, cmt: 2.2,  element: "水", weapon: "单手剑", theme: "笔墨丹青", desc: "画家行秋的同门，擅长用水元素作画的文雅少年。", version: "4.4" },
-  { name: "闲云",     region: "liyue",     rarity: 5, pv: 520,  netease: 38, cmt: 7.2, element: "风", weapon: "法器", theme: "云游四方", desc: "三眼五显仙人之一，性格跳脱的自在仙人。", version: "4.4" },
-  { name: "兹白",     region: "liyue",     rarity: 5, pv: 180,  netease: 38, cmt: 7.2, element: "岩", weapon: "单手剑", theme: "月转时隙", desc: "璃月传说中的白马仙人，璃月仙话中最神秘的一位。", version: "6.4" },
+  { name: "钟离",   region: "liyue",  rarity: 5, pv: 5877.4,  fav: 772.2, danmaku: 319.0, element: "岩", weapon: "长柄武器", theme: "尘世闲游", desc: "往生堂的神秘客卿，实为上古岩神摩拉克斯。", version: "1.1" },
+  { name: "胡桃",   region: "liyue",  rarity: 5, pv: 1119.4,  fav: 132.4, danmaku: 52.8, element: "火", weapon: "长柄武器", theme: "丘丘人之诗", desc: "往生堂第七十七代堂主，古灵精怪的送葬人。", version: "1.3" },
+  { name: "甘雨",   region: "liyue",  rarity: 5, pv: 1045.5,  fav: 97.0, danmaku: 46.3, element: "冰", weapon: "弓", theme: "璃月之忆", desc: "璃月七星秘书，半仙之兽的千年守护者。", version: "1.2" },
+  { name: "魈",     region: "liyue",  rarity: 5, pv: 1673.5,  fav: 180.8, danmaku: 69.2, element: "风", weapon: "长柄武器", theme: "护法夜叉", desc: "守护璃月的夜叉，三眼五显仙人之一。", version: "1.3" },
+  { name: "云堇",   region: "liyue",  rarity: 4, pv: 672.8,  fav: 88.8, danmaku: 20.6, element: "岩", weapon: "长柄武器", theme: "神女劈观", desc: "璃月戏班名角，将传统戏曲融入战斗的奇女子。", version: "2.4" },
+  { name: "申鹤",   region: "liyue",  rarity: 5, pv: 748.3,  fav: 80.4, danmaku: 34.5, element: "冰", weapon: "长柄武器", theme: "孤辰之霜", desc: "被仙人收养的孤女，手持红缨枪的冷冽仙子。", version: "2.4" },
+  { name: "瑶瑶",   region: "liyue",  rarity: 4, pv: 360.0,  fav: 32.3, danmaku: 11.0, element: "草", weapon: "长柄武器", theme: "月桂小徒弟", desc: "绝云间的小小弟子，善良可爱的胡萝卜使者。", version: "3.4" },
+  { name: "刻晴",   region: "liyue",  rarity: 5, pv: 895.8,  fav: 48.4, danmaku: 19.2, element: "雷", weapon: "单手剑", theme: "霆霓快雨", desc: "璃月七星中的玉衡星，追求效率的工作狂。", version: "1.0" },
+  { name: "凝光",   region: "liyue",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "岩", weapon: "法器", theme: "掩月天权", desc: "璃月七星中的天权星，掌控经济的女强人。", version: "1.0" },
+  { name: "香菱",   region: "liyue",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "火", weapon: "长柄武器", theme: "万民百味", desc: "万民堂的天才厨师，喜欢尝试各种新奇料理。", version: "1.0" },
+  { name: "行秋",   region: "liyue",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "水", weapon: "单手剑", theme: "古华剑", desc: "飞云商会的二少爷，热爱读书的文雅少年。", version: "1.0" },
+  { name: "重云",   region: "liyue",  rarity: 4, pv: null,  fav: null, danmaku: null,  element: "冰", weapon: "双手剑", theme: "驱邪术师", desc: "驱邪世家的少年，天生纯阳之体的修行者。", version: "1.0" },
+  { name: "北斗",   region: "liyue",  rarity: 4, pv: null,  fav: null, danmaku: null, element: "雷", weapon: "双手剑", theme: "南十字", desc: "南十字船队的大姐头，勇猛豪爽的航海家。", version: "1.0" },
+  { name: "辛焱",   region: "liyue",  rarity: 4, pv: 190.6,  fav: 10.5, danmaku: 2.5,  element: "火", weapon: "双手剑", theme: "摇滚少女", desc: "璃月的摇滚歌手，用音乐点燃热情的少女。", version: "1.1" },
+  { name: "白术",   region: "liyue",  rarity: 5, pv: 332.8,  fav: 31.7, danmaku: 9.7, element: "草", weapon: "法器", theme: "悬壶济世", desc: "不卜庐的主人，精通药理的神秘医师。", version: "3.6" },
+  { name: "七七",   region: "liyue",  rarity: 5, pv: 613.7,  fav: 30.6, danmaku: 9.2, element: "冰", weapon: "法器", theme: "冻冻回魂夜", desc: "不卜庐的采药少女，被仙术复活的僵尸女孩。", version: "1.0" },
+  { name: "烟绯",   region: "liyue",  rarity: 4, pv: 464.8,  fav: 32.6, danmaku: 18.9, element: "火", weapon: "法器", theme: "律法咨询师", desc: "璃月的律法咨询师，半人半仙的精明少女。", version: "2.3" },
+  { name: "夜兰",   region: "liyue",  rarity: 5, pv: 698.7,  fav: 69.5, danmaku: 35.2, element: "水", weapon: "长柄武器", theme: "秘密情报网", desc: "璃月总务司的神秘情报官，行踪不定的干练女性。", version: "2.7" },
+  { name: "嘉明",   region: "liyue",  rarity: 4, pv: 221.1,  fav: 28.4, danmaku: 10.6,  element: "火", weapon: "单手剑", theme: "戏耍江湖", desc: "云瀚社的武生，武艺高强的年轻戏子。", version: "4.4" },
+  { name: "蓝砚",   region: "liyue",  rarity: 4, pv: 110.3,  fav: 13.5, danmaku: 1.6,  element: "水", weapon: "单手剑", theme: "笔墨丹青", desc: "画家行秋的同门，擅长用水元素作画的文雅少年。", version: "4.4" },
+  { name: "闲云",   region: "liyue",  rarity: 5, pv: 412.1,  fav: 57.2, danmaku: 31.0, element: "风", weapon: "法器", theme: "云游四方", desc: "三眼五显仙人之一，性格跳脱的自在仙人。", version: "4.4" },
+  { name: "兹白",   region: "liyue",  rarity: 5, pv: 344.9,  fav: 59.5, danmaku: 17.5, element: "岩", weapon: "单手剑", theme: "月转时隙", desc: "璃月传说中的白马仙人，璃月仙话中最神秘的一位。", version: "6.4" },
   
   // 稻妻
-  { name: "早柚",     region: "inazuma",   rarity: 4, pv: 414,  netease: 18, cmt: 3.2, element: "风", weapon: "单手剑", theme: "忍术入门", desc: "隶属于荒泷派的小忍者，总是想睡觉。", version: "2.0" },
-  { name: "雷电将军", region: "inazuma",   rarity: 5, pv: 2693, netease: 72, cmt: 13.8, element: "雷", weapon: "长柄武器", theme: "无念的禅心", desc: "稻妻的永恒之神，雷之三重巴的统治者。", version: "2.1" },
-  { name: "神里绫华", region: "inazuma",   rarity: 5, pv: 1341, netease: 58, cmt: 10.8, element: "冰", weapon: "单手剑", theme: "白鹭之舞", desc: "稻妻社奉行千金，优雅的剑舞与茶道名家。", version: "2.0" },
-  { name: "八重神子", region: "inazuma",   rarity: 5, pv: 809,  netease: 48, cmt: 9.2, element: "雷", weapon: "法器", theme: "狐之誓约", desc: "鸣神大社的宫司，狡黠聪慧的千年狐妖。", version: "2.5" },
-  { name: "荒泷一斗", region: "inazuma",   rarity: 5, pv: 609,  netease: 35, cmt: 6.5, element: "岩", weapon: "双手剑", theme: "鬼兜虫之魂", desc: "鬼族末裔，天领奉行最头疼的豪放浪人。", version: "2.3" },
-  { name: "枫原万叶", region: "inazuma",   rarity: 5, pv: 906,  netease: 45, cmt: 8.5, element: "风", weapon: "单手剑", theme: "红叶逐风", desc: "流亡的浪人武士，风与诗歌的旅人。", version: "2.0" },
-  { name: "珊瑚宫心海", region: "inazuma", rarity: 5, pv: 523,  netease: 38, cmt: 7.2, element: "水", weapon: "法器", theme: "深海的乐章", desc: "珊瑚宫的现人神巫女，统帅海祇岛的智将。", version: "2.1" },
-  { name: "神里绫人", region: "inazuma",   rarity: 5, pv: 646,  netease: 42, cmt: 7.8, element: "水", weapon: "单手剑", theme: "神里流", desc: "社奉行家主，优雅而深谋远虑的政治家。", version: "2.6" },
-  { name: "宵宫",     region: "inazuma",   rarity: 5, pv: 819, netease: 48, cmt: 8.8, element: "火", weapon: "弓", theme: "夏祭的烟火", desc: "长野原烟花店的店主，用烟花点亮夜空的少女。", version: "2.0" },
-  { name: "托马",     region: "inazuma",   rarity: 4, pv: 363,  netease: 20, cmt: 3.8, element: "火", weapon: "长柄武器", theme: "家政官", desc: "神里家的家政官，热情可靠的暖男。", version: "2.0" },
-  { name: "久岐忍",   region: "inazuma",   rarity: 4, pv: 297,  netease: 18, cmt: 3.2, element: "雷", weapon: "单手剑", theme: "荒泷派", desc: "荒泷派的二把手，冷静可靠的忍者。", version: "2.7" },
-  { name: "鹿野院平藏", region: "inazuma", rarity: 4, pv: 356,  netease: 15, cmt: 2.8,  element: "风", weapon: "法器", theme: "侦探物语", desc: "天领奉行的侦探，聪明机智的少年。", version: "2.8" },
-  { name: "五郎",     region: "inazuma",   rarity: 4, pv: 259,  netease: 12, cmt: 2.2,  element: "岩", weapon: "弓", theme: "海祇军", desc: "海祇军大将，忠诚勇敢的战士。", version: "2.1" },
-  { name: "九条裟罗", region: "inazuma",   rarity: 4, pv: 320,  netease: 18, cmt: 3.2, element: "雷", weapon: "弓", theme: "天领奉行", desc: "天领奉行的大将，忠于雷电将军的鹰派武士。", version: "2.1" },
-  { name: "绮良良",   region: "inazuma",   rarity: 4, pv: 380,  netease: 22, cmt: 4.0, element: "草", weapon: "单手剑", theme: "快递公司", desc: "稻妻快递公司的员工，可爱的猫耳少女。", version: "3.7" },
-  { name: "千织",     region: "inazuma",   rarity: 4, pv: 580,  netease: 42, cmt: 7.8, element: "岩", weapon: "单手剑", theme: "织梦工坊", desc: "「千织屋」的老板，来自稻妻的服装设计师，鸣雷的裁锦师。", version: "4.5" },
-  { name: "梦见月瑞希", region: "inazuma", rarity: 5, pv: 420,  netease: 38, cmt: 7.2, element: "风", weapon: "法器", theme: "绮梦缱绻", desc: "「秋沙钱汤」的股东，梦貘一族的心理诊疗师，致力于驱散噩梦。", version: "5.4" },
+  { name: "早柚",   region: "inazuma",  rarity: 4, pv: 437.0,  fav: 28.8, danmaku: 17.7, element: "风", weapon: "单手剑", theme: "忍术入门", desc: "隶属于荒泷派的小忍者，总是想睡觉。", version: "2.0" },
+  { name: "雷电将军",  region: "inazuma",  rarity: 5, pv: 2748.6,  fav: 311.8, danmaku: 152.7, element: "雷", weapon: "长柄武器", theme: "无念的禅心", desc: "稻妻的永恒之神，雷之三重巴的统治者。", version: "2.1" },
+  { name: "神里绫华",  region: "inazuma",  rarity: 5, pv: 1131.0,  fav: 112.8, danmaku: 81.5, element: "冰", weapon: "单手剑", theme: "白鹭之舞", desc: "稻妻社奉行千金，优雅的剑舞与茶道名家。", version: "2.0" },
+  { name: "八重神子",  region: "inazuma",  rarity: 5, pv: 817.5,  fav: 134.8, danmaku: 83.9, element: "雷", weapon: "法器", theme: "狐之誓约", desc: "鸣神大社的宫司，狡黠聪慧的千年狐妖。", version: "2.5" },
+  { name: "荒泷一斗",  region: "inazuma",  rarity: 5, pv: 683.0,  fav: 58.5, danmaku: 27.3, element: "岩", weapon: "双手剑", theme: "鬼兜虫之魂", desc: "鬼族末裔，天领奉行最头疼的豪放浪人。", version: "2.3" },
+  { name: "枫原万叶",  region: "inazuma",  rarity: 5, pv: 1141.7,  fav: 140.9, danmaku: 57.2, element: "风", weapon: "单手剑", theme: "红叶逐风", desc: "流亡的浪人武士，风与诗歌的旅人。", version: "2.0" },
+  { name: "珊瑚宫心海",  region: "inazuma",  rarity: 5, pv: 598.9,  fav: 55.0, danmaku: 29.2, element: "水", weapon: "法器", theme: "深海的乐章", desc: "珊瑚宫的现人神巫女，统帅海祇岛的智将。", version: "2.1" },
+  { name: "神里绫人",  region: "inazuma",  rarity: 5, pv: 580.2,  fav: 76.8, danmaku: 38.3, element: "水", weapon: "单手剑", theme: "神里流", desc: "社奉行家主，优雅而深谋远虑的政治家。", version: "2.6" },
+  { name: "宵宫",   region: "inazuma",  rarity: 5, pv: 950.5,  fav: 104.0, danmaku: 58.3, element: "火", weapon: "弓", theme: "夏祭的烟火", desc: "长野原烟花店的店主，用烟花点亮夜空的少女。", version: "2.0" },
+  { name: "托马",   region: "inazuma",  rarity: 4, pv: 386.9,  fav: 31.3, danmaku: 10.8, element: "火", weapon: "长柄武器", theme: "家政官", desc: "神里家的家政官，热情可靠的暖男。", version: "2.0" },
+  { name: "久岐忍",  region: "inazuma",  rarity: 4, pv: 321.9,  fav: 26.1, danmaku: 6.7, element: "雷", weapon: "单手剑", theme: "荒泷派", desc: "荒泷派的二把手，冷静可靠的忍者。", version: "2.7" },
+  { name: "鹿野院平藏",  region: "inazuma",  rarity: 4, pv: 396.9,  fav: 42.5, danmaku: 10.9,  element: "风", weapon: "法器", theme: "侦探物语", desc: "天领奉行的侦探，聪明机智的少年。", version: "2.8" },
+  { name: "五郎",   region: "inazuma",  rarity: 4, pv: 278.3,  fav: 24.3, danmaku: 9.1,  element: "岩", weapon: "弓", theme: "海祇军", desc: "海祇军大将，忠诚勇敢的战士。", version: "2.1" },
+  { name: "九条裟罗",  region: "inazuma",  rarity: 4, pv: 410.9,  fav: 28.1, danmaku: 13.3, element: "雷", weapon: "弓", theme: "天领奉行", desc: "天领奉行的大将，忠于雷电将军的鹰派武士。", version: "2.1" },
+  { name: "绮良良",  region: "inazuma",  rarity: 4, pv: 411.8,  fav: 31.6, danmaku: 7.6, element: "草", weapon: "单手剑", theme: "快递公司", desc: "稻妻快递公司的员工，可爱的猫耳少女。", version: "3.7" },
+  { name: "千织",   region: "inazuma",  rarity: 4, pv: 234.9,  fav: 27.8, danmaku: 3.1, element: "岩", weapon: "单手剑", theme: "织梦工坊", desc: "「千织屋」的老板，来自稻妻的服装设计师，鸣雷的裁锦师。", version: "4.5" },
+  { name: "梦见月瑞希",  region: "inazuma",  rarity: 5, pv: 326.0,  fav: 69.6, danmaku: 11.8, element: "风", weapon: "法器", theme: "绮梦缱绻", desc: "「秋沙钱汤」的股东，梦貘一族的心理诊疗师，致力于驱散噩梦。", version: "5.4" },
   
   // 须弥
-  { name: "赛索斯",   region: "sumeru",    rarity: 4, pv: 180,  netease: 12, cmt: 2.2,  element: "雷", weapon: "弓", theme: "沙漠的回响", desc: "须弥沙漠的猎手，擅长使用弓箭的雷元素战士。", version: "3.7" },
-  { name: "纳西妲",   region: "sumeru",    rarity: 5, pv: 1405, netease: 62, cmt: 11.8, element: "草", weapon: "法器", theme: "智慧之树", desc: "须弥的草神，智慧的化身，禁宫中的幼小神明。", version: "3.2" },
-  { name: "艾尔海森", region: "sumeru",    rarity: 5, pv: 610, netease: 42, cmt: 7.8, element: "草", weapon: "单手剑", theme: "理性之光", desc: "教令院的贤者，冷静理性的学者。", version: "3.4" },
-  { name: "妮露",     region: "sumeru",    rarity: 5, pv: 428, netease: 45, cmt: 8.6, element: "水", weapon: "单手剑", theme: "莲舞之音", desc: "须弥城的舞姬，用舞蹈传递情感的少女。", version: "3.1" },
-  { name: "赛诺",     region: "sumeru",    rarity: 5, pv: 358,  netease: 38, cmt: 7.2, element: "雷", weapon: "长柄武器", theme: "沙漠审判者", desc: "教令院大风纪官，严厉公正的审判者。", version: "3.1" },
-  { name: "提纳里",   region: "sumeru",    rarity: 5, pv: 388,  netease: 32, cmt: 6.0, element: "草", weapon: "弓", theme: "雨林的向导", desc: "须弥雨林的巡林官，精通植物学的学者。", version: "3.0" },
-  { name: "柯莱",     region: "sumeru",    rarity: 4, pv: 484,  netease: 20, cmt: 3.5, element: "草", weapon: "弓", theme: "新芽", desc: "须弥的见习巡林员，充满活力的少女。", version: "3.0" },
-  { name: "多莉",     region: "sumeru",    rarity: 4, pv: 420,  netease: 12, cmt: 2.2,  element: "雷", weapon: "法器", theme: "大商人", desc: "须弥的大商人，唯利是图的少女。", version: "3.0" },
-  { name: "坎蒂丝",   region: "sumeru",    rarity: 4, pv: 272,  netease: 10, cmt: 1.8,  element: "水", weapon: "长柄武器", theme: "阿如村守护者", desc: "阿如村的守护者，坚毅勇敢的战士。", version: "3.1" },
-  { name: "珐露珊",   region: "sumeru",    rarity: 4, pv: 591,  netease: 8,  cmt: 1.5,  element: "风", weapon: "法器", theme: "古代学者", desc: "从古代苏醒的学者，对现代科技充满好奇。", version: "3.3" },
-  { name: "莱依拉",   region: "sumeru",    rarity: 4, pv: 554,  netease: 15, cmt: 2.5,  element: "冰", weapon: "法器", theme: "星象学者", desc: "教令院的星象学者，总是犯困的少女。", version: "3.2" },
-  { name: "迪希亚",   region: "sumeru",    rarity: 5, pv: 420,  netease: 35, cmt: 6.8, element: "火", weapon: "双手剑", theme: "沙漠玫瑰", desc: "须弥沙漠的佣兵，热情豪爽的红发少女。", version: "3.5" },
-  { name: "卡维",     region: "sumeru",    rarity: 5, pv: 380,  netease: 28, cmt: 5.2, element: "草", weapon: "单手剑", theme: "建筑天才", desc: "须弥著名建筑师，才华横溢但穷困潦倒的艺术家。", version: "3.5" },
+  { name: "赛索斯",  region: "sumeru",  rarity: 4, pv: 150.2,  fav: 15.4, danmaku: 4.3,  element: "雷", weapon: "弓", theme: "沙漠的回响", desc: "须弥沙漠的猎手，擅长使用弓箭的雷元素战士。", version: "3.7" },
+  { name: "纳西妲",  region: "sumeru",  rarity: 5, pv: 1486.2,  fav: 230.1, danmaku: 57.7, element: "草", weapon: "法器", theme: "智慧之树", desc: "须弥的草神，智慧的化身，禁宫中的幼小神明。", version: "3.2" },
+  { name: "艾尔海森",  region: "sumeru",  rarity: 5, pv: 1063.2,  fav: 150.9, danmaku: 41.0, element: "草", weapon: "单手剑", theme: "理性之光", desc: "教令院的贤者，冷静理性的学者。", version: "3.4" },
+  { name: "妮露",   region: "sumeru",  rarity: 5, pv: 471.7,  fav: 51.7, danmaku: 17.1, element: "水", weapon: "单手剑", theme: "莲舞之音", desc: "须弥城的舞姬，用舞蹈传递情感的少女。", version: "3.1" },
+  { name: "赛诺",   region: "sumeru",  rarity: 5, pv: 414.9,  fav: 36.9, danmaku: 13.7, element: "雷", weapon: "长柄武器", theme: "沙漠审判者", desc: "教令院大风纪官，严厉公正的审判者。", version: "3.1" },
+  { name: "提纳里",  region: "sumeru",  rarity: 5, pv: 516.4,  fav: 61.7, danmaku: 20.0, element: "草", weapon: "弓", theme: "雨林的向导", desc: "须弥雨林的巡林官，精通植物学的学者。", version: "3.0" },
+  { name: "柯莱",   region: "sumeru",  rarity: 4, pv: 573.1,  fav: 45.7, danmaku: 13.1, element: "草", weapon: "弓", theme: "新芽", desc: "须弥的见习巡林员，充满活力的少女。", version: "3.0" },
+  { name: "多莉",   region: "sumeru",  rarity: 4, pv: 458.2,  fav: 33.8, danmaku: 9.9,  element: "雷", weapon: "法器", theme: "大商人", desc: "须弥的大商人，唯利是图的少女。", version: "3.0" },
+  { name: "坎蒂丝",  region: "sumeru",  rarity: 4, pv: 300.2,  fav: 23.7, danmaku: 8.1,  element: "水", weapon: "长柄武器", theme: "阿如村守护者", desc: "阿如村的守护者，坚毅勇敢的战士。", version: "3.1" },
+  { name: "珐露珊",  region: "sumeru",  rarity: 4, pv: 778.5,  fav: 59.0, danmaku: 12.2,  element: "风", weapon: "法器", theme: "古代学者", desc: "从古代苏醒的学者，对现代科技充满好奇。", version: "3.3" },
+  { name: "莱依拉",  region: "sumeru",  rarity: 4, pv: 606.4,  fav: 36.0, danmaku: 6.9,  element: "冰", weapon: "法器", theme: "星象学者", desc: "教令院的星象学者，总是犯困的少女。", version: "3.2" },
+  { name: "迪希雅",  region: "sumeru",  rarity: 5, pv: 372.7,  fav: 38.0, danmaku: 7.9, element: "火", weapon: "双手剑", theme: "沙漠玫瑰", desc: "须弥沙漠的佣兵，热情豪爽的红发少女。", version: "3.5" },
+  { name: "卡维",   region: "sumeru",  rarity: 5, pv: 289.1,  fav: 35.1, danmaku: 10.5, element: "草", weapon: "单手剑", theme: "建筑天才", desc: "须弥著名建筑师，才华横溢但穷困潦倒的艺术家。", version: "3.5" },
   // 枫丹
-  { name: "芙宁娜",   region: "fontaine",  rarity: 5, pv: 1647, netease: 85, cmt: 16.8, element: "水", weapon: "单手剑", theme: "水仙十字", desc: "枫丹的水神，戏剧性的正义化身。", version: "4.2" },
-  { name: "那维莱特", region: "fontaine",  rarity: 5, pv: 560, netease: 48, cmt: 9.2, element: "水", weapon: "法器", theme: "潮汐之判", desc: "枫丹最高审判官，龙裔血脉的守护者。", version: "4.1" },
-  { name: "莱欧斯利", region: "fontaine",  rarity: 5, pv: 420,  netease: 35, cmt: 6.8, element: "冰", weapon: "法器", theme: "铁狱的拳皇", desc: "梅洛彼得堡的公爵，地下监狱的掌权者。", version: "4.1" },
-  { name: "娜维娅",   region: "fontaine",  rarity: 5, pv: 480, netease: 42, cmt: 8.0, element: "岩", weapon: "双手剑", theme: "枫丹的旋律", desc: "刺玫会会长，热情勇敢的宝石商人。", version: "4.3" },
-  { name: "克洛琳德", region: "fontaine",  rarity: 5, pv: 380,  netease: 38, cmt: 7.2, element: "雷", weapon: "单手剑", theme: "决斗的礼赞", desc: "枫丹最强决斗代理人，优雅的战士。", version: "4.3" },
-  { name: "夏洛蒂",   region: "fontaine",  rarity: 4, pv: 220,  netease: 18, cmt: 3.2, element: "冰", weapon: "法器", theme: "蒸汽鸟报社", desc: "蒸汽鸟报社的记者，充满好奇心的少女。", version: "4.0" },
-  { name: "林尼",     region: "fontaine",  rarity: 5, pv: 580,  netease: 42, cmt: 7.8, element: "火", weapon: "弓", theme: "魔术表演", desc: "枫丹著名魔术师，神秘优雅的表演者。", version: "4.0" },
-  { name: "琳妮特",   region: "fontaine",  rarity: 4, pv: 320,  netease: 22, cmt: 4.0, element: "风", weapon: "单手剑", theme: "魔术助手", desc: "林尼的魔术助手，冷静沉着的少女。", version: "4.0" },
-  { name: "菲米尼",   region: "fontaine",  rarity: 4, pv: 280,  netease: 12, cmt: 2.2,  element: "冰", weapon: "法器", theme: "深海潜水员", desc: "枫丹的潜水员，热爱探索海洋的少年。", version: "4.0" },
-  { name: "爱可菲",   region: "fontaine",  rarity: 5, pv: 420,  netease: 48, cmt: 9.2, element: "冰", weapon: "长柄武器", theme: "明绚千韵", desc: "前德波大饭店主厨，被誉为「甜点大校」的技术料理先驱。", version: "5.6" },
-  { name: "夏沃蕾",   region: "fontaine",  rarity: 4, pv: 280,  netease: 15, cmt: 2.5,  element: "火", weapon: "单手剑", theme: "逐影庭", desc: "逐影庭的调查员，正直勇敢的少女。", version: "4.6" },
-  { name: "艾梅莉埃", region: "fontaine",  rarity: 5, pv: 380,  netease: 32, cmt: 6.2, element: "草", weapon: "长柄武器", theme: "千缕之踪", desc: "枫丹的调香师，同时也是隐秘的现场清理人，草元素长柄武器使用者。", version: "4.8" },
-  { name: "希格雯",   region: "fontaine",  rarity: 4, pv: 280,  netease: 20, cmt: 3.5, element: "草", weapon: "长柄武器", theme: "潮汐守望", desc: "枫丹沫芒宫护士长，温柔善良的美露莘少女。", version: "4.7" },
+  { name: "芙宁娜",  region: "fontaine",  rarity: 5, pv: 1878.1,  fav: 317.0, danmaku: 73.3, element: "水", weapon: "单手剑", theme: "水仙十字", desc: "枫丹的水神，戏剧性的正义化身。", version: "4.2" },
+  { name: "那维莱特",  region: "fontaine",  rarity: 5, pv: 583.2,  fav: 63.6, danmaku: 19.6, element: "水", weapon: "法器", theme: "潮汐之判", desc: "枫丹最高审判官，龙裔血脉的守护者。", version: "4.1" },
+  { name: "莱欧斯利",  region: "fontaine",  rarity: 5, pv: 295.9,  fav: 39.3, danmaku: 7.9, element: "冰", weapon: "法器", theme: "铁狱的拳皇", desc: "梅洛彼得堡的公爵，地下监狱的掌权者。", version: "4.1" },
+  { name: "娜维娅",  region: "fontaine",  rarity: 5, pv: 380.9,  fav: 56.5, danmaku: 12.2, element: "岩", weapon: "双手剑", theme: "枫丹的旋律", desc: "刺玫会会长，热情勇敢的宝石商人。", version: "4.3" },
+  { name: "克洛琳德",  region: "fontaine",  rarity: 5, pv: 241.2,  fav: 30.3, danmaku: 11.5, element: "雷", weapon: "单手剑", theme: "决斗的礼赞", desc: "枫丹最强决斗代理人，优雅的战士。", version: "4.3" },
+  { name: "夏洛蒂",  region: "fontaine",  rarity: 4, pv: 194.3,  fav: 21.5, danmaku: 3.9, element: "冰", weapon: "法器", theme: "蒸汽鸟报社", desc: "蒸汽鸟报社的记者，充满好奇心的少女。", version: "4.0" },
+  { name: "林尼",   region: "fontaine",  rarity: 5, pv: 498.2,  fav: 58.3, danmaku: 15.0, element: "火", weapon: "弓", theme: "魔术表演", desc: "枫丹著名魔术师，神秘优雅的表演者。", version: "4.0" },
+  { name: "琳妮特",  region: "fontaine",  rarity: 4, pv: 388.8,  fav: 39.7, danmaku: 7.9, element: "风", weapon: "单手剑", theme: "魔术助手", desc: "林尼的魔术助手，冷静沉着的少女。", version: "4.0" },
+  { name: "菲米尼",  region: "fontaine",  rarity: 4, pv: 164.4,  fav: 16.9, danmaku: 3.8,  element: "冰", weapon: "法器", theme: "深海潜水员", desc: "枫丹的潜水员，热爱探索海洋的少年。", version: "4.0" },
+  { name: "爱可菲",  region: "fontaine",  rarity: 5, pv: 257.3,  fav: 45.9, danmaku: 5.5, element: "冰", weapon: "长柄武器", theme: "明绚千韵", desc: "前德波大饭店主厨，被誉为「甜点大校」的技术料理先驱。", version: "5.6" },
+  { name: "夏沃蕾",  region: "fontaine",  rarity: 4, pv: 138.5,  fav: 12.9, danmaku: 0.7,  element: "火", weapon: "单手剑", theme: "逐影庭", desc: "逐影庭的调查员，正直勇敢的少女。", version: "4.6" },
+  { name: "艾梅莉埃",  region: "fontaine",  rarity: 5, pv: 332.0,  fav: 20.4, danmaku: 47.4, element: "草", weapon: "长柄武器", theme: "千缕之踪", desc: "枫丹的调香师，同时也是隐秘的现场清理人，草元素长柄武器使用者。", version: "4.8" },
+  { name: "希格雯",  region: "fontaine",  rarity: 4, pv: 424.1,  fav: 60.7, danmaku: 19.7, element: "草", weapon: "长柄武器", theme: "潮汐守望", desc: "枫丹沫芒宫护士长，温柔善良的美露莘少女。", version: "4.7" },
 
   // 纳塔
-  { name: "玛薇卡",   region: "natlan",    rarity: 5, pv: 540, netease: 45, cmt: 8.8, element: "火", weapon: "双手剑", theme: "烈焰战歌", desc: "纳塔的火神，率领部族征战的女王。", version: "5.0" },
-  { name: "玛拉妮",   region: "natlan",    rarity: 5, pv: 380,  netease: 30, cmt: 5.8, element: "水", weapon: "法器", theme: "潮涌之鼓", desc: "纳塔的冲浪少女，热情奔放的战士。", version: "5.0" },
-  { name: "基尼奇",   region: "natlan",    rarity: 5, pv: 420,  netease: 32, cmt: 6.2, element: "草", weapon: "弓", theme: "丛林猎手", desc: "纳塔的精英猎手，冷静精准的弓箭手。", version: "5.0" },
-  { name: "伊安珊",   region: "natlan",    rarity: 4, pv: 180,  netease: 18, cmt: 3.2, element: "火", weapon: "单手剑", theme: "部族之舞", desc: "纳塔部族的舞者，用火焰表达热情的少女。", version: "5.0" },
-  { name: "卡齐娜",   region: "natlan",    rarity: 4, pv: 220,  netease: 15, cmt: 2.8,  element: "岩", weapon: "法器", theme: "冲浪钻钻", desc: "纳塔回声之子部族的少女，与伙伴钻钻形影不离的勇敢战士。", version: "5.0" },
-  { name: "茜特菈莉", region: "natlan",    rarity: 4, pv: 320,  netease: 28, cmt: 5.2, element: "冰", weapon: "法器", theme: "星与烟帷", desc: "纳塔的传奇占星师，看似少女的古老长老。", version: "5.2" },
-  { name: "恰斯卡",   region: "natlan",    rarity: 5, pv: 380,  netease: 35, cmt: 6.8, element: "风", weapon: "弓", theme: "鹰之舞者", desc: "纳塔鹰之部族的战士，擅长风元素战斗的少女。", version: "5.3" },
-  { name: "伊法",     region: "natlan",    rarity: 4, pv: 280,  netease: 18, cmt: 3.2, element: "风", weapon: "法器", theme: "蔚风引灵", desc: "来自「花羽会」的兽医，擅长空中作战并具有治疗能力的风元素角色。", version: "5.6" },
-  { name: "瓦雷莎",   region: "natlan",    rarity: 5, pv: 420,  netease: 38, cmt: 7.2, element: "雷", weapon: "法器", theme: "烈焰统领", desc: "纳塔雷之部族的首领，精通下落攻击的雷系法器使用者。", version: "5.5" },
-  { name: "希诺宁",   region: "natlan",    rarity: 5, pv: 320,  netease: 25, cmt: 4.8, element: "岩", weapon: "单手剑", theme: "焮火铸魂", desc: "纳塔的铸名师，纳茨卡延的豹猫人，岩元素单手剑辅助角色。", version: "5.5" },
-  { name: "欧洛伦",   region: "natlan",    rarity: 4, pv: 360,  netease: 32, cmt: 6.0, element: "雷", weapon: "弓", theme: "夜之守望", desc: "纳塔的暗夜守望者，与曜幻图腾共生的雷元素猎手。", version: "5.2" },
+  { name: "玛薇卡",  region: "natlan",  rarity: 5, pv: 309.1,  fav: 55.9, danmaku: 16.6, element: "火", weapon: "双手剑", theme: "烈焰战歌", desc: "纳塔的火神，率领部族征战的女王。", version: "5.0" },
+  { name: "玛拉妮",  region: "natlan",  rarity: 5, pv: 341.9,  fav: 33.3, danmaku: 12.5, element: "水", weapon: "法器", theme: "潮涌之鼓", desc: "纳塔的冲浪少女，热情奔放的战士。", version: "5.0" },
+  { name: "基尼奇",  region: "natlan",  rarity: 5, pv: 474.5,  fav: 56.1, danmaku: 20.3, element: "草", weapon: "弓", theme: "丛林猎手", desc: "纳塔的精英猎手，冷静精准的弓箭手。", version: "5.0" },
+  { name: "伊安珊",  region: "natlan",  rarity: 4, pv: 57.0,  fav: 6.3, danmaku: 0.8, element: "火", weapon: "单手剑", theme: "部族之舞", desc: "纳塔部族的舞者，用火焰表达热情的少女。", version: "5.0" },
+  { name: "卡齐娜",  region: "natlan",  rarity: 4, pv: 304.8,  fav: 16.6, danmaku: 4.5,  element: "岩", weapon: "法器", theme: "冲浪钻钻", desc: "纳塔回声之子部族的少女，与伙伴钻钻形影不离的勇敢战士。", version: "5.0" },
+  { name: "茜特菈莉",  region: "natlan",  rarity: 4, pv: 691.8,  fav: 178.2, danmaku: 87.4, element: "冰", weapon: "法器", theme: "星与烟帷", desc: "纳塔的传奇占星师，看似少女的古老长老。", version: "5.2" },
+  { name: "恰斯卡",  region: "natlan",  rarity: 5, pv: 149.1,  fav: 17.6, danmaku: 16.7, element: "风", weapon: "弓", theme: "鹰之舞者", desc: "纳塔鹰之部族的战士，擅长风元素战斗的少女。", version: "5.3" },
+  { name: "伊法",   region: "natlan",  rarity: 4, pv: 74.9,  fav: 11.2, danmaku: 1.7, element: "风", weapon: "法器", theme: "蔚风引灵", desc: "来自「花羽会」的兽医，擅长空中作战并具有治疗能力的风元素角色。", version: "5.6" },
+  { name: "瓦雷莎",  region: "natlan",  rarity: 5, pv: 266.1,  fav: 43.6, danmaku: 6.6, element: "雷", weapon: "法器", theme: "烈焰统领", desc: "纳塔雷之部族的首领，精通下落攻击的雷系法器使用者。", version: "5.5" },
+  { name: "希诺宁",  region: "natlan",  rarity: 5, pv: 341.4,  fav: 19.1, danmaku: 5.7, element: "岩", weapon: "单手剑", theme: "焮火铸魂", desc: "纳塔的铸名师，纳茨卡延的豹猫人，岩元素单手剑辅助角色。", version: "5.5" },
+  { name: "欧洛伦",  region: "natlan",  rarity: 4, pv: 140.6,  fav: 19.1, danmaku: 2.2, element: "雷", weapon: "弓", theme: "夜之守望", desc: "纳塔的暗夜守望者，与曜幻图腾共生的雷元素猎手。", version: "5.2" },
   // 挪德卡莱（6.0版本起）
-  { name: "菈乌玛",   region: "nodkrai",   rarity: 5, pv: 280, netease: 52, cmt: 9.8, element: "草", weapon: "法器", theme: "永月的祀歌", desc: "被月光与森林祝福的圣女，「霜月之子」的咏月使，可提供绽放相关反应增益并触发月绽放的草元素辅助角色。", version: "6.0" },
-  { name: "菲林斯",   region: "nodkrai",   rarity: 5, pv: 240,  netease: 42, cmt: 7.8, element: "雷", weapon: "长柄武器", theme: "诡灯陌影", desc: "挪德卡莱的「执灯人」，看守灯塔与墓地的神秘绅士，可直接造成月感电伤害的雷元素输出角色。", version: "6.0" },
-  { name: "哥伦比娅", region: "nodkrai",   rarity: 5, pv: 580, netease: 65, cmt: 12.5, element: "水", weapon: "法器", theme: "月之少女", desc: "愚人众执行官第三席「少女」，归乡的空月，被当地人尊为月之少女。", version: "6.4" },
-  { name: "叶洛亚",   region: "nodkrai",   rarity: 4, pv: 90,  netease: 15, cmt: 2.8,  element: "岩", weapon: "长柄武器", theme: "魘夜燃芯", desc: "调查分队魘夜之莺成员，执灯人最年轻的分队长。", version: "6.4" },
-  { name: "伊涅芙",   region: "nodkrai",   rarity: 5, pv: 480,  netease: 45, cmt: 8.5, element: "雷", weapon: "长柄武器", theme: "轰隆雷鸣波", desc: "集成了各国机关部件的全能型机器人，胸口秘源核心历经弥久岁月，月兆雷元素角色。", version: "5.8" },
-  { name: "爱诺",     region: "nodkrai",   rarity: 4, pv: 280,  netease: 22, cmt: 4.0, element: "水", weapon: "双手剑", theme: "妙械咣咣铛", desc: "叮铃哐啷蛋卷工坊的成员，水元素月反应辅助，擅长用机械装置支援队友。", version: "6.0" },
-  { name: "奈芙尔",   region: "nodkrai",   rarity: 5, pv: 320,  netease: 28, cmt: 5.2, element: "草", weapon: "法器", theme: "湮沙的秘闻", desc: "神通广大的「秘闻馆」之主，可直接打出月绽放伤害的草元素输出型角色。", version: "6.2" },
-  { name: "雅珂达",   region: "nodkrai",   rarity: 4, pv: 300,  netease: 25, cmt: 4.5, element: "风", weapon: "弓", theme: "系风攘影", desc: "「秘闻馆」的员工，自称无所不能，能提供后台持续治疗的风元素辅助角色。", version: "6.2" },
-  { name: "莉奈娅",   region: "nodkrai",   rarity: 5, pv: 420,  netease: 38, cmt: 7.2, element: "岩", weapon: "弓", theme: "博闻异旅", desc: "冒险家协会挪德卡莱分会顾问，博物学家，能使队伍触发月结晶反应的岩元素辅助角色。", version: "6.5" },
+  { name: "菈乌玛",  region: "nodkrai",  rarity: 5, pv: 194.1,  fav: 28.4, danmaku: 14.6, element: "草", weapon: "法器", theme: "永月的祀歌", desc: "被月光与森林祝福的圣女，「霜月之子」的咏月使，可提供绽放相关反应增益并触发月绽放的草元素辅助角色。", version: "6.0" },
+  { name: "菲林斯",  region: "nodkrai",  rarity: 5, pv: 276.8,  fav: 72.8, danmaku: 51.3, element: "雷", weapon: "长柄武器", theme: "诡灯陌影", desc: "挪德卡莱的「执灯人」，看守灯塔与墓地的神秘绅士，可直接造成月感电伤害的雷元素输出角色。", version: "6.0" },
+  { name: "哥伦比娅",  region: "nodkrai",  rarity: 5, pv: 360.4,  fav: 83.1, danmaku: 58.4, element: "水", weapon: "法器", theme: "月之少女", desc: "愚人众执行官第三席「少女」，归乡的空月，被当地人尊为月之少女。", version: "6.4" },
+  { name: "叶洛亚",  region: "nodkrai",  rarity: 4, pv: 66.3,  fav: 9.9, danmaku: 0.9,  element: "岩", weapon: "长柄武器", theme: "魘夜燃芯", desc: "调查分队魘夜之莺成员，执灯人最年轻的分队长。", version: "6.4" },
+  { name: "伊涅芙",  region: "nodkrai",  rarity: 5, pv: 337.1,  fav: 48.8, danmaku: 36.1, element: "雷", weapon: "长柄武器", theme: "轰隆雷鸣波", desc: "集成了各国机关部件的全能型机器人，胸口秘源核心历经弥久岁月，月兆雷元素角色。", version: "5.8" },
+  { name: "爱诺",   region: "nodkrai",  rarity: 4, pv: 89.3,  fav: 13.8, danmaku: 1.3, element: "水", weapon: "双手剑", theme: "妙械咣咣铛", desc: "叮铃哐啷蛋卷工坊的成员，水元素月反应辅助，擅长用机械装置支援队友。", version: "6.0" },
+  { name: "奈芙尔",  region: "nodkrai",  rarity: 5, pv: 184.1,  fav: 27.4, danmaku: 14.3, element: "草", weapon: "法器", theme: "湮沙的秘闻", desc: "神通广大的「秘闻馆」之主，可直接打出月绽放伤害的草元素输出型角色。", version: "6.2" },
+  { name: "雅珂达",  region: "nodkrai",  rarity: 4, pv: 205.5,  fav: 28.4, danmaku: 2.1, element: "风", weapon: "弓", theme: "系风攘影", desc: "「秘闻馆」的员工，自称无所不能，能提供后台持续治疗的风元素辅助角色。", version: "6.2" },
+  { name: "莉奈娅",  region: "nodkrai",  rarity: 5, pv: 191.0,  fav: 35.9, danmaku: 6.4, element: "岩", weapon: "弓", theme: "博闻异旅", desc: "冒险家协会挪德卡莱分会顾问，博物学家，能使队伍触发月结晶反应的岩元素辅助角色。", version: "6.5" },
 
   // 至冬
-  { name: "达达利亚", region: "snezhnaya", rarity: 5, pv: 1200, netease: 68, cmt: 12.5, element: "水", weapon: "弓", theme: "公子", desc: "愚人众执行官第十一席「公子」，来自至冬的战斗狂。", version: "1.1" },
-  { name: "阿蕾奇诺", region: "snezhnaya", rarity: 5, pv: 720,  netease: 52, cmt: 9.8, element: "火", weapon: "长柄武器", theme: "壁炉之家", desc: "愚人众执行官第四席，壁炉之家的统领者。", version: "5.1" },
-  { name: "桑多涅",   region: "snezhnaya", rarity: 5, pv: 480,  netease: 55, cmt: 10.5, element: "冰", weapon: "双手剑", theme: "镜水析谬", desc: "愚人众执行官第七席「木偶」，以数理剖析事象的优雅淑女。", version: "6.7" },
+  { name: "达达利亚",  region: "snezhnaya",  rarity: 5, pv: 1058.3,  fav: 89.4, danmaku: 30.4, element: "水", weapon: "弓", theme: "公子", desc: "愚人众执行官第十一席「公子」，来自至冬的战斗狂。", version: "1.1" },
+  { name: "阿蕾奇诺",  region: "snezhnaya",  rarity: 5, pv: 563.4,  fav: 83.6, danmaku: 15.8, element: "火", weapon: "长柄武器", theme: "壁炉之家", desc: "愚人众执行官第四席，壁炉之家的统领者。", version: "5.1" },
+  { name: "桑多涅",  region: "snezhnaya",  rarity: 5, pv: 368.3,  fav: 97.2, danmaku: 66.3, element: "冰", weapon: "双手剑", theme: "镜水析谬", desc: "愚人众执行官第七席「木偶」，以数理剖析事象的优雅淑女。", version: "6.7" },
   // 至冬 7.0 / 7.1 新角色
-  { name: "奥黛塔",   region: "snezhnaya", rarity: 5, pv: 620,  netease: 58, cmt: 11.2, element: "冰", weapon: "单手剑", theme: "翾风回雪", desc: "至冬知名芭蕾舞者，于冰雪中绽放的凛冽之花，能为队伍提供星烁反应增伤的冰元素辅助角色。", version: "7.0" },
-  { name: "阿罗夏",   region: "snezhnaya", rarity: 4, pv: 260,  netease: 24, cmt: 4.6, element: "雷", weapon: "长柄武器", theme: "疾掠弋缇", desc: "纵横于至冬雪原的「职业猎手」，能为队友提供治疗并持续造成雷元素攻击的辅助型角色。", version: "7.0" },
-  { name: "薇斯纳",   region: "snezhnaya", rarity: 5, pv: 540,  netease: 50, cmt: 9.6, element: "风", weapon: "单手剑", theme: "雪宴之锋", desc: "「冬契军」司令官、女皇的锋刃，可造成星扩散反应伤害的风元素输出角色。", version: "7.1" },
-  { name: "沃雅妮莎", region: "snezhnaya", rarity: 5, pv: 560,  netease: 52, cmt: 10.0, element: "水", weapon: "法器", theme: "幽歌萦渊", desc: "科洛列夫茨基剧团的首席女高音，离群的水妖，在冻结和星扩散队伍中兼任治疗与辅助的水元素角色。", version: "7.1" },
+  { name: "奥黛塔",  region: "snezhnaya",  rarity: 5, pv: 268.9,  fav: 50.3, danmaku: 20.4, element: "冰", weapon: "单手剑", theme: "翾风回雪", desc: "至冬知名芭蕾舞者，于冰雪中绽放的凛冽之花，能为队伍提供星烁反应增伤的冰元素辅助角色。", version: "7.0" },
+  { name: "阿罗夏",  region: "snezhnaya",  rarity: 4, pv: 96.8,  fav: 12.2, danmaku: 2.5, element: "雷", weapon: "长柄武器", theme: "疾掠弋缇", desc: "纵横于至冬雪原的「职业猎手」，能为队友提供治疗并持续造成雷元素攻击的辅助型角色。", version: "7.0" },
+  { name: "薇斯纳",  region: "snezhnaya",  rarity: 5, pv: 420.1,  fav: 74.0, danmaku: 22.1, element: "风", weapon: "单手剑", theme: "雪宴之锋", desc: "「冬契军」司令官、女皇的锋刃，可造成星扩散反应伤害的风元素输出角色。", version: "7.1" },
+  { name: "沃雅妮莎",  region: "snezhnaya",  rarity: 5, pv: 215.9,  fav: 42.5, danmaku: 17.4, element: "水", weapon: "法器", theme: "幽歌萦渊", desc: "科洛列夫茨基剧团的首席女高音，离群的水妖，在冻结和星扩散队伍中兼任治疗与辅助的水元素角色。", version: "7.1" },
   // 其他
-  { name: "旅行者",   region: "other",     rarity: 5, pv: 2000, netease: 80, cmt: 15.0, element: "多元素", weapon: "单手剑", theme: "旅行者", desc: "穿越世界的旅者，在提瓦特大陆寻找失散的血亲。", version: "1.0" },
-  { name: "旅行者·冰", region: "other", rarity: 5, pv: 1900, netease: 76, cmt: 14.2, element: "冰", weapon: "单手剑", theme: "旅行者", desc: "旅行者在至冬获得冰元素之力后的形态，7.0版本解锁。", version: "7.0" },
-  { name: "埃洛伊",   region: "other",     rarity: 5, pv: 320,  netease: 22, cmt: 4.2, element: "冰", weapon: "弓", theme: "异界来客", desc: "来自另一个世界的猎手，使用冰元素战斗的少女。", version: "2.1" },
-  { name: "流浪者",   region: "other",     rarity: 5, pv: 784,  netease: 52, cmt: 9.8, element: "风", weapon: "法器", theme: "流浪的回响", desc: "抛弃神座的风元素行者，追寻自我的旅途。", version: "3.3" },
-  { name: "丝柯克",   region: "other",     rarity: 5, pv: 680, netease: 58, cmt: 11.2, element: "冰", weapon: "单手剑", theme: "虚渊暗星", desc: "来自深渊的孤身女武者，达达利亚的武技导师。", version: "5.7" }
+  { name: "旅行者",  region: "other",  rarity: 5, pv: null,  fav: null, danmaku: null, element: "多元素", weapon: "单手剑", theme: "旅行者", desc: "穿越世界的旅者，在提瓦特大陆寻找失散的血亲。", version: "1.0" },
+  { name: "旅行者·冰",  region: "other",  rarity: 5, pv: null,  fav: null, danmaku: null, element: "冰", weapon: "单手剑", theme: "旅行者", desc: "旅行者在至冬获得冰元素之力后的形态，7.0版本解锁。", version: "7.0" },
+  { name: "埃洛伊",  region: "other",  rarity: 5, pv: 349.7,  fav: 16.2, danmaku: 9.2, element: "冰", weapon: "弓", theme: "异界来客", desc: "来自另一个世界的猎手，使用冰元素战斗的少女。", version: "2.1" },
+  { name: "流浪者",  region: "other",  rarity: 5, pv: 1248.8,  fav: 206.5, danmaku: 46.9, element: "风", weapon: "法器", theme: "流浪的回响", desc: "抛弃神座的风元素行者，追寻自我的旅途。", version: "3.3" },
+  { name: "丝柯克",  region: "other",  rarity: 5, pv: 499.9,  fav: 103.2, danmaku: 51.5, element: "冰", weapon: "单手剑", theme: "虚渊暗星", desc: "来自深渊的孤身女武者，达达利亚的武技导师。", version: "5.7" }
 ];
 
 // ==================== 原神元素徽章（游戏原版素材，本地化） ====================
@@ -344,136 +346,138 @@ const ELEMENT_COLORS = {
 // 角色地图坐标由 map.js 管理（基于 1000x850 SVG 坐标系）
 
 /* ════════════════════════════════════════════════════════════════
- * STORY_TRACKS 剧情曲数据来源
- *   netease → 网易云音乐剧情原声专辑收藏量（单位：千）
- *   cmt    → 网易云评论数（单位：千）
+ * STORY_TRACKS 剧情曲清单
+ *   本表只登记曲名 / 地区 / 版本，不含任何指标字段。
+ *   全部指标在渲染时由 getRealByName() 从 TRACK_REAL 读取实测值
+ *   （网易云单曲评论数、B站「原神+曲名」相关视频播放量）；
+ *   查不到实测值的曲目不计入任何统计与排名。
  *   数据对应官方发行 OST：
  *     「风与牧歌之城」、「皎月云间之梦」、「珍珠之歌」、
  *     「智妙明论之林」、「白露澈明之泉」、「炽烈的还魂诗」、「空月之歌」
  * ════════════════════════════════════════════════════════════════ */
 // 剧情音乐
 const STORY_TRACKS = [
-  { name: "神女劈观",       region: "liyue",   netease: 125, cmt: 28.5, version: "2.4" },
-  { name: "轻涟",           region: "fontaine", netease: 98,  cmt: 18.5, version: "4.2" },
-  { name: "岩壑之崩",       region: "liyue",   netease: 68,  cmt: 12.8, version: "1.5" },
-  { name: "哀息之茧",       region: "inazuma",  netease: 52,  cmt: 9.8, version: "2.5" },
-  { name: "大梦的曲调",     region: "sumeru",   netease: 58,  cmt: 11.2, version: "3.0" },
-  { name: "咏歌与凯旋",     region: "fontaine", netease: 48,  cmt: 9.2, version: "4.3" },
-  { name: "天穹的牧歌",     region: "mondstadt",netease: 42,  cmt: 7.8, version: "1.2" },
-  { name: "炽烈的还魂诗",   region: "natlan",   netease: 38,  cmt: 7.2, version: "5.0" },
-  { name: "空月之歌",       region: "nodkrai",  netease: 65,  cmt: 12.2, version: "6.0" },
-  { name: "月之终曲",       region: "nodkrai",  netease: 52,  cmt: 9.8, version: "6.4" },
-  { name: "北风凯歌",       region: "mondstadt",netease: 48,  cmt: 9.2, version: "6.4" },
-  { name: "捕风的归客",     region: "mondstadt",netease: 45,  cmt: 8.5, version: "6.4" },
-  { name: "千灵节序曲",     region: "fontaine", netease: 42,  cmt: 8.2, version: "6.7" },
-  { name: "望月",           region: "nodkrai",  netease: 55,  cmt: 10.5, version: "6.7" },
-  { name: "霜月降临",       region: "nodkrai",  netease: 58,  cmt: 11.0, version: "6.7" },
-  { name: "无神怜爱的雪国", region: "snezhnaya", netease: 62, cmt: 12.8, version: "7.0" },
-  { name: "银昼寒光",       region: "snezhnaya", netease: 48, cmt: 9.6, version: "7.0" },
-  { name: "黑雪鹄的夜梦",   region: "snezhnaya", netease: 42, cmt: 8.2, version: "7.0" },
-  { name: "往冥府的安魂歌", region: "snezhnaya", netease: 55, cmt: 10.8, version: "7.1" },
-  { name: "琴弦呀琴弦",     region: "snezhnaya", netease: 46, cmt: 9.0, version: "7.1" },
-  { name: "愿逐月华照君明", region: "liyue",     netease: 52, cmt: 10.2, version: "7.1" }
+  { name: "神女劈观",       region: "liyue",   version: "2.4" },
+  { name: "轻涟",           region: "fontaine", version: "4.2" },
+  { name: "岩壑之崩",       region: "liyue",   version: "1.5" },
+  { name: "哀息之茧",       region: "inazuma",  version: "2.5" },
+  { name: "大梦的曲调",     region: "sumeru",   version: "3.0" },
+  { name: "咏歌与凯旋",     region: "fontaine", version: "4.3" },
+  { name: "天穹的牧歌",     region: "mondstadt",version: "1.2" },
+  { name: "炽烈的还魂诗",   region: "natlan",   version: "5.0" },
+  { name: "空月之歌",       region: "nodkrai",  version: "6.0" },
+  { name: "月之终曲",       region: "nodkrai",  version: "6.4" },
+  { name: "北风凯歌",       region: "mondstadt",version: "6.4" },
+  { name: "捕风的归客",     region: "mondstadt",version: "6.4" },
+  { name: "千灵节序曲",     region: "fontaine", version: "6.7" },
+  { name: "望月",           region: "nodkrai",  version: "6.7" },
+  { name: "霜月降临",       region: "nodkrai",  version: "6.7" },
+  { name: "无神怜爱的雪国", region: "snezhnaya", version: "7.0" },
+  { name: "银昼寒光",       region: "snezhnaya", version: "7.0" },
+  { name: "黑雪鹄的夜梦",   region: "snezhnaya", version: "7.0" },
+  { name: "往冥府的安魂歌", region: "snezhnaya", version: "7.1" },
+  { name: "琴弦呀琴弦",     region: "snezhnaya", version: "7.1" },
+  { name: "愿逐月华照君明", region: "liyue",     version: "7.1" }
 ];
 
 // 地区音乐（含版本信息）
 /* ════════════════════════════════════════════════════════════════
- * REGION_TRACKS 地区音乐排行数据来源
- *   fav → 网易云音乐对应地区 OST 合集收藏量（单位：千）
- *   cmt → 网易云音乐评论数（单位：千）
- *   数据均来自网易云音乐 HOYO-MiX 官方发行专辑。
+ * REGION_TRACKS 地区音乐清单
+ *   本表只登记曲名 / 版本，不含任何指标字段。
+ *   指标一律来自 ALBUMS + TRACK_REAL 的实测值（getTracksByRegion），
+ *   匹配不到专辑实测数据的曲目在页面上显示「暂无真实平台数据」。
  * ════════════════════════════════════════════════════════════════ */
 const REGION_TRACKS = {
   mondstadt: [
-    { name: "蒙德",       fav: 85,  cmt: 15.2, version: "1.0" },
-    { name: "晨曦酒庄",   fav: 62,  cmt: 10.8, version: "1.0" },
-    { name: "风起的思念", fav: 48,  cmt: 8.2,  version: "1.2" },
-    { name: "蒲公英的约定", fav: 55, cmt: 9.8, version: "1.0" },
-    { name: "龙脊雪山",   fav: 38,  cmt: 7.2,  version: "1.2" },
-    { name: "风与牧歌之城", fav: 68, cmt: 12.2, version: "1.0" },
-    { name: "北风凯歌",   fav: 48,  cmt: 9.2,  version: "6.4" },
-    { name: "捕风的归客", fav: 45,  cmt: 8.5,  version: "6.4" },
-    { name: "天穹的牧歌", fav: 42,  cmt: 7.8,  version: "1.2" }
+    { name: "蒙德",       version: "1.0" },
+    { name: "晨曦酒庄",   version: "1.0" },
+    { name: "风起的思念", version: "1.2" },
+    { name: "蒲公英的约定", version: "1.0" },
+    { name: "龙脊雪山",   version: "1.2" },
+    { name: "风与牧歌之城", version: "1.0" },
+    { name: "北风凯歌",   version: "6.4" },
+    { name: "捕风的归客", version: "6.4" },
+    { name: "天穹的牧歌", version: "1.2" }
   ],
   liyue: [
-    { name: "璃月",       fav: 125, cmt: 22.8, version: "1.1" },
-    { name: "杯中明月",   fav: 98,  cmt: 18.5, version: "1.1" },
-    { name: "听书人",     fav: 152, cmt: 28.5, version: "1.5" },
-    { name: "神女劈观",   fav: 125, cmt: 28.5, version: "2.4" },
-    { name: "岩壑之崩",   fav: 68,  cmt: 12.8, version: "1.5" },
-    { name: "天权为尊",   fav: 52,  cmt: 9.8,  version: "1.1" },
-    { name: "层岩巨渊",   fav: 48,  cmt: 9.2,  version: "2.6" },
-    { name: "海灯节",     fav: 72,  cmt: 13.2, version: "1.3" },
-    { name: "愿逐月华照君明", fav: 52, cmt: 10.2, version: "7.1" }
+    { name: "璃月",       version: "1.1" },
+    { name: "杯中明月",   version: "1.1" },
+    { name: "听书人",     version: "1.5" },
+    { name: "神女劈观",   version: "2.4" },
+    { name: "岩壑之崩",   version: "1.5" },
+    { name: "天权为尊",   version: "1.1" },
+    { name: "层岩巨渊",   version: "2.6" },
+    { name: "海灯节",     version: "1.3" },
+    { name: "愿逐月华照君明", version: "7.1" }
   ],
   inazuma: [
-    { name: "稻妻",       fav: 95,  cmt: 17.8, version: "2.0" },
-    { name: "寂远无妄之国", fav: 72, cmt: 13.2, version: "2.0" },
-    { name: "哀息之茧",   fav: 52,  cmt: 9.8,  version: "2.5" },
-    { name: "浮世之华",   fav: 48,  cmt: 8.8,  version: "2.1" },
-    { name: "雷电将军",   fav: 65,  cmt: 12.2, version: "2.1" },
-    { name: "神里流",     fav: 55,  cmt: 10.2, version: "2.0" }
+    { name: "稻妻",       version: "2.0" },
+    { name: "寂远无妄之国", version: "2.0" },
+    { name: "哀息之茧",   version: "2.5" },
+    { name: "浮世之华",   version: "2.1" },
+    { name: "雷电将军",   version: "2.1" },
+    { name: "神里流",     version: "2.0" }
   ],
   sumeru: [
-    { name: "须弥",       fav: 82,  cmt: 15.2, version: "3.0" },
-    { name: "大梦的曲调", fav: 58,  cmt: 11.2, version: "3.0" },
-    { name: "森林书",     fav: 65,  cmt: 12.8, version: "3.0" },
-    { name: "沙海遗曲",   fav: 42,  cmt: 7.8,  version: "3.1" },
-    { name: "智慧之树",   fav: 52,  cmt: 9.8,  version: "3.2" },
-    { name: "须弥城",     fav: 48,  cmt: 9.2,  version: "3.0" }
+    { name: "须弥",       version: "3.0" },
+    { name: "大梦的曲调", version: "3.0" },
+    { name: "森林书",     version: "3.0" },
+    { name: "沙海遗曲",   version: "3.1" },
+    { name: "智慧之树",   version: "3.2" },
+    { name: "须弥城",     version: "3.0" }
   ],
   fontaine: [
-    { name: "枫丹",       fav: 88,  cmt: 16.2, version: "4.0" },
-    { name: "轻涟",       fav: 98,  cmt: 18.5, version: "4.2" },
-    { name: "咏歌与凯旋", fav: 48,  cmt: 9.2,  version: "4.3" },
-    { name: "水下华尔兹", fav: 52,  cmt: 9.8,  version: "4.0" },
-    { name: "审判庭",     fav: 45,  cmt: 8.5,  version: "4.1" },
-    { name: "梅洛彼得堡", fav: 42,  cmt: 7.8,  version: "4.1" },
-    { name: "千灵节序曲", fav: 42,  cmt: 8.2,  version: "6.7" }
+    { name: "枫丹",       version: "4.0" },
+    { name: "轻涟",       version: "4.2" },
+    { name: "咏歌与凯旋", version: "4.3" },
+    { name: "水下华尔兹", version: "4.0" },
+    { name: "审判庭",     version: "4.1" },
+    { name: "梅洛彼得堡", version: "4.1" },
+    { name: "千灵节序曲", version: "6.7" }
   ],
   natlan: [
-    { name: "纳塔",       fav: 45,  cmt: 8.2,  version: "5.0" },
-    { name: "炽烈的还魂诗", fav: 38, cmt: 7.2,  version: "5.0" },
-    { name: "部族之歌",   fav: 35,  cmt: 6.8,  version: "5.0" },
-    { name: "火山律动",   fav: 32,  cmt: 5.8,  version: "5.0" }
+    { name: "纳塔",       version: "5.0" },
+    { name: "炽烈的还魂诗", version: "5.0" },
+    { name: "部族之歌",   version: "5.0" },
+    { name: "火山律动",   version: "5.0" }
   ],
   nodkrai: [
-    { name: "挪德卡莱",   fav: 58,  cmt: 10.8, version: "6.0" },
-    { name: "空月之歌",   fav: 65,  cmt: 12.2, version: "6.0" },
-    { name: "霜月之子",   fav: 42,  cmt: 7.8,  version: "6.0" },
-    { name: "执灯人之誓", fav: 38,  cmt: 7.2,  version: "6.0" },
-    { name: "皮拉米达城", fav: 35,  cmt: 6.8,  version: "6.0" },
-    { name: "月之终曲",   fav: 52,  cmt: 9.8,  version: "6.4" },
-    { name: "虚海望",     fav: 32,  cmt: 5.8,  version: "6.4" },
-    { name: "魔女的花园", fav: 28,  cmt: 5.2,  version: "6.4" },
-    { name: "望月",       fav: 55,  cmt: 10.5, version: "6.7" },
-    { name: "霜月降临",   fav: 58,  cmt: 11.0, version: "6.7" },
-    { name: "杜南纳深坑", fav: 42,  cmt: 8.2,  version: "6.7" },
-    { name: "千灵节回响", fav: 38,  cmt: 7.5,  version: "6.7" }
+    { name: "挪德卡莱",   version: "6.0" },
+    { name: "空月之歌",   version: "6.0" },
+    { name: "霜月之子",   version: "6.0" },
+    { name: "执灯人之誓", version: "6.0" },
+    { name: "皮拉米达城", version: "6.0" },
+    { name: "月之终曲",   version: "6.4" },
+    { name: "虚海望",     version: "6.4" },
+    { name: "魔女的花园", version: "6.4" },
+    { name: "望月",       version: "6.7" },
+    { name: "霜月降临",   version: "6.7" },
+    { name: "杜南纳深坑", version: "6.7" },
+    { name: "千灵节回响", version: "6.7" }
   ],
   snezhnaya: [
-    { name: "至冬",       fav: 45,  cmt: 8.5,  version: "1.0" },
-    { name: "冰之女皇",   fav: 38,  cmt: 7.2,  version: "1.0" },
-    { name: "愚人众",     fav: 55,  cmt: 10.2, version: "1.1" },
-    { name: "至冬城",     fav: 32,  cmt: 6.2,  version: "1.0" },
-    { name: "北国银行",   fav: 28,  cmt: 5.2,  version: "1.1" },
-    { name: "壁炉之家",   fav: 52,  cmt: 9.8,  version: "5.1" },
-    { name: "古兽冰原",   fav: 40,  cmt: 7.5,  version: "7.0" },
-    { name: "白桦雪葬地", fav: 36,  cmt: 6.8,  version: "7.0" },
-    { name: "永凝冻土",   fav: 34,  cmt: 6.4,  version: "7.0" },
-    { name: "焰羽谷",     fav: 32,  cmt: 6.0,  version: "7.0" },
-    { name: "霜殛寒峰",   fav: 38,  cmt: 7.2,  version: "7.0" },
-    { name: "夜隐晓至",   fav: 44,  cmt: 8.4,  version: "7.0" },
-    { name: "零露漙然",   fav: 30,  cmt: 5.6,  version: "7.0" },
-    { name: "往冥府的安魂歌", fav: 55, cmt: 10.8, version: "7.1" },
-    { name: "琴弦呀琴弦", fav: 46,  cmt: 9.0,  version: "7.1" }
+    { name: "至冬",       version: "1.0" },
+    { name: "冰之女皇",   version: "1.0" },
+    { name: "愚人众",     version: "1.1" },
+    { name: "至冬城",     version: "1.0" },
+    { name: "北国银行",   version: "1.1" },
+    { name: "壁炉之家",   version: "5.1" },
+    { name: "古兽冰原",   version: "7.0" },
+    { name: "白桦雪葬地", version: "7.0" },
+    { name: "永凝冻土",   version: "7.0" },
+    { name: "焰羽谷",     version: "7.0" },
+    { name: "霜殛寒峰",   version: "7.0" },
+    { name: "夜隐晓至",   version: "7.0" },
+    { name: "零露漙然",   version: "7.0" },
+    { name: "往冥府的安魂歌", version: "7.1" },
+    { name: "琴弦呀琴弦", version: "7.1" }
   ],
   other: [
-    { name: "旅行者",     fav: 80,  cmt: 15.0, version: "1.0" },
-    { name: "深渊",       fav: 45,  cmt: 8.5,  version: "1.0" },
-    { name: "异界来客",   fav: 22,  cmt: 4.2,  version: "2.1" },
-    { name: "流浪的回响", fav: 52,  cmt: 9.8,  version: "3.3" },
-    { name: "虚渊暗星",   fav: 58,  cmt: 11.2, version: "5.7" }
+    { name: "旅行者",     version: "1.0" },
+    { name: "深渊",       version: "1.0" },
+    { name: "异界来客",   version: "2.1" },
+    { name: "流浪的回响", version: "3.3" },
+    { name: "虚渊暗星",   version: "5.7" }
   ]
 };
 

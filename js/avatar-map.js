@@ -59,7 +59,7 @@ var AVATAR_MAP = {
   "菲林斯":"Flins","菲米尼":"Freminet","菲谢尔":"Fischl","蓝砚":"Lanyan",
   "行秋":"Xingqiu","诺艾尔":"Noel","赛索斯":"Sethos","赛诺":"Cyno",
   "辛焱":"Xinyan","达达利亚":"Tartaglia","迪卢克":"Diluc","迪奥娜":"Diona",
-  "迪希亚":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
+  "迪希雅":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
   "闲云":"Liuyun","阿蕾奇诺":"Arlecchino","阿贝多":"Albedo","雅珂达":"Jahoda",
   "雷泽":"Razor","雷电将军":"Shougun","香菱":"Xiangling","魈":"Xiao",
   "鹿野院平藏":"Heizo"
@@ -92,7 +92,7 @@ var SPLASH_MAP = {
   "菲林斯":"Flins","菲米尼":"Freminet","菲谢尔":"Fischl","蓝砚":"Lanyan",
   "行秋":"Xingqiu","诺艾尔":"Noel","赛索斯":"Sethos","赛诺":"Cyno",
   "辛焱":"Xinyan","达达利亚":"Tartaglia","迪卢克":"Diluc","迪奥娜":"Diona",
-  "迪希亚":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
+  "迪希雅":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
   "闲云":"Liuyun","阿蕾奇诺":"Arlecchino","阿贝多":"Albedo","雅珂达":"Jahoda",
   "雷泽":"Razor","雷电将军":"Shougun","香菱":"Xiangling","魈":"Xiao",
   "鹿野院平藏":"Heizo"

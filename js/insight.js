@@ -108,36 +108,38 @@ function renderExecutiveSummary() {
   const cmtTotal = cmts.reduce((s, v) => s + v, 0);
   const topTrack = census.filter(t => typeof t.cmt === 'number').sort((a, b) => b.cmt - a.cmt)[0];
 
-  const pv = CHARACTERS.map(c => c.pv);
-  const fav = CHARACTERS.map(c => c.netease);
+  // 角色级指标仅统计有官方角色视频数据的角色
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  const pv = validChars.map(c => c.pv);
+  const fav = validChars.map(c => c.fav);
   const r = (typeof statPearson === 'function') ? statPearson(pv, fav) : null;
   const rLabel = (typeof statCorrLabel === 'function') ? statCorrLabel(r) : '';
   const r2 = r === null ? null : r * r * 100;
 
-  // 地区人均 PV 的极值比，用于说明结构差异
+  // 地区人均播放量的极值比，用于说明结构差异
   const regionAvg = REGIONS.map(reg => {
-    const arr = CHARACTERS.filter(c => c.region === reg.id);
+    const arr = validChars.filter(c => c.region === reg.id);
     return { name: reg.name, n: arr.length, avg: arr.length ? statMean(arr.map(c => c.pv)) : null };
   }).filter(x => x.n > 0 && x.avg !== null).sort((a, b) => b.avg - a.avg);
   const highestRegion = regionAvg[0];
   const lowestRegion = regionAvg[regionAvg.length - 1];
 
   // 星级中位数对比
-  const five = CHARACTERS.filter(c => c.rarity === 5).map(c => c.pv);
-  const four = CHARACTERS.filter(c => c.rarity === 4).map(c => c.pv);
+  const five = validChars.filter(c => c.rarity === 5).map(c => c.pv);
+  const four = validChars.filter(c => c.rarity === 4).map(c => c.pv);
   const med5 = statMedian(five);
   const med4 = statMedian(four);
 
-  lead.innerHTML = `本页以 <strong>${CHARACTERS.length} 名可玩角色</strong>与 <strong>${census.length} 首可核实曲目</strong>（至少具备一项真实平台指标）为样本，围绕平台联动、结构差异、分布形态与传播量级四个问题展开分析。所有结论均由页面统计量实时生成，不使用预设文案。`;
+  lead.innerHTML = `本页以 <strong>${CHARACTERS.length} 名可玩角色</strong>（其中 <strong>${validChars.length}</strong> 名有 B站官方角色视频实测数据）与 <strong>${census.length} 首可核实曲目</strong>（至少具备一项真实平台指标）为样本，围绕平台联动、结构差异、分布形态与传播量级四个问题展开分析。所有结论均由页面统计量实时生成，不使用预设文案。`;
 
-  f1.innerHTML = `角色 PV 与网易云收藏的 Pearson 相关系数 <strong style="color:var(--chart-1);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关，n = ${CHARACTERS.length}）。模型可解释的方差约 <strong>${r2 === null ? '—' : r2.toFixed(1)}%</strong>：PV 热度能在一定程度上预测音乐收藏，但仍有大部分差异来自平台受众、曲目发行与角色档期等非 PV 因素。`;
+  f1.innerHTML = `同一支 B站「原神」官方角色视频的播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--chart-1);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关，n = ${validChars.length}）。模型可解释的方差约 <strong>${r2 === null ? '—' : r2.toFixed(1)}%</strong>：播放量能在一定程度上解释收藏差异，但其余部分来自视频内容、观众构成与发布时间等播放量之外的因素。`;
 
   f2.innerHTML = `曲目评论数中位数 <strong>${fmtCN(cmtMedian)}</strong> 条，Q3 = ${fmtCN(cmtQ3)}，IQR = ${fmtCN(cmtIQR)}；Tukey 上界 <strong>${fmtCN(threshold)}</strong>。共 <strong>${outliers.length}</strong> 首曲目越过阈值（占 ${((outliers.length / Math.max(cmts.length, 1)) * 100).toFixed(1)}%），呈明显右偏长尾。最高为《${topTrack ? topTrack.name : '—'}》${topTrack ? fmtCN(topTrack.cmt) : '—'} 条，约占全站评论总量的 ${topTrack && cmtTotal ? ((topTrack.cmt / cmtTotal) * 100).toFixed(1) : '—'}%。`;
 
-  f3.innerHTML = `地区人均 PV 最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色 PV 中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。结构差异真实存在，但需结合各组样本量解读。`;
+  f3.innerHTML = `地区人均官方角色视频播放最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色播放中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。结构差异真实存在，但需结合各组样本量解读。`;
 
   if (lim) {
-    lim.innerHTML = `分析局限：① 平台指标非同源用户，播放/收藏/评论不可换算为同一用户行为；② B站曲目播放量取搜索最相关视频，同专辑曲目可能共用同一支 PV；③ 数据为 2026 年 10 月单次快照，无法据此推断长期趋势；④ 曲目样本仅覆盖有真实接口数据的作品（${census.length} 首 / 官方收录 1909 首），存在收录偏差。`;
+    lim.innerHTML = `分析局限：① 播放、收藏、弹幕虽来自同一支视频，但属于不同互动行为，不能换算为同一用户行为；② B站曲目播放量取搜索最相关视频，同专辑曲目可能共用同一支视频；③ 数据为 2026 年 10 月单次快照，无法据此推断长期趋势；④ 曲目样本仅覆盖有真实接口数据的作品（${census.length} 首 / 官方收录 1909 首），存在收录偏差。`;
   }
 }
 
@@ -148,9 +150,10 @@ function renderKPI() {
 
   const totalChars = CHARACTERS.length;
   const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
-  const totalPv = CHARACTERS.reduce((s, c) => s + c.pv, 0);
-  const pvArr = CHARACTERS.map(c => c.pv);
-  const favArr = CHARACTERS.map(c => c.netease);
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  const totalPv = validChars.reduce((s, c) => s + c.pv, 0);
+  const pvArr = validChars.map(c => c.pv);
+  const favArr = validChars.map(c => c.fav);
   const r = (typeof statPearson === 'function') ? statPearson(pvArr, favArr) : null;
 
   const kpis = [
@@ -158,10 +161,10 @@ function renderKPI() {
     { icon: kpiIcon('assets/img/deco/UI_ItemIcon_204.png', ''), label: '角色样本量 n', value: totalChars.toLocaleString(), unit: '人', color: '#4ADE80' },
     // 可核实曲目样本 → 旋曜玉帛（icons/旋曜玉帛.png），紫色
     { icon: kpiIcon('assets/img/icons/旋曜玉帛.png', ''), label: '可核实曲目样本', value: census.length.toLocaleString(), unit: '首', color: '#8B5CF6' },
-    // 角色 PV 总量 → 名片装饰（deco/UI_NameCardIcon_0.png），金色
-    { icon: kpiIcon('assets/img/deco/UI_NameCardIcon_0.png', ''), label: '角色 PV 总量', value: fmtCN(totalPv * 10000), unit: '', color: '#F59E0B' },
-    // PV × 收藏相关系数 → 音乐宝石（deco/UI_ItemIcon_211.png），蓝金双色
-    { icon: kpiIcon('assets/img/deco/UI_ItemIcon_211.png', ''), label: 'PV × 收藏 相关系数', value: r === null ? '—' : r.toFixed(3), unit: '', color: '#38BDF8' }
+    // 官方角色视频播放总量 → 名片装饰（deco/UI_NameCardIcon_0.png），金色
+    { icon: kpiIcon('assets/img/deco/UI_NameCardIcon_0.png', ''), label: '官方角色视频播放总量', value: fmtCN(totalPv * 10000), unit: '', color: '#F59E0B' },
+    // 播放 × 收藏相关系数 → 音乐宝石（deco/UI_ItemIcon_211.png），蓝金双色
+    { icon: kpiIcon('assets/img/deco/UI_ItemIcon_211.png', ''), label: '播放 × 收藏 相关系数', value: r === null ? '—' : r.toFixed(3), unit: '', color: '#38BDF8' }
   ];
 
   el.innerHTML = kpis.map(k => `
@@ -181,7 +184,7 @@ function renderKPI() {
 function renderPlatformMatrix() {
   const el = document.getElementById('platformMatrix');
   if (!el) return;
-  const platforms = ['B站PV', '网易云'];
+  const platforms = ['B站播放', 'B站收藏'];
   const regionColors = {};
   REGIONS.forEach(r => { regionColors[r.id] = r.color; });
   
@@ -192,18 +195,23 @@ function renderPlatformMatrix() {
    *    • 强度分级：与 style.css hlvl-1 ~ hlvl-5 完全对应
    * ═══════════════════════════════════════════════════════════ */
   const pfmCfg = [
-    { name: 'B站PV',   png: 'assets/img/deco/UI_NameCardIcon_0.png', color: '#FB7299', src: 'bilibili.com 官方账号角色PV播放量' },
-    { name: '网易云',  png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'music.163.com 角色OST收藏量' }
+    { name: 'B站播放', png: 'assets/img/deco/UI_NameCardIcon_0.png', color: '#FB7299', src: 'bilibili.com @原神 官方角色视频播放量' },
+    { name: 'B站收藏', png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'bilibili.com @原神 官方角色视频收藏数' }
   ];
+
+  // 角色级指标仅统计有官方角色视频数据的角色
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number');
+  const maxPvOne = Math.max(...validChars.map(c => c.pv));
+  const maxFavOne = Math.max(...validChars.map(c => c.fav));
 
   const ratioList = [];
   REGIONS.forEach(r => {
-    const chars = CHARACTERS.filter(c => c.region === r.id);
+    const chars = validChars.filter(c => c.region === r.id);
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
-    const nf = chars.reduce((s, c) => s + c.netease, 0);
-    const mpv = Math.max(...CHARACTERS.map(c => c.pv)) * chars.length;
-    const mnf = Math.max(...CHARACTERS.map(c => c.netease)) * chars.length;
+    const nf = chars.reduce((s, c) => s + c.fav, 0);
+    const mpv = maxPvOne * chars.length;
+    const mnf = maxFavOne * chars.length;
     [pv / mpv, nf / mnf].forEach(ratio => ratioList.push(ratio));
   });
   const maxR = Math.max(...ratioList);
@@ -217,12 +225,12 @@ function renderPlatformMatrix() {
   </div>`);
 
   REGIONS.forEach(r => {
-    const chars = CHARACTERS.filter(c => c.region === r.id);
+    const chars = validChars.filter(c => c.region === r.id);
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
-    const nf = chars.reduce((s, c) => s + c.netease, 0);
-    const mpv = Math.max(...CHARACTERS.map(c => c.pv)) * chars.length;
-    const mnf = Math.max(...CHARACTERS.map(c => c.netease)) * chars.length;
+    const nf = chars.reduce((s, c) => s + c.fav, 0);
+    const mpv = maxPvOne * chars.length;
+    const mnf = maxFavOne * chars.length;
 
     html += `<div class="heatmap-cell heat-cell h r-label" style="background:var(--surface-elevated);padding:12px 14px;font-size:12px;font-weight:600;color:${regionColors[r.id]};text-align:left;border-top:1px solid rgba(201,162,39,0.1);">${r.name}</div>`;
     [pv / mpv, nf / mnf].forEach(ratio => {
@@ -250,27 +258,29 @@ function renderPlatformMatrix() {
   // 添加数据导出
   const matrixCard = el.closest('.card');
   if (matrixCard && !matrixCard.querySelector('.export-btn')) {
-    const exportData = REGIONS.filter(r => CHARACTERS.some(c => c.region === r.id)).map(r => {
-      const chars = CHARACTERS.filter(c => c.region === r.id);
+    const exportData = REGIONS.filter(r => validChars.some(c => c.region === r.id)).map(r => {
+      const chars = validChars.filter(c => c.region === r.id);
       return {
         地区: r.name,
         角色数: chars.length,
-        PV总播放量万: chars.reduce((s, c) => s + c.pv, 0),
-        网易云总收藏: chars.reduce((s, c) => s + c.netease, 0) * 1000
+        B站演示播放万: chars.reduce((s, c) => s + c.pv, 0),
+        B站演示收藏: Math.round(chars.reduce((s, c) => s + c.fav, 0) * 1000)
       };
     });
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
     btn.setAttribute('aria-label', '导出此图表的数据');
-    btn.addEventListener('click', () => window.exportData(exportData, '跨平台热度矩阵数据', 'csv'));
+    btn.addEventListener('click', () => window.exportData(exportData, 'B站官方角色视频地区矩阵数据', 'csv'));
     matrixCard.appendChild(btn);
   }
 }
 
 // ==================== 关键发现渲染 ====================
 function renderKeyFindings() {
-  const topChar = [...CHARACTERS].sort((a, b) => b.pv - a.pv)[0];
+  // 角色级指标仅统计有官方角色视频数据的角色
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  const topChar = [...validChars].sort((a, b) => b.pv - a.pv)[0];
 
   // 曲目样本统一来自 getVerifiedTrackCensus（按中文曲名去重，仅含真实指标）
   const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
@@ -288,24 +298,24 @@ function renderKeyFindings() {
   // 全站真实数据汇总（曲目级）
   const cmtTotal = allTracks.reduce((s, t) => s + (t.neteaseCmt || 0), 0);
   const playTotal = allTracks.reduce((s, t) => s + (t.biliPlay || 0), 0);
-  // 角色 PV 总量与首位占比，用于描述集中度
-  const pvTotal = CHARACTERS.reduce((s, c) => s + c.pv, 0);
+  // 官方角色视频播放总量与首位占比，用于描述集中度
+  const pvTotal = validChars.reduce((s, c) => s + c.pv, 0);
 
   const t1 = document.getElementById('insightTop1');
   const t2 = document.getElementById('insightTop2');
   const t3 = document.getElementById('insightTop3');
 
   if (t1 && topChar) {
-    const pvRank = statPercentileRank(CHARACTERS.map(c => c.pv), topChar.pv);
+    const pvRank = statPercentileRank(validChars.map(c => c.pv), topChar.pv);
     t1.innerHTML = `
       <strong style="color:var(--gold-light);font-size:16px;">${topChar.name}</strong><br>
-      <span style="color:var(--text-secondary);font-size:12px;">${rName(topChar.region)} · ${topChar.rarity}星 · ${topChar.element} · 全角色 PV 第 1 位</span><br>
+      <span style="color:var(--text-secondary);font-size:12px;">${rName(topChar.region)} · ${topChar.rarity}星 · ${topChar.element} · 官方角色视频播放第 1 位</span><br>
       <span style="display:inline-flex;align-items:center;gap:2px;margin-top:4px;flex-wrap:wrap;">
-        <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'" title="来源：bilibili.com 角色PV官方播放量"/>
+        <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频播放量"/>
         <span style="color:#FB7299;font-weight:600;">${(topChar.pv).toFixed(1)}万</span>
-        <span style="color:var(--text-tertiary);font-size:10px;margin-left:4px;">B站PV · 百分位 ${pvRank === null ? '—' : pvRank.toFixed(0)}</span>
+        <span style="color:var(--text-tertiary);font-size:10px;margin-left:4px;">B站演示播放 · 百分位 ${pvRank === null ? '—' : pvRank.toFixed(0)}</span>
       </span>
-      <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">占全站角色 PV 总量的 ${pvTotal ? ((topChar.pv / pvTotal) * 100).toFixed(1) : '—'}%</div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">占全站官方角色视频播放总量的 ${pvTotal ? ((topChar.pv / pvTotal) * 100).toFixed(1) : '—'}%</div>
     `;
   }
   if (t2 && topTrack) {
@@ -370,8 +380,9 @@ function renderTrend() {
   svg.innerHTML = '';
   const order = ['mondstadt', 'liyue', 'inazuma', 'sumeru', 'fontaine', 'natlan', 'nodkrai', 'snezhnaya'];
   const data = order.map((rid, i) => {
-    const chars = CHARACTERS.filter(c => c.region === rid);
-    if (chars.length === 0) return { x: i, label: rName(rid), val: 0, color: '#94a3b8', count: 0, rid };
+    // 仅统计有官方角色视频数据的角色
+    const chars = CHARACTERS.filter(c => c.region === rid && typeof c.pv === 'number');
+    if (chars.length === 0) return { x: i, label: rName(rid), val: 0, color: '#94a3b8', count: 0, rid, maxPv: 0, minPv: 0 };
     return { 
       x: i, 
       label: rName(rid), 
@@ -459,10 +470,10 @@ function renderTrend() {
       bg.setAttribute('fill-opacity', '0.15');
       showTooltip(e.clientX + 15, e.clientY - 10, `
         <div class="tooltip-title">${d.label}</div>
-        <div class="tooltip-item"><span class="tooltip-label">平均PV</span><span class="tooltip-value">${Math.round(d.val)}万</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">人均播放</span><span class="tooltip-value">${Math.round(d.val)}万</span></div>
         <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${d.count}人</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">最高PV</span><span class="tooltip-value">${Math.round(d.maxPv)}万</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">最低PV</span><span class="tooltip-value">${Math.round(d.minPv)}万</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">最高播放</span><span class="tooltip-value">${Math.round(d.maxPv)}万</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">最低播放</span><span class="tooltip-value">${Math.round(d.minPv)}万</span></div>
       `);
     });
     c.addEventListener('mouseleave', () => {
@@ -502,10 +513,12 @@ function renderTrend() {
     svg.appendChild(clab);
   });
 
-  // 添加洞察标注
+  // 洞察标注：按当前数据动态取最高/最低地区，避免固定结论与数据不符
+  const peakIdx = data.reduce((bi, d, i) => (d.val > data[bi].val ? i : bi), 0);
+  const lowIdx = data.reduce((bi, d, i) => (d.val < data[bi].val ? i : bi), 0);
   const annotations = [
-    { x: M.l + (1 / (data.length - 1)) * w, y: M.t + (1 - data[1].val / maxV) * h, text: '璃月峰值', dy: -24, color: '#C9A227' },
-    { x: M.l + (5 / (data.length - 1)) * w, y: M.t + (1 - data[5].val / maxV) * h, text: '纳塔积累期', dy: 18, color: '#D9A04A' }
+    { x: M.l + (peakIdx / (data.length - 1)) * w, y: M.t + (1 - data[peakIdx].val / maxV) * h, text: '人均播放最高', dy: -24, color: '#C9A227' },
+    { x: M.l + (lowIdx / (data.length - 1)) * w, y: M.t + (1 - data[lowIdx].val / maxV) * h, text: '人均播放最低', dy: 18, color: '#D9A04A' }
   ];
   annotations.forEach(ann => {
     const g = document.createElementNS(NS, 'g');
@@ -527,7 +540,7 @@ function renderTrend() {
   // 添加数据导出
   const trendCard = svg.closest('.card');
   if (trendCard && !trendCard.querySelector('.export-btn')) {
-    const exportData = data.map(d => ({ 地区: d.label, 平均PV万: Math.round(d.val), 角色数: d.count, 最高PV万: Math.round(d.maxPv), 最低PV万: Math.round(d.minPv) }));
+    const exportData = data.map(d => ({ 地区: d.label, 人均播放万: Math.round(d.val), 角色数: d.count, 最高播放万: Math.round(d.maxPv), 最低播放万: Math.round(d.minPv) }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
@@ -543,15 +556,17 @@ function renderSankey() {
   svg.innerHTML = '';
   const NS = 'http://www.w3.org/2000/svg';
 
-  const totalPv = CHARACTERS.reduce((s, c) => s + c.pv, 0) * 10000;
-  const totalNetease = CHARACTERS.reduce((s, c) => s + c.netease, 0) * 1000;
-  const totalComments = CHARACTERS.reduce((s, c) => s + c.cmt, 0) * 1000;
+  // 角色级指标仅统计有官方角色视频数据的角色
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  const totalPv = validChars.reduce((s, c) => s + c.pv, 0) * 10000;
+  const totalFav = validChars.reduce((s, c) => s + c.fav, 0) * 1000;
+  const totalDanmaku = validChars.reduce((s, c) => s + c.danmaku, 0) * 1000;
 
-  // 三个阶段：曝光、收藏、互动（统计对象不同，仅比较量级）
+  // 三个阶段：播放、收藏、弹幕（同一支视频的不同互动维度，仅比较量级，不是转化率）
   const stages = [
-    { name: 'B站PV曝光', value: totalPv, color: '#FB7299', iconPng: 'assets/img/deco/UI_NameCardIcon_0.png', desc: '官方角色PV总播放量' },
-    { name: '网易云收藏', value: totalNetease, color: '#FE2C55', iconPng: 'assets/img/items/UI_ItemIcon_112001.png', desc: '网易云音乐总收藏量' },
-    { name: '评论互动', value: totalComments, color: '#F59E0B', iconPng: 'assets/img/deco/UI_ItemIcon_202.png', desc: 'B站PV总评论量' }
+    { name: 'B站播放', value: totalPv, color: '#FB7299', iconPng: 'assets/img/deco/UI_NameCardIcon_0.png', desc: '官方角色视频总播放量' },
+    { name: 'B站收藏', value: totalFav, color: '#FE2C55', iconPng: 'assets/img/items/UI_ItemIcon_112001.png', desc: '官方角色视频总收藏数' },
+    { name: 'B站弹幕', value: totalDanmaku, color: '#F59E0B', iconPng: 'assets/img/deco/UI_ItemIcon_202.png', desc: '官方角色视频总弹幕数' }
   ];
 
   // 以首阶段为基准的相对量级占比（不是同源用户的转化率）
@@ -586,7 +601,7 @@ function renderSankey() {
   title.setAttribute('text-anchor', 'middle');
   title.setAttribute('font-size', '14'); title.setAttribute('font-weight', '600');
   title.setAttribute('fill', 'var(--gold-light)');
-  title.textContent = '跨平台互动规模对比（以 B站PV 曝光为 100%）';
+  title.textContent = '官方角色视频互动规模对比（以播放量为 100%）';
   svg.appendChild(title);
 
   stages.forEach((s, i) => {
@@ -619,7 +634,7 @@ function renderSankey() {
       showTooltip(e.clientX + 15, e.clientY - 10, `
         <div class="tooltip-title"><img src="${s.iconPng}" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/>${s.name}</div>
         <div class="tooltip-item"><span class="tooltip-label">数值</span><span class="tooltip-value">${fmtCN(s.value)}</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">占 B站PV</span><span class="tooltip-value">${s.rate.toFixed(1)}%</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">占播放量</span><span class="tooltip-value">${s.rate.toFixed(1)}%</span></div>
         ${i > 0 ? `<div class="tooltip-item"><span class="tooltip-label">相对前一阶段</span><span class="tooltip-value">${s.prevRate.toFixed(1)}%</span></div>` : ''}
         <div class="tooltip-item"><span class="tooltip-label">说明</span><span class="tooltip-value">${s.desc}</span></div>
       `);
@@ -673,7 +688,7 @@ function renderSankey() {
   sourceNote.setAttribute('text-anchor', 'middle');
   sourceNote.setAttribute('font-size', '9');
   sourceNote.setAttribute('fill', 'var(--text-tertiary)');
-  sourceNote.textContent = '数据来源：B站PV · 网易云收藏 · B站评论';
+  sourceNote.textContent = '数据来源：B站「原神」官方账号角色演示/角色PV/角色预告的播放、收藏、弹幕数';
   svg.appendChild(sourceNote);
 
   // 添加数据导出
@@ -682,14 +697,14 @@ function renderSankey() {
     const exportData = stages.map(s => ({
       阶段: s.name,
       数值: s.value,
-      占B站PV比例: s.rate.toFixed(2) + '%',
+      占播放量比例: s.rate.toFixed(2) + '%',
       相对前一阶段: s.prevRate.toFixed(2) + '%'
     }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
-    btn.setAttribute('aria-label', '导出跨平台互动规模数据');
-    btn.addEventListener('click', () => window.exportData(exportData, '跨平台互动规模数据', 'csv'));
+    btn.setAttribute('aria-label', '导出官方角色视频互动规模数据');
+    btn.addEventListener('click', () => window.exportData(exportData, '官方角色视频互动规模数据', 'csv'));
     sankeyCard.appendChild(btn);
   }
 }
@@ -700,8 +715,8 @@ function renderBox() {
   svg.innerHTML = '';
   const NS = 'http://www.w3.org/2000/svg';
 
-  const five = CHARACTERS.filter(c => c.rarity === 5).map(c => c.pv);
-  const four = CHARACTERS.filter(c => c.rarity === 4).map(c => c.pv);
+  const five = CHARACTERS.filter(c => c.rarity === 5 && typeof c.pv === 'number').map(c => c.pv);
+  const four = CHARACTERS.filter(c => c.rarity === 4 && typeof c.pv === 'number').map(c => c.pv);
 
   function stats(arr) {
     return {
@@ -764,7 +779,7 @@ function renderBox() {
   title.setAttribute('text-anchor', 'middle');
   title.setAttribute('font-size', '14'); title.setAttribute('font-weight', '600');
   title.setAttribute('fill', 'var(--gold-light)');
-  title.textContent = '5星 vs 4星角色PV热度分布对比';
+  title.textContent = '5星 vs 4星角色官方视频播放量分布对比';
   svg.appendChild(title);
 
   // 网格线与X轴标签
@@ -813,7 +828,7 @@ function renderBox() {
       rect.addEventListener('mouseenter', (e) => {
         showTooltip(e.clientX + 15, e.clientY - 10, `
           <div class="tooltip-title">5星角色分布</div>
-          <div class="tooltip-item"><span class="tooltip-label">PV区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">播放区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
           <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${bins5[i]}人</span></div>
         `);
       });
@@ -833,7 +848,7 @@ function renderBox() {
       rect.addEventListener('mouseenter', (e) => {
         showTooltip(e.clientX + 15, e.clientY - 10, `
           <div class="tooltip-title">4星角色分布</div>
-          <div class="tooltip-item"><span class="tooltip-label">PV区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">播放区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
           <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${bins4[i]}人</span></div>
         `);
       });
@@ -922,11 +937,14 @@ function renderWeaponAnalysis() {
   const weaponStats = {};
   validWeapons.forEach(wp => {
     const chars = CHARACTERS.filter(c => c.weapon === wp);
+    // 仅统计有 B站官方角色视频实测数据的角色，无数据者不参与任何均值/中位数
+    const valid = chars.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number');
     weaponStats[wp] = {
       count: chars.length,
-      avgPv: chars.length > 0 ? Math.round(statMean(chars.map(c => c.pv))) : 0,
-      medPv: chars.length > 0 ? Math.round(statMedian(chars.map(c => c.pv))) : 0,
-      avgFav: chars.length > 0 ? Math.round(statMean(chars.map(c => c.netease))) : 0,
+      n: valid.length,
+      avgPv: valid.length > 0 ? Math.round(statMean(valid.map(c => c.pv))) : 0,
+      medPv: valid.length > 0 ? Math.round(statMedian(valid.map(c => c.pv))) : 0,
+      avgFav: valid.length > 0 ? Math.round(statMean(valid.map(c => c.fav))) : 0,
       fiveStar: chars.filter(c => c.rarity === 5).length,
       fourStar: chars.filter(c => c.rarity === 4).length
     };
@@ -954,18 +972,18 @@ function renderWeaponAnalysis() {
         </div>
         <div class="weapon-stats">
           <div class="stat-row">
-            <span class="stat-label">角色数</span>
-            <span class="stat-value">${stats.count}人</span>
+            <span class="stat-label">角色数 / 有效样本</span>
+            <span class="stat-value">${stats.count}人 / ${stats.n}人</span>
           </div>
           <div class="stat-row">
-            <span class="stat-label">人均PV</span>
+            <span class="stat-label">人均播放</span>
             <span class="stat-value">${stats.avgPv}万</span>
           </div>
           <div class="stat-bar-container">
             <div class="stat-bar" style="width:${pvWidth}%;background:${color};"></div>
           </div>
           <div class="stat-row">
-            <span class="stat-label">中位PV</span>
+            <span class="stat-label">中位播放</span>
             <span class="stat-value">${stats.medPv}万</span>
           </div>
           <div class="stat-row">
@@ -981,7 +999,7 @@ function renderWeaponAnalysis() {
     `;
   });
   html += '</div>';
-  html += `<div class="ds-note" style="margin-top:12px;"><strong>读法说明：</strong>各武器组 n 不同（占比已标注），柱长为组内人均 PV 的相对强度（最小值为 0、最大值为 100）；人均值易受组内头部角色影响，故同时给出中位 PV 作为典型水平。组间差异包含角色档期、剧情曝光等结构性因素，不能直接归因于武器类型本身。</div>`;
+  html += `<div class="ds-note" style="margin-top:12px;"><strong>读法说明：</strong>各武器组「有效样本 n」为拥有 B站官方角色视频实测数据的角色数，无官方视频的角色不计入均值。柱长为组内人均播放量的相对强度（最小值为 0、最大值为 100）；人均值易受组内头部角色影响，故同时给出中位播放作为典型水平。组间差异包含角色档期、剧情曝光等结构性因素，不能直接归因于武器类型本身。</div>`;
   el.innerHTML = html;
 }
 
@@ -996,11 +1014,14 @@ function renderElementAnalysis() {
   const elementStats = {};
   validElements.forEach(elem => {
     const chars = CHARACTERS.filter(c => c.element === elem);
+    // 仅统计有 B站官方角色视频实测数据的角色
+    const valid = chars.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number');
     elementStats[elem] = {
       count: chars.length,
-      avgPv: chars.length > 0 ? Math.round(statMean(chars.map(c => c.pv))) : 0,
-      medPv: chars.length > 0 ? Math.round(statMedian(chars.map(c => c.pv))) : 0,
-      avgFav: chars.length > 0 ? Math.round(statMean(chars.map(c => c.netease))) : 0,
+      n: valid.length,
+      avgPv: valid.length > 0 ? Math.round(statMean(valid.map(c => c.pv))) : 0,
+      medPv: valid.length > 0 ? Math.round(statMedian(valid.map(c => c.pv))) : 0,
+      avgFav: valid.length > 0 ? Math.round(statMean(valid.map(c => c.fav))) : 0,
       fiveStar: chars.filter(c => c.rarity === 5).length,
       fourStar: chars.filter(c => c.rarity === 4).length
     };
@@ -1028,14 +1049,14 @@ function renderElementAnalysis() {
         </div>
         <div class="element-stats">
           <div class="stat-row">
-            <span class="stat-label">人均PV</span>
+            <span class="stat-label">人均播放</span>
             <span class="stat-value">${stats.avgPv}万</span>
           </div>
           <div class="stat-bar-container">
             <div class="stat-bar" style="width:${pvWidth}%;background:${color};"></div>
           </div>
           <div class="stat-row">
-            <span class="stat-label">中位PV</span>
+            <span class="stat-label">中位播放</span>
             <span class="stat-value">${stats.medPv}万</span>
           </div>
           <div class="stat-row">
@@ -1051,7 +1072,7 @@ function renderElementAnalysis() {
     `;
   });
   html += '</div>';
-  html += `<div class="ds-note" style="margin-top:12px;"><strong>读法说明：</strong>元素按原神加载界面顺序排列，各组 n 与占比已标注。人均 PV 受组内头部角色拉动，中位 PV 更能反映典型角色水平；元素人数不均衡（草、岩等组样本较小），小样本组的均值波动更大，比较时应结合 n 与中位数一起看。</div>`;
+  html += `<div class="ds-note" style="margin-top:12px;"><strong>读法说明：</strong>元素按原神加载界面顺序排列，各组 n 与占比已标注，均值仅使用拥有 B站官方角色视频实测数据的角色（无官方视频者不计入）。人均播放受组内头部角色拉动，中位播放更能反映典型角色水平；元素人数不均衡（草、岩等组样本较小），小样本组的均值波动更大，比较时应结合有效样本 n 与中位数一起看。</div>`;
   el.innerHTML = html;
 }
 
@@ -1063,9 +1084,10 @@ function renderCorrelation() {
   const el = document.getElementById('correlationChart');
   if (!el) return;
   
-  const chars = CHARACTERS.filter(c => c.pv > 0 && c.netease > 0);
+  // 仅纳入拥有 B站官方角色视频实测数据的角色，无数据者不参与相关系数计算
+  const chars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number');
   const xMax = Math.max(...chars.map(c => c.pv));
-  const yMax = Math.max(...chars.map(c => c.netease));
+  const yMax = Math.max(...chars.map(c => c.fav));
   
   const NS = 'http://www.w3.org/2000/svg';
   const W = 650, H = 320;
@@ -1096,14 +1118,14 @@ function renderCorrelation() {
   }
   
   const xSum = chars.reduce((s, c) => s + c.pv, 0);
-  const ySum = chars.reduce((s, c) => s + c.netease, 0);
+  const ySum = chars.reduce((s, c) => s + c.fav, 0);
   const xMean = xSum / chars.length;
   const yMean = ySum / chars.length;
   
-  const numerator = chars.reduce((s, c) => s + (c.pv - xMean) * (c.netease - yMean), 0);
+  const numerator = chars.reduce((s, c) => s + (c.pv - xMean) * (c.fav - yMean), 0);
   const denominator = Math.sqrt(
     chars.reduce((s, c) => s + Math.pow(c.pv - xMean, 2), 0) *
-    chars.reduce((s, c) => s + Math.pow(c.netease - yMean, 2), 0)
+    chars.reduce((s, c) => s + Math.pow(c.fav - yMean, 2), 0)
   );
   const corr = denominator > 0 ? (numerator / denominator).toFixed(3) : null;
   const corrLabel = (typeof statCorrLabel === 'function') ? statCorrLabel(corr === null ? null : parseFloat(corr)) : '';
@@ -1111,10 +1133,10 @@ function renderCorrelation() {
 
   // 四象限分割线采用中位数（右偏分布下均值会被头部角色拉高，中位数更能代表典型角色）
   const xMed = (typeof statMedian === 'function') ? statMedian(chars.map(c => c.pv)) : xMean;
-  const yMed = (typeof statMedian === 'function') ? statMedian(chars.map(c => c.netease)) : yMean;
+  const yMed = (typeof statMedian === 'function') ? statMedian(chars.map(c => c.fav)) : yMean;
   const qN = { q1: 0, q2: 0, q3: 0, q4: 0 };
   chars.forEach(c => {
-    const right = c.pv >= xMed, up = c.netease >= yMed;
+    const right = c.pv >= xMed, up = c.fav >= yMed;
     if (right && up) qN.q1++; else if (!right && up) qN.q2++; else if (!right && !up) qN.q3++; else qN.q4++;
   });
 
@@ -1125,17 +1147,17 @@ function renderCorrelation() {
   
   chars.forEach(c => {
     const x = M.l + (c.pv / xMax) * w;
-    const y = M.t + (1 - c.netease / yMax) * h;
+    const y = M.t + (1 - c.fav / yMax) * h;
     const color = rColor(c.region);
     const radius = c.rarity === 5 ? 5 : 3.5;
     const isHot = c.pv > xMed * 1.5;
-    svgHtml += `<circle data-name="${encodeURIComponent(c.name)}" data-region="${c.region}" data-pv="${c.pv}" data-fav="${c.netease}" data-rarity="${c.rarity}" cx="${x}" cy="${y}" r="${radius}" fill="${color}" fill-opacity="${isHot ? 0.85 : 0.65}" stroke="var(--surface-raised)" stroke-width="${c.rarity === 5 ? 2 : 1.5}" filter="${isHot ? 'url(#corrGlow)' : ''}" style="cursor:pointer;transition:all 0.25s ease;" class="corr-point"/>`;
+    svgHtml += `<circle data-name="${encodeURIComponent(c.name)}" data-region="${c.region}" data-pv="${c.pv}" data-fav="${Math.round(c.fav * 1000)}" data-rarity="${c.rarity}" cx="${x}" cy="${y}" r="${radius}" fill="${color}" fill-opacity="${isHot ? 0.85 : 0.65}" stroke="var(--surface-raised)" stroke-width="${c.rarity === 5 ? 2 : 1.5}" filter="${isHot ? 'url(#corrGlow)' : ''}" style="cursor:pointer;transition:all 0.25s ease;" class="corr-point"/>`;
   });
   
-  svgHtml += `<text x="${W / 2}" y="${H - 10}" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500">PV播放量（万）</text>`;
-  svgHtml += `<text x="${15}" y="${H / 2}" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500" transform="rotate(-90,15,${H/2})">网易云收藏（千）</text>`;
+  svgHtml += `<text x="${W / 2}" y="${H - 10}" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500">B站官方角色视频播放量（万）</text>`;
+  svgHtml += `<text x="${15}" y="${H / 2}" text-anchor="middle" font-size="12" fill="var(--text-secondary)" font-weight="500" transform="rotate(-90,15,${H/2})">B站官方角色视频收藏数（千）</text>`;
   svgHtml += `<text x="${M.l}" y="${M.t + 22}" font-size="11" fill="#C9A227" font-weight="600">r = ${corr === null ? '—' : corr} · ${corrLabel}相关 · n = ${chars.length} · r² = ${r2 === null ? '—' : r2 + '%'}</text>`;
-  svgHtml += `<text x="${M.l}" y="${M.t + 38}" font-size="10" fill="var(--text-tertiary)">虚线为中位数分割 · 四象限人数 Q1(高PV高收藏)=${qN.q1} Q2(低PV高收藏)=${qN.q2} Q3(低PV低收藏)=${qN.q3} Q4(高PV低收藏)=${qN.q4}</text>`;
+  svgHtml += `<text x="${M.l}" y="${M.t + 38}" font-size="10" fill="var(--text-tertiary)">虚线为中位数分割 · 四象限人数 Q1(高播放高收藏)=${qN.q1} Q2(低播放高收藏)=${qN.q2} Q3(低播放低收藏)=${qN.q3} Q4(高播放低收藏)=${qN.q4}</text>`;
   
   svgHtml += '<g transform="translate(520, 260)">';
   svgHtml += '<circle cx="10" cy="10" r="5" fill="var(--gold)" stroke="var(--surface-raised)" stroke-width="2"/>';
@@ -1163,8 +1185,8 @@ function renderCorrelation() {
           <div class="tooltip-title">${name}</div>
           <div class="tooltip-item"><span class="tooltip-label">星级</span><span class="tooltip-value" style="color:${circle.getAttribute('data-rarity') === '5' ? '#F59E0B' : '#6366F1'};">${rarity}</span></div>
           <div class="tooltip-item"><span class="tooltip-label">地区</span><span class="tooltip-value">${rName(region)}</span></div>
-          <div class="tooltip-item"><span class="tooltip-label">PV播放</span><span class="tooltip-value">${pv}万</span></div>
-          <div class="tooltip-item"><span class="tooltip-label">网易云收藏</span><span class="tooltip-value">${fav}</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">B站演示播放</span><span class="tooltip-value">${pv}万</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">B站演示收藏</span><span class="tooltip-value">${Number(fav).toLocaleString()}</span></div>
         `);
       }
     });

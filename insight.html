@@ -9,10 +9,10 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>数据洞察 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261031b">
-<link rel="stylesheet" href="css/optimize.css?v=20261031b">
-<link rel="stylesheet" href="css/insight.css?v=20261031b">
-<link rel="stylesheet" href="css/page-hero.css?v=20261031b">
+<link rel="stylesheet" href="css/style.css?v=20261031c">
+<link rel="stylesheet" href="css/optimize.css?v=20261031c">
+<link rel="stylesheet" href="css/insight.css?v=20261031c">
+<link rel="stylesheet" href="css/page-hero.css?v=20261031c">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="character.html">
@@ -109,19 +109,19 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <div>
         <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">研究问题</div>
         <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
-          <div><strong style="color:var(--text-primary);">RQ1 平台联动：</strong>角色 B 站 PV 热度与网易云音乐收藏是否同步？相关性强度如何？</div>
+          <div><strong style="color:var(--text-primary);">RQ1 平台联动：</strong>角色 B 站官方视频的播放量与收藏数是否同步？相关性强度如何？</div>
           <div><strong style="color:var(--text-primary);">RQ2 结构差异：</strong>地区、元素、武器、星级分组下的热度分布是否存在系统性差异？</div>
           <div><strong style="color:var(--text-primary);">RQ3 分布形态：</strong>曲目级互动是否呈长尾分布？现象级作品集中在哪些版本与地区？</div>
-          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频曝光到音乐收藏、评论互动，各平台规模量级差多少？</div>
+          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频播放到收藏、弹幕互动，各层规模量级差多少？</div>
         </div>
       </div>
       <div>
         <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">指标定义与统计方法</div>
         <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
-          <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站角色 PV 播放量（万）、网易云收藏量（千）、PV 评论量（千）。</div>
+          <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站「原神」官方账号角色视频的播放量（万）、收藏数（千）、弹幕数（千）。</div>
           <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、B站「原神+曲名」最相关视频播放量（次）。</div>
           <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、min-max 与对数归一化、IQR 异常值判定。</div>
-          <div><strong style="color:var(--text-primary);">样本：</strong><span id="defCharN">122</span> 名可玩角色；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
+          <div><strong style="color:var(--text-primary);">样本：</strong><span id="defCharN">122</span> 名可玩角色（角色级统计仅纳入有官方角色视频实测数据的样本）；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
         </div>
       </div>
     </div>
@@ -136,43 +136,43 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 趋势图 -->
   <div class="card">
-    <h3>地区间角色 PV 热度差异 <span class="method-tag">分组比较</span></h3>
-    <p class="subtitle">以地区为单位比较角色 PV 的平均水平与离散程度。方法：计算各地区角色 PV 的均值、最高值与最低值，并标注角色数 n；均值用于横向比较，最高/最低值用于刻画组内差距。因各地区 n 不同（3–30 人不等），均值差异需结合样本量谨慎解读。</p>
+    <h3>地区间角色视频播放量差异 <span class="method-tag">分组比较</span></h3>
+    <p class="subtitle">以地区为单位比较角色官方视频播放量的平均水平与离散程度。方法：计算各地区角色的播放量均值、最高值与最低值，并标注角色数 n；均值用于横向比较，最高/最低值用于刻画组内差距。因各地区 n 不同且部分角色无官方视频（不计入），均值差异需结合有效样本量谨慎解读。</p>
     <svg id="trendSvg" viewBox="0 0 700 260" style="width:100%;height:auto;"></svg>
   </div>
 
   <!-- 转化漏斗图 -->
   <div class="card">
     <h3>跨平台互动规模对比 <span class="method-tag">量级比较</span></h3>
-    <p class="subtitle">比较 B站 PV 播放、网易云收藏、B站 PV 评论三类指标的总体量级。方法：将各指标统一换算为绝对人次后绘制条形对比，并计算相对首项的百分比。必须说明：三者统计对象不同（播放/收藏/评论并非同一批用户），因此比率只反映平台规模与行为深度差异，<strong>不能解读为用户级转化率</strong>。</p>
+    <p class="subtitle">比较 B站角色视频的播放、收藏、弹幕三类指标的总体量级。方法：将各指标统一换算为绝对人次后绘制条形对比，并计算相对首项（播放量）的百分比。必须说明：三者统计口径不同（播放、收藏、弹幕并非同一批用户行为），比率只反映互动深度差异，<strong>不能解读为用户级转化率</strong>。</p>
     <svg id="sankeySvg" viewBox="0 0 700 280" style="width:100%;height:280px;"></svg>
   </div>
 
   <!-- 星级热度分布对比图 -->
   <div class="card">
-    <h3>星级角色 PV 分布对比 <span class="method-tag">分布分析</span></h3>
-    <p class="subtitle">5 星与 4 星角色 PV 的分布形态对比。方法：按 PV 区间等宽分箱（12 箱）绘制背靠背直方图；虚线标注各组中位数，用于比较集中趋势与离散程度。中位数对极端值不敏感，比均值更适合描述右偏分布。</p>
+    <h3>星级角色视频播放量分布对比 <span class="method-tag">分布分析</span></h3>
+    <p class="subtitle">5 星与 4 星角色官方视频播放量的分布形态对比。方法：按播放量区间等宽分箱（12 箱）绘制背靠背直方图；虚线标注各组中位数，用于比较集中趋势与离散程度。中位数对极端值不敏感，比均值更适合描述右偏分布；无官方视频的角色不参与统计。</p>
     <svg id="boxSvg" viewBox="0 0 600 220" style="width:100%;height:auto;"></svg>
   </div>
 
   <!-- 元素分析 -->
   <div class="card">
     <h3>元素分组热度对比 <span class="method-tag">分类分析</span></h3>
-    <p class="subtitle">按七元素分组比较角色数量、人均 PV 与人均收藏。方法：组内求均值并给出 n 与占比；元素间差异同时受角色数量与单个角色热度影响，因此需结合「数量占比」与「人均热度」两条线索解读，避免把样本量差异误判为热度差异。</p>
+    <p class="subtitle">按七元素分组比较角色数量、人均播放与人均收藏。方法：组内求均值（仅含有官方视频实测数据的角色）并给出角色数与占比；元素间差异同时受角色数量与单个角色热度影响，因此需结合「数量占比」与「人均热度」两条线索解读，避免把样本量差异误判为热度差异。</p>
     <div id="elementAnalysis" style="margin-top:16px;"></div>
   </div>
 
   <!-- 武器类型分析 -->
   <div class="card">
     <h3>武器类型分组热度对比 <span class="method-tag">分类分析</span></h3>
-    <p class="subtitle">按五类武器分组比较角色数量、人均 PV 与人均收藏。方法：组内描述统计（n、均值、星级构成）。武器类型与角色定位相关，人均热度差异可能由「该武器承载的输出/辅助角色结构」导致，属于结构性差异而非武器本身效应。</p>
+    <p class="subtitle">按五类武器分组比较角色数量、人均播放与人均收藏。方法：组内描述统计（角色数、有效样本 n、均值、中位数、星级构成），无官方视频的角色不计入均值。武器类型与角色定位相关，人均热度差异可能由「该武器承载的输出/辅助角色结构」导致，属于结构性差异而非武器本身效应。</p>
     <div id="weaponAnalysis" style="margin-top:16px;"></div>
   </div>
 
   <!-- 相关性分析 -->
   <div class="card">
-    <h3>PV 播放量与网易云收藏的相关性 <span class="method-tag">相关分析</span></h3>
-    <p class="subtitle">角色级双变量散点图与 Pearson 相关系数。方法：对 n 名角色计算 PV（万）与网易云收藏（千）的线性相关系数 r，并按 Cohen 阈值标注强度（|r|≥0.7 强、≥0.4 中等、≥0.2 弱）。相关不等于因果：两者可能同受角色人气、版本档期等第三因素驱动。</p>
+    <h3>视频播放量与收藏数的相关性 <span class="method-tag">相关分析</span></h3>
+    <p class="subtitle">角色级双变量散点图与 Pearson 相关系数。方法：对拥有官方视频实测数据的 n 名角色计算播放量（万）与收藏数（千）的线性相关系数 r，并按 Cohen 阈值标注强度（|r|≥0.7 强、≥0.4 中等、≥0.2 弱）。相关不等于因果：两者可能同受角色人气、版本档期等第三因素驱动。</p>
     <div id="correlationChart" style="margin-top:16px;"></div>
   </div>
 
@@ -189,7 +189,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <p class="subtitle">以下三条结论由上方统计结果直接汇总，数值随样本实时计算，不使用固定文案。</p>
     <div class="three-col" style="margin-top:12px;">
       <div class="insight-finding">
-        <h4 style="color:var(--chart-1);">角色维度 · PV 领先</h4>
+        <h4 style="color:var(--chart-1);">角色维度 · 播放领先</h4>
         <p id="insightTop1"></p>
       </div>
       <div class="insight-finding gold">
@@ -208,12 +208,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="ds-title"><img src="assets/img/icons/神秘的石板.png" alt="数据来源" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" onerror="this.style.display='none'">数据来源与分析方法说明</div>
     <div class="ds-grid">
       <div class="ds-item">
-        <span class="ds-label">B站PV数据</span>
-        <span class="ds-value">bilibili_official_crawler.py 采集</span>
+        <span class="ds-label">B站角色视频数据</span>
+        <span class="ds-value">B站「原神」官方账号投稿 · 播放/收藏/弹幕</span>
       </div>
       <div class="ds-item">
-        <span class="ds-label">网易云收藏/评论</span>
-        <span class="ds-value">网易云公开API · 2026年10月</span>
+        <span class="ds-label">网易云评论</span>
+        <span class="ds-value">网易云公开API · 曲目级评论数 · 2026年10月</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">角色/地区元数据</span>
@@ -234,11 +234,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261031b"></script>
-<script src="js/avatar-map.js?v=20261031b"></script>
-<script src="js/nav.js?v=20261031b"></script>
-<script src="js/insight.js?v=20261031b"></script>
-<script src="js/page-hero.js?v=20261031b"></script>
-<script src="js/optimize.js?v=20261031b"></script>
+<script src="js/data.js?v=20261031c"></script>
+<script src="js/avatar-map.js?v=20261031c"></script>
+<script src="js/nav.js?v=20261031c"></script>
+<script src="js/insight.js?v=20261031c"></script>
+<script src="js/page-hero.js?v=20261031c"></script>
+<script src="js/optimize.js?v=20261031c"></script>
 </body>
 </html>

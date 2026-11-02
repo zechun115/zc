@@ -344,13 +344,16 @@ function renderStoryVsChar() {
   const el = document.getElementById('storyVsChar');
   if (!el) return;
   const groups = {};
+  // 统一口径为 B站播放量（万）：剧情曲目取相关视频播放量（千→万），角色取官方角色视频播放量（万）
   ST.forEach(t => {
     if (!groups[t.region]) groups[t.region] = { sf: 0, sc: 0, cf: 0, cc: 0, version: '' };
-    groups[t.region].sf += t.netease; groups[t.region].sc += t.cmt;
+    groups[t.region].sf += t.biliK / 10; groups[t.region].sc += t.netease;
   });
   CHARACTERS.forEach(c => {
     if (!groups[c.region]) groups[c.region] = { sf: 0, sc: 0, cf: 0, cc: 0, version: '' };
-    groups[c.region].cf += c.netease; groups[c.region].cc += c.cmt;
+    // 无官方角色视频数据的角色不参与求和
+    if (typeof c.pv !== 'number') return;
+    groups[c.region].cf += c.pv; groups[c.region].cc += c.danmaku || 0;
   });
   // 地区版本统一从 REGIONS 获取，避免被剧情曲版本覆盖
   Object.keys(groups).forEach(rid => {
@@ -368,12 +371,12 @@ function renderStoryVsChar() {
       </div>
       <div style="width:140px;flex-shrink:0;font-size:11px;color:var(--text-tertiary);line-height:1.4;">
         <div>v${g.version || '-'}</div>
-        <div>剧情: ${g.sf.toFixed(0)}k</div><div>角色: ${g.cf.toFixed(0)}k</div>
+        <div>剧情: ${g.sf.toFixed(1)}万</div><div>角色: ${g.cf.toFixed(1)}万</div>
       </div>
     </div>`;
   }).join('') + `<div style="display:flex;gap:16px;margin-top:8px;font-size:12px;">
-    <span style="color:var(--text-tertiary);"><span style="display:inline-block;width:10px;height:10px;background:var(--chart-1);border-radius:2px;margin-right:4px;"></span>剧情音乐</span>
-    <span style="color:var(--text-tertiary);"><span style="display:inline-block;width:10px;height:10px;background:var(--chart-3);border-radius:2px;margin-right:4px;"></span>角色音乐</span>
+    <span style="color:var(--text-tertiary);"><span style="display:inline-block;width:10px;height:10px;background:var(--chart-1);border-radius:2px;margin-right:4px;"></span>剧情曲目 B站播放</span>
+    <span style="color:var(--text-tertiary);"><span style="display:inline-block;width:10px;height:10px;background:var(--chart-3);border-radius:2px;margin-right:4px;"></span>官方角色视频 B站播放</span>
   </div>`;
 }
 

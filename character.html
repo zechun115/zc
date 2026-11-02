@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="原神音乐热度跨平台数据可视化平台 - 角色音乐热度分析，PV播放量与音乐流媒体数据交叉分析">
+<meta name="description" content="原神角色数据可视化平台 - 角色官方视频播放、收藏、弹幕数据交叉分析与排行榜">
 <meta name="keywords" content="原神,音乐,数据可视化,Genshin Impact">
 <meta name="author" content="提瓦特音乐数据可视化团队">
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>角色音乐 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261031b">
-<link rel="stylesheet" href="css/optimize.css?v=20261031b">
-<link rel="stylesheet" href="css/page-hero.css?v=20261031b">
+<link rel="stylesheet" href="css/style.css?v=20261031c">
+<link rel="stylesheet" href="css/optimize.css?v=20261031c">
+<link rel="stylesheet" href="css/page-hero.css?v=20261031c">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="story.html">
@@ -70,9 +70,9 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <img src="assets/img/elements/UI_Element_Rock.png" alt="岩" onerror="this.style.display='none'">
         <img src="assets/img/elements/UI_Element_Grass.png" alt="草" onerror="this.style.display='none'">
       </div>
-      <h1>角色音乐热度</h1>
+      <h1>角色视频热度</h1>
       <div class="hero-line"></div>
-      <p>PV播放量与音乐流媒体数据的交叉分析 · 双平台热度散点与排行榜</p>
+      <p>B站官方角色视频的播放、收藏、弹幕交叉分析 · 双指标散点与排行榜</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
@@ -90,14 +90,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_201.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="摩拉"></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpiTotalPv">0</div>
-        <div class="kpi-label">总PV播放量</div>
+        <div class="kpi-label">总播放量（B站官方角色视频）</div>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="原石"></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpiAvgFav">0</div>
-        <div class="kpi-label">人均网易云收藏（次）</div>
+        <div class="kpi-label">人均B站收藏数</div>
       </div>
     </div>
     <div class="kpi-card">
@@ -127,29 +127,29 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 散点图 -->
   <div class="card animate-on-scroll" data-animation="fadeInUp">
-    <h3>角色双平台热度散点图 <span class="method-tag">聚类分析</span></h3>
-    <p class="subtitle">横轴：B站 PV 播放量（万） | 纵轴：网易云收藏量（千） | 气泡大小：PV 评论数 | 颜色：元素属性 | 点击气泡跳转详情。方法：以各指标的<strong>中位数</strong>为分界做四象限分类（中位数比均值更稳健，可避免头部角色抬高分割线），并在图下给出 Pearson 相关系数与各象限人数。</p>
+    <h3>角色视频播放 × 收藏散点图 <span class="method-tag">聚类分析</span></h3>
+    <p class="subtitle">横轴：B站官方角色视频播放量（万） | 纵轴：B站官方角色视频收藏数（千） | 气泡大小：B站弹幕数 | 颜色：元素属性 | 点击气泡跳转详情。仅包含有官方角色视频实测数据的角色。方法：以各指标的<strong>中位数</strong>为分界做四象限分类（中位数比均值更稳健，可避免头部角色抬高分割线），并在图下给出 Pearson 相关系数与各象限人数。</p>
     <div class="scatter-wrap">
       <svg class="scatter-svg" id="scatterSvg" viewBox="0 0 780 480" preserveAspectRatio="xMidYMid meet"></svg>
       <div class="tooltip" id="scatterTip"></div>
     </div>
     <div class="legend" id="scatterLegend"></div>
     <div class="quad-hints">
-      <div><div class="t">左上：音乐出圈</div><div class="d">PV一般 + 音乐爆</div></div>
-      <div><div class="t">右上：双高明星</div><div class="d">PV热 + 音乐热</div></div>
-      <div><div class="t">左下：待发掘</div><div class="d">双低潜力股</div></div>
-      <div><div class="t">右下：PV带飞</div><div class="d">PV爆 + 音乐一般</div></div>
+      <div><div class="t">左上：收藏突出</div><div class="d">播放一般 + 收藏高</div></div>
+      <div><div class="t">右上：双高明星</div><div class="d">播放高 + 收藏高</div></div>
+      <div><div class="t">左下：双低</div><div class="d">两项均低于中位数</div></div>
+      <div><div class="t">右下：播放突出</div><div class="d">播放高 + 收藏一般</div></div>
     </div>
   </div>
 
   <!-- 双栏排行榜 -->
   <div class="two-col">
     <div class="card animate-on-scroll" data-animation="slideInLeft">
-      <h3>B站PV热度榜 <span class="method-tag">排名分析</span></h3>
+      <h3>B站官方角色视频播放榜 <span class="method-tag">排名分析</span></h3>
       <ul class="rank-list" id="pvRank"></ul>
     </div>
     <div class="card animate-on-scroll" data-animation="slideInRight">
-      <h3>网易云热度榜 <span class="method-tag">排名分析</span></h3>
+      <h3>B站官方角色视频收藏榜 <span class="method-tag">排名分析</span></h3>
       <ul class="rank-list" id="musicRank"></ul>
     </div>
   </div>
@@ -173,12 +173,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源说明</div>
     <div class="ds-grid">
       <div class="ds-item">
-        <span class="ds-label">B站PV数据</span>
-        <span class="ds-value">bilibili_official_crawler.py 采集</span>
+        <span class="ds-label">B站角色视频数据</span>
+        <span class="ds-value">B站「原神」官方账号投稿 · 播放/收藏/弹幕</span>
       </div>
       <div class="ds-item">
-        <span class="ds-label">网易云收藏/评论</span>
-        <span class="ds-value">网易云公开API · 2026年10月</span>
+        <span class="ds-label">曲目级平台数据</span>
+        <span class="ds-value">网易云评论数 · B站相关视频播放量</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">角色元数据</span>
@@ -190,12 +190,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261031b"></script>
-<script src="js/avatar-map.js?v=20261031b"></script>
-<script src="js/character_info.js?v=20261031b"></script>
-<script src="js/nav.js?v=20261031b"></script>
-<script src="js/character.js?v=20261031b"></script>
-<script src="js/page-hero.js?v=20261031b"></script>
-<script src="js/optimize.js?v=20261031b"></script>
+<script src="js/data.js?v=20261031c"></script>
+<script src="js/avatar-map.js?v=20261031c"></script>
+<script src="js/character_info.js?v=20261031c"></script>
+<script src="js/nav.js?v=20261031c"></script>
+<script src="js/character.js?v=20261031c"></script>
+<script src="js/page-hero.js?v=20261031c"></script>
+<script src="js/optimize.js?v=20261031c"></script>
 </body>
 </html>

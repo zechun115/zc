@@ -236,23 +236,30 @@ window.renderCharCard = function(c) {
   const regionSvgUrl = getRegionSvgUrl(c.region);
   const avatarUrl = getCharAvatarUrl(c.name);
 
-  // 热度依据徽章（两个平台来源，可点击追溯）
-  const heatBasisHtml = `
+  // 热度依据徽章（同一支 B站「原神」官方角色视频的三项真实指标）
+  const hasReal = typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number';
+  const heatBasisHtml = hasReal ? `
     <div class="char-card-heat-basis"
-         data-tooltip="热度依据两平台：
-• B站PV：角色宣传PV播放量 ${c.pv}万（来源：bilibili.com官方账号）
-• 网易云：角色BGM收藏 ${c.netease}千（来源：music.163.com专辑数据）
-综合热度按加权计算：B站PV ×0.55 + 网易云×0.45"
+         data-tooltip="数据来源：B站「原神」官方账号发布的同一支官方角色视频
+• 播放量 ${c.pv}万（bilibili.com）
+• 收藏 ${Math.round(c.fav * 1000).toLocaleString()}（bilibili.com）
+• 弹幕 ${Math.round(c.danmaku * 1000).toLocaleString()}（bilibili.com）
+三项指标含义与量级不同，不可相加或换算"
          style="margin-top:8px;padding:6px 8px;border-radius:8px;background:linear-gradient(90deg,rgba(251,114,153,0.06),rgba(254,44,85,0.06));border:1px solid rgba(201,162,39,0.18);display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:var(--text-tertiary);">
-      <span style="display:flex;align-items:center;gap:2px;color:#FB7299;font-weight:600;" title="来源：bilibili.com 角色PV总播放">
+      <span style="display:flex;align-items:center;gap:2px;color:#FB7299;font-weight:600;" title="来源：bilibili.com @原神 官方角色视频播放量">
         <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
         ${c.pv}万
       </span>
       <span style="width:1px;height:8px;background:rgba(201,162,39,0.15);"></span>
-      <span style="display:flex;align-items:center;gap:2px;color:#FE2C55;font-weight:600;" title="来源：music.163.com 网易云音乐 角色OST收藏">
+      <span style="display:flex;align-items:center;gap:2px;color:#FE2C55;font-weight:600;" title="来源：bilibili.com @原神 官方角色视频收藏数">
         <img src="assets/img/icons/旋曜玉帛.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
-        ${c.netease}k
+        ${Math.round(c.fav * 1000).toLocaleString()}
       </span>
+    </div>` : `
+    <div class="char-card-heat-basis"
+         data-tooltip="该角色没有 B站「原神」官方账号发布的官方角色视频，三项指标均无法核实，故不展示、不参与任何统计与排名。"
+         style="margin-top:8px;padding:6px 8px;border-radius:8px;background:rgba(148,163,184,0.06);border:1px dashed rgba(148,163,184,0.25);font-size:10px;color:var(--text-quaternary);text-align:center;">
+      暂无官方角色视频数据
     </div>`;
 
   // 专辑曲目预览（从ALBUMS获取）
@@ -373,8 +380,10 @@ function renderFilterOptions() {
 
 function renderKpiBanner() {
   const total = CHARACTERS.length;
-  const totalPv = CHARACTERS.reduce((s, c) => s + c.pv, 0);
-  const avgFav = Math.round(CHARACTERS.reduce((s, c) => s + c.netease, 0) / total);
+  // 仅统计有真实官方角色视频数据的角色，无数据者不进入任何聚合
+  const valid = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  const totalPv = valid.reduce((s, c) => s + c.pv, 0);
+  const avgFav = valid.length ? Math.round(valid.reduce((s, c) => s + c.fav, 0) / valid.length) : 0;
   
   const elementCounts = {};
   CHARACTERS.forEach(c => {
@@ -456,7 +465,8 @@ function renderScatter() {
   if (!svg) return;
   svg.innerHTML = '';
 
-  let data = CHARACTERS.slice();
+  // 散点图只纳入有真实官方演示数据的角色（无数据者无法定位，不参与分析）
+  let data = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
   if (scatterFilter !== 'all') data = data.filter(c => c.region === scatterFilter);
   if (elementFilter !== 'all') data = data.filter(c => c.element === elementFilter);
   if (weaponFilter !== 'all') data = data.filter(c => c.weapon === weaponFilter);
@@ -471,11 +481,11 @@ function renderScatter() {
   }
 
   const maxPv = Math.max(...data.map(c => c.pv));
-  const maxN = Math.max(...data.map(c => c.netease));
-  const maxC = Math.max(...data.map(c => c.cmt));
+  const maxN = Math.max(...data.map(c => c.fav));
+  const maxC = Math.max(...data.map(c => c.danmaku));
   // 象限分割采用中位数：右偏分布下均值会被头部角色拉高，中位数更能代表典型角色
   const midPv = (typeof statMedian === 'function') ? statMedian(data.map(c => c.pv)) : data.reduce((s, c) => s + c.pv, 0) / data.length;
-  const midN = (typeof statMedian === 'function') ? statMedian(data.map(c => c.netease)) : data.reduce((s, c) => s + c.netease, 0) / data.length;
+  const midN = (typeof statMedian === 'function') ? statMedian(data.map(c => c.fav)) : data.reduce((s, c) => s + c.fav, 0) / data.length;
 
   const M = { l: 70, r: 45, t: 45, b: 65 };
   const W = 780, H = 480, w = W - M.l - M.r, h = H - M.t - M.b;
@@ -587,7 +597,7 @@ function renderScatter() {
   xt.setAttribute('text-anchor', 'middle'); xt.setAttribute('font-size', '13');
   xt.setAttribute('fill', 'var(--gold-light)'); xt.setAttribute('font-weight', '600');
   xt.setAttribute('letter-spacing', '0.5px');
-  xt.textContent = 'B站PV播放量（万）'; svg.appendChild(xt);
+  xt.textContent = 'B站官方角色视频播放量（万）'; svg.appendChild(xt);
 
   const yt = document.createElementNS(NS, 'text');
   yt.setAttribute('x', 22); yt.setAttribute('y', H / 2);
@@ -595,7 +605,7 @@ function renderScatter() {
   yt.setAttribute('fill', 'var(--gold-light)'); yt.setAttribute('font-weight', '600');
   yt.setAttribute('letter-spacing', '0.5px');
   yt.setAttribute('transform', `rotate(-90,22,${H / 2})`);
-  yt.textContent = '网易云收藏量'; svg.appendChild(yt);
+  yt.textContent = 'B站官方角色视频收藏数'; svg.appendChild(yt);
 
   // 中位数分割线（右偏分布下比均值更稳健）
   const avgXLine = document.createElementNS(NS, 'line');
@@ -617,7 +627,7 @@ function renderScatter() {
   avgLabelX.setAttribute('x', avgPx + 4); avgLabelX.setAttribute('y', M.t + 12);
   avgLabelX.setAttribute('text-anchor', 'start'); avgLabelX.setAttribute('font-size', '9');
   avgLabelX.setAttribute('fill', 'var(--gold)'); avgLabelX.setAttribute('font-weight', '600');
-  avgLabelX.textContent = 'PV中位数'; svg.appendChild(avgLabelX);
+  avgLabelX.textContent = '播放中位数'; svg.appendChild(avgLabelX);
 
   const avgLabelY = document.createElementNS(NS, 'text');
   avgLabelY.setAttribute('x', W - M.r - 4); avgLabelY.setAttribute('y', avgPy - 4);
@@ -627,10 +637,10 @@ function renderScatter() {
 
   // 象限标签
   const quadLabels = [
-    { x: avgPx - 8, y: M.t + 14, text: '音乐出圈', anchor: 'end', color: 'rgba(74,217,217,0.4)' },
-    { x: avgPx + 8, y: M.t + 14, text: '双高明星', anchor: 'start', color: 'rgba(201,162,39,0.5)' },
-    { x: avgPx - 8, y: H - M.b - 8, text: '待发掘', anchor: 'end', color: 'rgba(148,163,184,0.35)' },
-    { x: avgPx + 8, y: H - M.b - 8, text: 'PV带飞', anchor: 'start', color: 'rgba(217,74,74,0.35)' }
+    { x: avgPx - 8, y: M.t + 14, text: '收藏突出', anchor: 'end', color: 'rgba(74,217,217,0.4)' },
+    { x: avgPx + 8, y: M.t + 14, text: '双高', anchor: 'start', color: 'rgba(201,162,39,0.5)' },
+    { x: avgPx - 8, y: H - M.b - 8, text: '双低', anchor: 'end', color: 'rgba(148,163,184,0.35)' },
+    { x: avgPx + 8, y: H - M.b - 8, text: '播放突出', anchor: 'start', color: 'rgba(217,74,74,0.35)' }
   ];
   quadLabels.forEach(ql => {
     const t = document.createElementNS(NS, 'text');
@@ -648,12 +658,12 @@ function renderScatter() {
   const positions = sortedData.map(c => ({
     name: c.name,
     ox: M.l + (c.pv / maxPv) * w,
-    oy: M.t + (1 - c.netease / maxN) * h,
+    oy: M.t + (1 - c.fav / maxN) * h,
     x: M.l + (c.pv / maxPv) * w,
-    y: M.t + (1 - c.netease / maxN) * h,
-    r: (c.rarity === 5 ? 6 : 4) + (c.cmt / maxC) * 4.5,
+    y: M.t + (1 - c.fav / maxN) * h,
+    r: (c.rarity === 5 ? 6 : 4) + (c.danmaku / maxC) * 4.5,
     baseR: c.rarity === 5 ? 6 : 4,
-    isTop: c.pv > maxPv * 0.6 || c.netease > maxN * 0.6
+    isTop: c.pv > maxPv * 0.6 || c.fav > maxN * 0.6
   }));
 
   // 防重叠：简单力导向分离
@@ -684,7 +694,7 @@ function renderScatter() {
   }
 
   const pvRank = [...data].sort((a, b) => b.pv - a.pv);
-  const musicRank = [...data].sort((a, b) => b.netease - a.netease);
+  const musicRank = [...data].sort((a, b) => b.fav - a.fav);
 
   // 统计信息
   const fiveStar = data.filter(c => c.rarity === 5).length;
@@ -763,13 +773,13 @@ function renderScatter() {
       const stars = '★'.repeat(c.rarity);
 
       // 计算象限分类和排名百分位
-      const quad = c.pv >= midPv && c.netease >= midN ? '双高明星'
-        : c.pv < midPv && c.netease >= midN ? '音乐出圈'
-        : c.pv >= midPv && c.netease < midN ? 'PV带飞'
-        : '待发掘';
-      const quadColor = quad === '双高明星' ? '#C9A227' : quad === '音乐出圈' ? '#4AD9D9' : quad === 'PV带飞' ? '#D94A4A' : '#94a3b8';
+      const quad = c.pv >= midPv && c.fav >= midN ? '双高'
+        : c.pv < midPv && c.fav >= midN ? '收藏突出'
+        : c.pv >= midPv && c.fav < midN ? '播放突出'
+        : '双低';
+      const quadColor = quad === '双高' ? '#C9A227' : quad === '收藏突出' ? '#4AD9D9' : quad === '播放突出' ? '#D94A4A' : '#94a3b8';
       const pvPct = Math.round((data.filter(x => x.pv < c.pv).length / data.length) * 100);
-      const musicPct = Math.round((data.filter(x => x.netease < c.netease).length / data.length) * 100);
+      const musicPct = Math.round((data.filter(x => x.fav < c.fav).length / data.length) * 100);
 
       tip.innerHTML = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
@@ -785,9 +795,9 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">稀有度:</span> ${c.rarity}星</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(201,162,39,0.15);">
-          <div><span style="color:var(--text-tertiary);">PV:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
-          <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${(c.netease * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
-          <div><span style="color:var(--text-tertiary);">评论:</span> <strong style="color:var(--gold-light);">${(c.cmt * 1000).toLocaleString()}</strong></div>
+          <div><span style="color:var(--text-tertiary);">播放:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
+          <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${Math.round(c.fav * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
+          <div><span style="color:var(--text-tertiary);">弹幕:</span> <strong style="color:var(--gold-light);">${Math.round(c.danmaku * 1000).toLocaleString()}</strong></div>
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">点击查看角色详情</div>
       `;
@@ -836,7 +846,7 @@ function renderScatter() {
     // 键盘支持：Enter/Space 跳转，Tab 聚焦显示 tooltip
     circle.setAttribute('tabindex', '0');
     circle.setAttribute('role', 'button');
-    circle.setAttribute('aria-label', `${c.name}，${c.rarity}星，${c.element}元素，PV ${c.pv}万，网易云收藏 ${(c.netease*1000).toLocaleString()}`);
+    circle.setAttribute('aria-label', `${c.name}，${c.rarity}星，${c.element}元素，B站官方角色视频播放 ${c.pv}万，收藏 ${Math.round(c.fav*1000).toLocaleString()}`);
     circle.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -852,12 +862,12 @@ function renderScatter() {
       const scaleX = rect.width / W;
       const scaleY = rect.height / H;
       const stars = '★'.repeat(c.rarity);
-      const quad = c.pv >= midPv && c.netease >= midN ? '双高明星'
-        : c.pv < midPv && c.netease >= midN ? '音乐出圈'
-        : c.pv >= midPv && c.netease < midN ? 'PV带飞' : '待发掘';
-      const quadColor = quad === '双高明星' ? '#C9A227' : quad === '音乐出圈' ? '#4AD9D9' : quad === 'PV带飞' ? '#D94A4A' : '#94a3b8';
+      const quad = c.pv >= midPv && c.fav >= midN ? '双高'
+        : c.pv < midPv && c.fav >= midN ? '收藏突出'
+        : c.pv >= midPv && c.fav < midN ? '播放突出' : '双低';
+      const quadColor = quad === '双高' ? '#C9A227' : quad === '收藏突出' ? '#4AD9D9' : quad === '播放突出' ? '#D94A4A' : '#94a3b8';
       const pvPct = Math.round((data.filter(x => x.pv < c.pv).length / data.length) * 100);
-      const musicPct = Math.round((data.filter(x => x.netease < c.netease).length / data.length) * 100);
+      const musicPct = Math.round((data.filter(x => x.fav < c.fav).length / data.length) * 100);
       tip.innerHTML = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <div style="width:8px;height:8px;border-radius:50%;background:${color};box-shadow:0 0 8px ${color};"></div>
@@ -872,9 +882,9 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">稀有度:</span> ${c.rarity}星</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(201,162,39,0.15);">
-          <div><span style="color:var(--text-tertiary);">PV:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
-          <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${(c.netease * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
-          <div><span style="color:var(--text-tertiary);">评论:</span> <strong style="color:var(--gold-light);">${(c.cmt * 1000).toLocaleString()}</strong></div>
+          <div><span style="color:var(--text-tertiary);">播放:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
+          <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${Math.round(c.fav * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
+          <div><span style="color:var(--text-tertiary);">弹幕:</span> <strong style="color:var(--gold-light);">${Math.round(c.danmaku * 1000).toLocaleString()}</strong></div>
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">按 Enter 查看角色详情</div>
       `;
@@ -906,7 +916,7 @@ function renderScatter() {
     // 标签显示（带引线）
     const shouldLabel = (scatterFilter !== 'all' && data.length <= 15) ||
                         (isTop && c.pv > maxPv * 0.7) ||
-                        (c.pv >= pvRank[0]?.pv || c.netease >= musicRank[0]?.netease);
+                        (c.pv >= pvRank[0]?.pv || c.fav >= musicRank[0]?.fav);
 
     if (shouldLabel) {
       let hasOverlap = false;
@@ -996,17 +1006,17 @@ function renderScatter() {
   // 分析摘要：相关系数 + 四象限人数 + 中位数分割说明（全部按当前筛选样本实时计算）
   const summEl = document.getElementById('scatterSummary');
   if (summEl) {
-    const r = (typeof statPearson === 'function') ? statPearson(data.map(c => c.pv), data.map(c => c.netease)) : null;
+    const r = (typeof statPearson === 'function') ? statPearson(data.map(c => c.pv), data.map(c => c.fav)) : null;
     const rLabel = (typeof statCorrLabel === 'function') ? statCorrLabel(r) : '';
     const r2 = r === null ? null : (r * r * 100).toFixed(1);
     const q = { q1: 0, q2: 0, q3: 0, q4: 0 };
     data.forEach(c => {
-      const right = c.pv >= midPv, up = c.netease >= midN;
+      const right = c.pv >= midPv, up = c.fav >= midN;
       if (right && up) q.q1++; else if (!right && up) q.q2++; else if (!right && !up) q.q3++; else q.q4++;
     });
-    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名角色；PV 与网易云收藏的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明 PV 热度只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自平台受众与曲目发行等非 PV 因素。
-      分割线取 <strong>中位数</strong>（PV ${midPv}万 / 收藏 ${midN}千），较均值更能代表典型角色。四象限人数：双高明星 ${q.q1} 人、音乐出圈 ${q.q2} 人、待发掘 ${q.q3} 人、PV带飞 ${q.q4} 人。
-      <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置。</span>`;
+    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名有官方角色视频的角色；B站演示播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明播放量只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自视频内容与受众行为等非播放因素。
+      分割线取 <strong>中位数</strong>（播放 ${midPv}万 / 收藏 ${Math.round(midN * 1000).toLocaleString()}），较均值更能代表典型角色。四象限人数：双高 ${q.q1} 人、收藏突出 ${q.q2} 人、播放突出 ${q.q4} 人、双低 ${q.q3} 人。
+      <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置；无官方角色视频的角色不进入样本。</span>`;
   }
 
   // 添加数据导出属性到散点图卡片
@@ -1018,24 +1028,25 @@ function renderScatter() {
       元素: c.element,
       武器: c.weapon,
       星级: c.rarity,
-      PV播放量万: c.pv,
-      网易云收藏: c.netease * 1000,
-      网易云评论: c.cmt * 1000
+      B站演示播放量万: c.pv,
+      B站演示收藏数: Math.round(c.fav * 1000),
+      B站演示弹幕数: Math.round(c.danmaku * 1000)
     }));
     scatterCard.setAttribute('data-export', JSON.stringify(exportData));
-    scatterCard.setAttribute('data-export-file', '角色双平台热度数据');
+    scatterCard.setAttribute('data-export-file', '角色B站官方角色视频数据');
     // 触发 optimize.js 中的导出按钮初始化
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
     btn.setAttribute('aria-label', '导出此图表的数据');
-    btn.addEventListener('click', () => window.exportData(exportData, '角色双平台热度数据', 'csv'));
+    btn.addEventListener('click', () => window.exportData(exportData, '角色B站官方角色视频数据', 'csv'));
     scatterCard.appendChild(btn);
   }
 }
 
 function renderCharRanks() {
-  let data = CHARACTERS.slice();
+  // 排行榜只统计有真实官方角色视频数据的角色
+  let data = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
   if (scatterFilter !== 'all') data = data.filter(c => c.region === scatterFilter);
   if (elementFilter !== 'all') data = data.filter(c => c.element === elementFilter);
   if (weaponFilter !== 'all') data = data.filter(c => c.weapon === weaponFilter);
@@ -1058,16 +1069,16 @@ function renderCharRanks() {
         </div>
         <div style="text-align:right;">
           <div class="rank-val" style="color:${color};display:flex;align-items:center;gap:3px;">
-            <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com 官方账号角色PV播放量"/>
+            <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频播放量"/>
             ${c.pv}万
           </div>
-          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">B站PV</div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">B站演示播放</div>
         </div>
       </li>`;
     }).join('');
   }
 
-  const mSorted = [...data].sort((a, b) => b.netease - a.netease).slice(0, 10);
+  const mSorted = [...data].sort((a, b) => b.fav - a.fav).slice(0, 10);
   const mEl = document.getElementById('musicRank');
   if (mEl) {
     mEl.innerHTML = mSorted.map((c, i) => {
@@ -1085,10 +1096,10 @@ function renderCharRanks() {
         </div>
         <div style="text-align:right;">
           <div class="rank-val" style="color:${color};display:flex;align-items:center;gap:3px;">
-            <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：music.163.com 网易云音乐 角色OST收藏量"/>
-            ${(c.netease * 1000).toLocaleString()}
+            <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频收藏数"/>
+            ${Math.round(c.fav * 1000).toLocaleString()}
           </div>
-          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">网易云收藏</div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">B站演示收藏</div>
         </div>
       </li>`;
     }).join('');
@@ -1110,16 +1121,17 @@ function clearHighlight(source) {
 }
 
 function renderCharHeatmap() {
-  let data = CHARACTERS.slice();
+  // 热力图只统计有真实官方角色视频数据的角色
+  let data = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
   if (scatterFilter !== 'all') data = data.filter(c => c.region === scatterFilter);
   if (elementFilter !== 'all') data = data.filter(c => c.element === elementFilter);
   if (weaponFilter !== 'all') data = data.filter(c => c.weapon === weaponFilter);
 
   const metrics = [
-    { k: 'pv', l: 'PV播放', unit: '万' },
-    { k: 'netease', l: '网易收藏', unit: '' },
-    { k: 'cmt', l: '网易评论', unit: '' },
-    { k: 'rarity', l: '星级', unit: '' }
+    { k: 'pv',      l: 'B站播放(万)', fmt: v => v },
+    { k: 'fav',     l: 'B站收藏',     fmt: v => Math.round(v * 1000) },
+    { k: 'danmaku', l: 'B站弹幕',     fmt: v => Math.round(v * 1000) },
+    { k: 'rarity',  l: '星级',        fmt: v => v }
   ];
   const maxs = {};
   metrics.forEach(m => { maxs[m.k] = Math.max(...data.map(c => c[m.k])); });
@@ -1139,7 +1151,7 @@ function renderCharHeatmap() {
   const sortedData = [...data].sort((a, b) => b.pv - a.pv).slice(0, 15);
   sortedData.forEach((c, idx) => {
     const color = ELEMENT_COLORS[c.element] || '#999';
-    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>PV播放：${c.pv}万<br>网易收藏：${c.netease}千<br>网易评论：${c.cmt}千`;
+    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>B站演示播放：${c.pv}万<br>B站演示收藏：${Math.round(c.fav * 1000).toLocaleString()}<br>B站演示弹幕：${Math.round(c.danmaku * 1000).toLocaleString()}`;
     html += `<div class="heatmap-cell heat-cell" data-char="${c.name}" data-v="${100}" style="background:linear-gradient(180deg,var(--surface-elevated),${color}15);padding:10px 8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-primary);cursor:pointer;border-left:3px solid ${color};" data-tooltip="${tooltip}">
       <a href="character-detail.html?name=${encodeURIComponent(c.name)}" style="color:inherit;text-decoration:none;font-weight:600;">${c.name}</a>
     </div>`;
@@ -1147,10 +1159,8 @@ function renderCharHeatmap() {
       const v = c[m.k];
       const ratio = maxs[m.k] > 0 ? v / maxs[m.k] : 0;
       const { cls, lvl } = hlvl(ratio);
-      const displayVal = m.k === 'pv' ? v : v;
-      const displayInner = (v === 0 && cls === 'hlvl-0')
-        ? `<span>${displayVal}${m.unit}</span>`
-        : `<span>${displayVal}${m.unit}</span>`;
+      const displayVal = m.fmt(v);
+      const displayInner = `<span>${displayVal}</span>`;
       html += `<div class="heatmap-cell heat-cell ${cls}" data-char="${c.name}" data-v="${Math.round(ratio * 100)}" data-tooltip="${tooltip}">${displayInner}</div>`;
     });
   });
@@ -1233,7 +1243,7 @@ function renderCharGrid(page = 1) {
     const rb = regionOrder.indexOf(b.region);
     if (ra !== rb) return ra - rb;
     if (b.rarity !== a.rarity) return b.rarity - a.rarity;
-    return b.pv - a.pv;
+    return (typeof b.pv === 'number' ? b.pv : -1) - (typeof a.pv === 'number' ? a.pv : -1);
   });
 
   const totalPages = Math.ceil(data.length / charGridPageSize);
