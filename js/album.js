@@ -1,368 +1,278 @@
-// ==================== 音乐专辑页 · 严格真实性版 ====================
+// ==================== 音乐专辑页 · 重构版 ====================
 let albumFilter = 'all';
+let rankMetric = 'heat';
 
 (function () {
   renderStats();
+  renderRankings();
   renderAlbumGrid();
 
+  // 筛选器
   document.querySelectorAll('#albumFilter .chip').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#albumFilter .chip').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       albumFilter = btn.dataset.f;
+      renderRankings();   // 联动：排行榜跟着筛选器走
       renderAlbumGrid();
     });
   });
-})();
 
-function renderStats() {
-  const total = ALBUMS.length;
-  const totalTracks = ALBUMS.reduce((s, a) => s + a.trackCount, 0);          // 官方专辑总曲目数（真实元数据）
-  // 有真实平台指标（网易云评论数 或 B站播放量）的曲目数，绝不把「仅收录」算作「已核实」
-  const realTracks = ALBUMS.flatMap(a => a.tracks).filter(t => {
-    const r = (typeof TRACK_REAL !== 'undefined' && t.ncmId) ? TRACK_REAL[t.ncmId] : null;
-    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
-  }).length;
-  const coverage = ((realTracks / totalTracks) * 100).toFixed(1);              // 实测覆盖比例
-  const latest = ALBUMS.reduce((m, a) => parseFloat(a.version) > parseFloat(m) ? a.version : m, '0');
-  const sceneAlbums = ALBUMS.filter(a => a.type === 'scene').length;
-  const charAlbums = ALBUMS.filter(a => a.type === 'character').length;
-  const epAlbums = ALBUMS.filter(a => a.type === 'ep').length;
-  const versionAlbums = ALBUMS.filter(a => a.type === 'version').length;
-  const albumsWithData = ALBUMS.filter(a => a.tracks.length > 0).length;       // 已有核实曲目的专辑数
-  const albumsOnlyMeta = total - albumsWithData;                                // 仅保留元数据的专辑数（宁空勿假）
-
-  document.getElementById('albumStats').innerHTML = `
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${total}</div>
-      <div class="stat-label">官方专辑总数</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/items/UI_ItemIcon_112002.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${totalTracks}</div>
-      <div class="stat-label">收录曲目总数（官方）</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_210.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${realTracks}</div>
-      <div class="stat-label">有实测数据的曲目</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_202.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${coverage}%</div>
-      <div class="stat-label">实测覆盖率</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_203.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">v${latest}</div>
-      <div class="stat-label">最新版本</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/icons/秘境.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${sceneAlbums}</div>
-      <div class="stat-label">场景专辑</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_201.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${charAlbums}</div>
-      <div class="stat-label">角色专辑</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #f6d365 0%, #fda085 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_210.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${epAlbums}</div>
-      <div class="stat-label">EP专辑</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_211.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${versionAlbums}</div>
-      <div class="stat-label">版本合集</div>
-    </div>
-    <div class="album-stat">
-      <div class="stat-icon" style="background:linear-gradient(135deg, #F59E0B 0%, #B45309 100%);display:flex;align-items:center;justify-content:center;">
-        <img src="assets/img/deco/UI_ItemIcon_211.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
-      </div>
-      <div class="stat-value">${albumsOnlyMeta}</div>
-      <div class="stat-label">仅元数据专辑（宁空勿假）</div>
-    </div>
-  `;
-
-  // 分析摘要：覆盖率偏差、评论分布形态、异常值比例（基于统一口径的可核实曲目样本）
-  const analysisEl = document.getElementById('albumAnalysis');
-  if (analysisEl) {
-    const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
-    const cmts = census.filter(c => typeof c.cmt === 'number').map(c => c.cmt);
-    const plays = census.filter(c => typeof c.play === 'number').map(c => c.play);
-    const median = (typeof statMedian === 'function') ? statMedian(cmts) : 0;
-    const q3 = (typeof statQ3 === 'function') ? statQ3(cmts) : 0;
-    const iqr = (typeof statIQR === 'function') ? statIQR(cmts) : 0;
-    const tukey = q3 + 1.5 * iqr;
-    const outliers = cmts.filter(v => v > tukey).length;
-    const outShare = cmts.length ? (outliers / cmts.length * 100).toFixed(1) : '—';
-    const playMedian = (typeof statMedian === 'function') ? statMedian(plays) : 0;
-    analysisEl.innerHTML = `<strong>分析摘要：</strong>官方收录 ${totalTracks} 首，其中 ${realTracks} 首具备实测指标（覆盖率 ${coverage}%），因此本页指标应视为<strong>可核实样本</strong>而非全量总体，覆盖率不足的部分不参与任何统计推断。
-      曲目评论中位数 ${median ? Math.round(median).toLocaleString() : '—'}、Q3 ${q3 ? Math.round(q3).toLocaleString() : '—'}、IQR ${iqr ? Math.round(iqr).toLocaleString() : '—'}，按 Tukey 规则（Q3+1.5×IQR）识别出 ${outliers} 首异常值，约占样本 ${outShare}%，说明评论分布高度右偏、少数曲目贡献绝大部分互动。
-      B站相关视频播放中位数 ${playMedian ? Math.round(playMedian).toLocaleString() : '—'}；评论与播放口径不同源，两者不可换算或相除。`;
-  }
-}
-
-function renderAlbumGrid() {
-  const grid = document.getElementById('albumGrid');
-  if (!grid) return;
-
-  const list = ALBUMS.filter(a => {
-    if (albumFilter === 'all') return true;
-    if (albumFilter === 'scene' || albumFilter === 'character' || albumFilter === 'ep' || albumFilter === 'version') return a.type === albumFilter;
-    return a.region === albumFilter;
+  // 排行榜 Tab
+  document.querySelectorAll('#rankTabs .rank-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#rankTabs .rank-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      rankMetric = btn.dataset.metric;
+      renderRankings();
+    });
   });
 
-  grid.innerHTML = list.map(a => {
-    const region = a.region ? REGIONS.find(r => r.id === a.region) : null;
-    const color = region ? region.color : '#8B5CF6';
+  // 抽屉关闭
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('drawerMask').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+})();
 
-    // 曲目数据：只取真实平台数据（网易云评论数 / B站相关视频播放量）
-    const tracksWithData = a.tracks.map(t => {
-      const fullData = (typeof getTrackFullData === 'function')
-        ? getTrackFullData(a, t)
-        : { neteaseCmt: null, biliPlay: null, dataSource: 'unverified' };
-      fullData.heatScore = (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(fullData) : 0;
-      fullData._raw = t;
-      return fullData;
-    });
-    
-    const withPop = tracksWithData.filter(t => t.heatScore > 0)
-                            .sort((x, y) => y.heatScore - x.heatScore);
-    const withoutPop = tracksWithData.filter(t => t.heatScore === 0);
+/* ==================== KPI 总览 ==================== */
+function renderStats() {
+  const total = ALBUMS.length;
+  const totalTracks = ALBUMS.reduce((s, a) => s + a.trackCount, 0);
+  const allReal = ALBUMS.flatMap(a => a.tracks.map(t => ({ album: a, track: t }))).filter(x => {
+    const r = TRACK_REAL && x.track.ncmId ? TRACK_REAL[x.track.ncmId] : null;
+    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
+  });
+  const realTracks = allReal.length;
+  const coverage = totalTracks ? (realTracks / totalTracks * 100).toFixed(1) : '0.0';
+  const cmtSum = allReal.reduce((s, x) => s + ((TRACK_REAL[x.track.ncmId]?.neteaseCmt) || 0), 0);
+  const playSum = allReal.reduce((s, x) => s + ((TRACK_REAL[x.track.ncmId]?.biliPlay) || 0), 0);
+  const albumsWithData = ALBUMS.filter(a => a.tracks.some(t => {
+    const r = TRACK_REAL && t.ncmId ? TRACK_REAL[t.ncmId] : null;
+    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
+  })).length;
+  const latest = ALBUMS.reduce((m, a) => parseFloat(a.version) > parseFloat(m) ? a.version : m, '0');
 
-    // 选出热度最高的曲目（用于TOP标注）
-    const topTracks = withPop.slice(0, Math.min(3, withPop.length));
-
-    // 展示列表：优先展示热度最高的 TOP 曲目，不足则用无热度曲目补齐
-    const PREVIEW = Math.max(topTracks.length, 2);
-    const previewList = [...topTracks, ...withoutPop].slice(0, PREVIEW);
-    const hasMore = a.tracks.length > PREVIEW;
-
-    // 核心曲目区：notice（平台无法核实的热度说明）与已核实曲目列表可以并存
-    let tracksBlock = '';
-    if (a.notice) {
-      tracksBlock += `
-        <div style="padding:14px 12px;border-radius:10px;border:1px dashed rgba(245,158,11,0.45);background:linear-gradient(135deg,rgba(245,158,11,0.05),rgba(245,158,11,0.02));margin-bottom:12px;">
-          <div style="display:flex;align-items:flex-start;gap:8px;">
-            <img src="assets/img/deco/UI_ItemIcon_204.png" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;" onerror="this.style.display='none'"/>
-            <div style="font-size:11.5px;line-height:1.75;color:var(--text-secondary);">${a.notice}</div>
-          </div>
-        </div>`;
-    }
-    if (previewList.length > 0) {
-      const bars = previewList.map((td, idx) => {
-        const t = td._raw;
-        const displayName = t.name.length > 14 ? t.name.substring(0, 14) + '…' : t.name;
-        const linkNetease = t.neteaseUrl || '#';
-        const linkBili = t.bilibiliUrl || '#';
-        const platformIcons = `
-              <a href="${linkNetease}"  target="_blank" rel="noopener" title="网易云音乐直达"
-                 style="color:#FE2C55;text-decoration:none;font-size:11px;" data-track="netease"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>
-              <a href="${linkBili}"     target="_blank" rel="noopener" title="B站PV"
-                 style="color:#FB7299;text-decoration:none;font-size:11px;" data-track="bili"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:11px;height:11px;vertical-align:-2px;" onerror="this.style.display='none'"/></a>`;
-        
-        const hasHeat = td.heatScore > 0;
-        const dataLabel = td.dataSource === 'real' ? '✓实测' : '未核实';
-        // TOP 曲目标记（前 topTracks.length 首标为热门）
-        const isTopTrack = idx < topTracks.length && hasHeat;
-        // 曲目自身热度等级颜色
-        const trackHeatColor = td.heatScore >= 75 ? '#EF4444' : td.heatScore >= 50 ? '#F59E0B' : td.heatScore >= 25 ? '#8B5CF6' : '#64748B';
-        const topBadge = isTopTrack ? `<span style="display:inline-block;padding:1px 5px;border-radius:6px;font-size:8px;font-weight:700;background:${trackHeatColor}22;color:${trackHeatColor};margin-right:4px;vertical-align:middle;">TOP${idx + 1}</span>` : '';
-        
-        if (hasHeat) {
-          const w = td.heatScore;
-          // 真实指标格式化：评论数用完整数值，播放量换算为万/亿
-          const fmtCmt = (n) => {
-            if (typeof n !== 'number' || isNaN(n)) return '—';
-            return n >= 10000 ? (n / 10000).toFixed(1).replace(/\.0$/, '') + '万' : String(n);
-          };
-          const fmtPlay = (n) => {
-            if (typeof n !== 'number' || isNaN(n)) return '—';
-            if (n >= 100000000) return (n / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
-            if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + '万';
-            return String(n);
-          };
-          // 双指标并列：网易云评论 + B站播放（无真实值的不显示）
-          const platformMetrics = [];
-          if (td.neteaseCmt !== null) platformMetrics.push(`<span style="color:#FE2C55;font-size:10px;" title="网易云评论数（真实）"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${fmtCmt(td.neteaseCmt)}</span>`);
-          if (td.biliPlay !== null) platformMetrics.push(`<span style="color:#FB7299;font-size:10px;" title="B站相关视频播放量（真实）"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>播${fmtPlay(td.biliPlay)}</span>`);
-          // 热度等级标签
-          const heatLabel = td.heatScore >= 75 ? '<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display=\'none\'"/>现象级' : td.heatScore >= 50 ? '<img src="assets/img/deco/UI_ItemIcon_105.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display=\'none\'"/>高热度' : td.heatScore >= 25 ? '中等' : '常规';
-
-          return `
-          <div class="mini-bar-row ${isTopTrack ? 'top-track' : ''}" title="曲目热度${td.heatScore}/100 (${heatLabel}) · 数据来源:${dataLabel} · 网易云评论${fmtCmt(td.neteaseCmt)} · B站播放${fmtPlay(td.biliPlay)}">
-            <div class="mini-bar-label" style="font-weight:${isTopTrack ? '600' : '500'};">
-              ${topBadge}<a href="${linkNetease}" target="_blank" rel="noopener"
-                 style="color:var(--text-primary);text-decoration:none;">${displayName}</a>
-            </div>
-            <div class="mini-bar-track" style="position:relative;">
-              <div class="mini-bar-fill real" style="width:${w}%;background:linear-gradient(90deg,${trackHeatColor},${trackHeatColor}88);"></div>
-              <span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:${trackHeatColor};text-shadow:0 0 6px rgba(0,0,0,0.8);">${td.heatScore}</span>
-            </div>
-            <div class="mini-bar-val">
-              <div>${platformMetrics.join('')}</div>
-              <div>${platformIcons}</div>
-            </div>
-          </div>`;
-        } else {
-          return `
-          <div class="mini-bar-row" title="官方专辑直达 · 暂无热度数据">
-            <div class="mini-bar-label" style="font-weight:500;">
-              <a href="${linkNetease}" target="_blank" rel="noopener"
-                 style="color:var(--text-primary);text-decoration:none;">${displayName}</a>
-            </div>
-            <div class="mini-bar-track" style="background:transparent;justify-content:center;">
-              <div style="font-size:10px;color:var(--text-tertiary);">官方曲库直达</div>
-            </div>
-            <div class="mini-bar-val">
-              <div></div>
-              <div>${platformIcons}</div>
-            </div>
-          </div>`;
-        }
-      }).join('');
-      // 底部统计：超出预览数则引导至平台完整曲库
-      const footerNote = hasMore
-        ? `<a href="${a.neteaseUrl}" target="_blank" rel="noopener" style="color:${color};text-decoration:none;font-weight:600;">共 ${a.tracks.length} 首 · 查看完整曲库 →</a>`
-        : `<span><span class="swatch" style="background:${color};"></span>已收录 ${a.tracks.length} 首（网易云/B站可直接查看）</span>`;
-      tracksBlock += `
-        <div class="mini-bar-chart">${bars}</div>
-        <div class="legend-row" style="margin-top:8px;">
-          <span><span class="swatch" style="background:${color};"></span>
-            <img src="assets/img/deco/UI_ItemIcon_210.png" style="width:11px;height:11px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>${footerNote}
-          </span>
-        </div>
-      `;
-    } else if (!a.notice) {
-      // 既没有 notice 也没有 tracks → 兜底提示（有 notice 时只保留 notice）
-      tracksBlock = `
-        <div style="padding:12px;border-radius:10px;border:1px dashed var(--border);background:var(--bg-elevated);margin-bottom:12px;text-align:center;font-size:12px;color:var(--text-tertiary);">
-          该专辑暂无已核实公开曲目数据，请通过下方平台链接查看官方专辑。
-        </div>`;
-    }
-
-    // 每张专辑底部统一的平台跳转大按钮
-    const platformLinks = `
-      <div style="margin-top:10px;padding:10px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="font-size:10.5px;color:var(--text-tertiary);margin-right:2px;">点击跳转 →</span>
-        <a href="${a.neteaseUrl}" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;background:#FE2C5512;color:#FE2C55;font-size:11px;font-weight:600;text-decoration:none;flex:1;justify-content:center;min-width:90px;"
-           title="在网易云音乐搜索官方专辑「${a.name}」">
-          <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;" onerror="this.style.display='none'"/>
-          网易云
-        </a>
-        <a href="${a.bilibiliUrl}" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:7px;background:#FB729912;color:#FB7299;font-size:11px;font-weight:600;text-decoration:none;flex:1;justify-content:center;min-width:90px;"
-           title="在B站搜索「${a.name}」相关PV和演奏">
-          <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:11px;height:11px;" onerror="this.style.display='none'"/>
-          B站PV
-        </a>
+  const cards = [
+    { v: total,          l: '官方专辑总数',      c: '#8B5CF6' },
+    { v: fmtNum(totalTracks), l: '收录曲目总数（官方）', c: '#F59E0B' },
+    { v: realTracks,     l: '有实测数据的曲目',    c: '#10B981' },
+    { v: coverage + '%', l: '实测覆盖率',         c: '#3B82F6' },
+    { v: fmtCN(cmtSum),  l: '网易云评论合计',      c: '#FE2C55' },
+    { v: fmtCN(playSum), l: 'B站播放合计',         c: '#FB7299' },
+    { v: 'v' + latest,   l: '最新版本',           c: '#F59E0B' },
+    { v: albumsWithData, l: '有实测专辑数',        c: '#6366F1' },
+  ];
+  document.getElementById('albumStats').innerHTML = cards.map(c => `
+    <div class="album-stat">
+      <div class="stat-icon" style="background:${c.c}22;box-shadow:0 0 14px ${c.c}33;">
+        <span style="color:${c.c};font-size:20px;font-weight:700;">${cards.indexOf(c) + 1}</span>
       </div>
-    `;
+      <div class="stat-value" style="color:${c.c};">${c.v}</div>
+      <div class="stat-label">${c.l}</div>
+    </div>`).join('');
+
+  // 分析摘要
+  const cmtVals = allReal.map(x => TRACK_REAL[x.track.ncmId]?.neteaseCmt).filter(v => typeof v === 'number');
+  const playVals = allReal.map(x => TRACK_REAL[x.track.ncmId]?.biliPlay).filter(v => typeof v === 'number');
+  const med = cmtVals.length ? statMedian(cmtVals) : 0;
+  const q3 = cmtVals.length ? statQ3(cmtVals) : 0;
+  const outliers = cmtVals.filter(v => v > q3 + 1.5 * (q3 - med)).length;
+  document.getElementById('albumAnalysis').innerHTML =
+    `<strong>分析摘要：</strong>43 张官方专辑共收录 ${fmtNum(totalTracks)} 首曲目，其中 ${realTracks} 首具备实测数据（覆盖率 ${coverage}%）；网易云评论合计 ${fmtCN(cmtSum)}，B站相关视频播放合计 ${fmtCN(playSum)}。` +
+    `评论中位数 ${med ? fmtNum(med) : '—'}、Q3 ${q3 ? fmtNum(q3) : '—'}，Tukey 规则异常值 ${outliers} 首，说明<strong style="color:var(--gold-light);">右偏严重、少数曲目贡献绝大多数互动</strong>。` +
+    `红心收藏总数字段因网易云官方已下架而留空，不做任何估算。`;
+}
+
+/* ==================== 排行榜 ==================== */
+function filteredAlbums() {
+  if (albumFilter === 'all') return ALBUMS;
+  if (['scene', 'character', 'ep', 'version'].includes(albumFilter))
+    return ALBUMS.filter(a => a.type === albumFilter);
+  return ALBUMS.filter(a => a.region === albumFilter);
+}
+
+function renderRankings() {
+  const albums = filteredAlbums();
+  const rows = [];
+  albums.forEach(a => a.tracks.forEach(t => {
+    const r = TRACK_REAL && t.ncmId ? TRACK_REAL[t.ncmId] : null;
+    if (!r) return;
+    const cmt = typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null;
+    const play = typeof r.biliPlay === 'number' ? r.biliPlay : null;
+    if (cmt === null && play === null) return;
+    const heat = (typeof getTrackHeatScore === 'function')
+      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play }) : 0;
+    rows.push({ album: a, track: t, cmt, play, heat });
+  }));
+
+  let sorted, maxV, unit, label, color;
+  if (rankMetric === 'heat') {
+    sorted = rows.sort((x, y) => y.heat - x.heat).slice(0, 20);
+    maxV = 100; unit = ''; label = '综合热度'; color = '#F59E0B';
+  } else if (rankMetric === 'cmt') {
+    sorted = rows.filter(r => r.cmt !== null).sort((x, y) => y.cmt - x.cmt).slice(0, 20);
+    maxV = sorted[0]?.cmt || 1; unit = ''; label = '网易云评论'; color = '#FE2C55';
+  } else {
+    sorted = rows.filter(r => r.play !== null).sort((x, y) => y.play - x.play).slice(0, 20);
+    maxV = sorted[0]?.play || 1; unit = ''; label = 'B站播放'; color = '#FB7299';
+  }
+
+  const el = document.getElementById('rankList');
+  if (!sorted.length) { el.innerHTML = `<div class="empty-hint">当前筛选条件下无已核实曲目</div>`; return; }
+
+  el.innerHTML = sorted.map((r, i) => {
+    const val = rankMetric === 'heat' ? r.heat : (rankMetric === 'cmt' ? r.cmt : r.play);
+    const pct = Math.max(2, (val / maxV) * 100);
+    const albumName = r.album.name;
+    const fmtV = rankMetric === 'heat' ? val.toFixed(1) : fmtCN(val);
+    const cmtTag = r.cmt !== null ? `<span style="color:#FE2C55;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtNum(r.cmt)}</span>` : '';
+    const playTag = r.play !== null ? `<span style="color:#FB7299;font-size:10px;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtCN(r.play)}</span>` : '';
+    return `
+    <div class="rank-row" data-album="${encodeURIComponent(albumName)}">
+      <span class="rank-no ${i < 3 ? 'top3' : ''}">${i + 1}</span>
+      <a class="rank-name" href="${r.track.neteaseUrl || r.album.neteaseUrl}" target="_blank" title="点击在网易云搜索">${r.track.name}</a>
+      <span class="rank-album" title="${albumName}">${albumName}</span>
+      <div class="rank-bar">
+        <div class="rank-fill" style="width:${pct}%;background:linear-gradient(90deg,${color}88,${color});"></div>
+      </div>
+      <span class="rank-val" style="color:${color};">${fmtV}</span>
+      <span class="rank-meta">${cmtTag} ${playTag}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ==================== 专辑网格 ==================== */
+function renderAlbumGrid() {
+  const grid = document.getElementById('albumGrid');
+  const albums = filteredAlbums();
+  grid.innerHTML = albums.map(a => {
+    const region = REGIONS ? REGIONS.find(r => r.id === a.region) : null;
+    const color = region?.color || '#8B5CF6';
+    const realTracks = a.tracks.filter(t => TRACK_REAL && t.ncmId &&
+      (typeof TRACK_REAL[t.ncmId]?.neteaseCmt === 'number' || typeof TRACK_REAL[t.ncmId]?.biliPlay === 'number'));
+    const withHeat = realTracks.map(t => ({
+      t, h: (typeof getTrackHeatScore === 'function')
+        ? getTrackHeatScore({ neteaseCmt: TRACK_REAL[t.ncmId].neteaseCmt, biliPlay: TRACK_REAL[t.ncmId].biliPlay }) : 0
+    })).filter(x => x.h > 0).sort((x, y) => y.h - x.h);
+    const top = withHeat.slice(0, 2);
 
     return `
-      <div class="album-card" style="border:1px solid ${color}22;">
-        <div class="album-cover" style="background:linear-gradient(135deg, ${color} 0%, ${color}99 50%, ${color}55 100%);">
-          <div class="vinyl" style="--accent:${color};"></div>
-          <span class="type-badge">${
-            ({
-              scene: ['assets/img/icons/秘境.png', '场景OST'],
-              character: ['assets/img/deco/UI_ItemIcon_201.png', '角色OST'],
-              ep: ['assets/img/deco/UI_ItemIcon_210.png', 'EP专辑'],
-              version: ['assets/img/deco/UI_ItemIcon_211.png', '版本合集']
-            }[a.type] || ['assets/img/deco/UI_ItemIcon_201.png', '角色OST'])
-              .map((v, i) => i === 0
-                ? `<img src="${v}" style="width:12px;height:12px;vertical-align:-2px;margin-right:3px;" onerror="this.style.display='none'"/>`
-                : v).join('')
-          }</span>
-          <span class="version-badge">v${a.version}</span>
-          <div class="cover-text-group">
-            <div class="cover-title">${a.name}</div>
-          </div>
+    <div class="album-mini" data-idx="${ALBUMS.indexOf(a)}">
+      <div class="album-mini-cover" style="background:linear-gradient(135deg,${color},${color}55);">
+        <span class="album-mini-version">v${a.version}</span>
+        <span class="album-mini-type">${
+          ({ scene: '场景', character: '角色', ep: 'EP', version: '合集' }[a.type] || '其他')
+        }</span>
+      </div>
+      <div class="album-mini-body">
+        <div class="album-mini-title">${a.name}</div>
+        <div class="album-mini-meta">
+          <span>${a.releaseDate}</span>
+          <span style="color:${color};">${region?.name || '—'}</span>
+          <span>${a.trackCount} 曲</span>
         </div>
-        <div class="album-body">
-          <div class="album-header">
-            <div class="album-meta">
-              <span><img src="assets/img/deco/UI_ItemIcon_203.png" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;" onerror="this.style.display='none'"/> ${a.releaseDate}</span>
-              <span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;" onerror="this.style.display='none'"/> ${a.trackCount} 曲</span>
-              <span style="color:${color};font-weight:600;">${region ? region.name : '全角色合集'}</span>
-            </div>
-          </div>
-          <div class="album-desc">${a.desc}</div>
-          ${tracksBlock}
-          ${platformLinks}
+        ${top.length ? `
+        <div class="album-mini-top">
+          ${top.map((x, i) => {
+            const cmt = TRACK_REAL[x.t.ncmId].neteaseCmt;
+            const play = TRACK_REAL[x.t.ncmId].biliPlay;
+            return `
+            <div class="mini-heat">
+              <span class="mini-heat-no" style="color:${color};">#${i + 1}</span>
+              <span class="mini-heat-name">${x.t.name.length > 14 ? x.t.name.slice(0, 14) + '…' : x.t.name}</span>
+              <div class="mini-heat-bar"><div class="mini-heat-fill" style="width:${x.h}%;background:${color};"></div></div>
+              <span class="mini-heat-val">${x.h.toFixed(0)}</span>
+            </div>`;
+          }).join('')}
+        </div>` : `<div class="mini-empty">${a.trackCount} 曲 · 暂无实测数据</div>`}
+        <div class="album-mini-actions">
+          <button class="mini-btn mini-expand" data-idx="${ALBUMS.indexOf(a)}">展开详情 ▸</button>
+          <a href="${a.neteaseUrl || '#'}" target="_blank" class="mini-btn mini-link" style="color:#FE2C55;">网易云 →</a>
+          <a href="${a.bilibiliUrl || '#'}" target="_blank" class="mini-btn mini-link" style="color:#FB7299;">B站 →</a>
         </div>
       </div>
-    `;
+    </div>`;
   }).join('');
 
-  // 添加专辑数据导出（严格真实性版：每条都带平台搜索URL + 验证方法）
-  const albumCard = grid.closest('.card');
-  if (albumCard && !albumCard.querySelector('.export-btn')) {
-    const exportData = list.flatMap(a => {
-      if (a.tracks.length === 0) {
-        // 仅有元数据的专辑：仍然导出一行，明确标注 tracks=[] 原因 + notice
-        return [{
-          专辑: a.name,
-          发行日期: a.releaseDate,
-          官方总曲目数: a.trackCount,
-          版本: 'v' + a.version,
-          关联地区: a.region ? (REGIONS.find(r => r.id === a.region)?.name || a.region) : '全角色合集',
-          曲目标题: '（仅展示已核实公开曲目）',
-          热度popularity: '—',
-          数据真实性: '该专辑曲目为氛围/过渡BGM，平台搜索结果不唯一，宁空勿假。请点击右侧网易云直达链接在官方平台查看完整曲目。',
-          追溯链路: a.notice || '无法逐一核实 → 仅保留专辑元信息',
-          网易云音乐专辑直达: a.neteaseUrl,
-          B站专辑相关PV: a.bilibiliUrl,
-          网易云曲目直达: '—',
-          B站曲目PV: '—',
-          人工验证指引: a.notice || '点击上方平台链接直达官方专辑页面，在完整曲目列表中逐条核对。'
-        }];
-      }
-      return a.tracks.map(t => ({
-        专辑: a.name,
-        发行日期: a.releaseDate,
-        官方总曲目数: a.trackCount,
-        版本: 'v' + a.version,
-        关联地区: a.region ? (REGIONS.find(r => r.id === a.region)?.name || a.region) : '全角色合集',
-        曲目标题: t.name,
-        热度popularity: t.heatScore,
-        数据真实性: '真实平台数据（网易云评论数 + B站相关视频播放量，爬虫实测）',
-        追溯链路: '网易云评论数 + B站相关视频播放量 → 对数归一化加权(0.4/0.6) → 0-100热度分',
-        网易云音乐专辑直达: a.neteaseUrl,
-        B站专辑相关PV: a.bilibiliUrl,
-        网易云曲目直达: t.neteaseUrl,
-        B站曲目PV: t.bilibiliUrl,
-        人工验证指引: t.verifyHint
-      }));
-    });
-    const btn = document.createElement('button');
-    btn.className = 'export-btn';
-    btn.textContent = '导出数据（14列·含平台链接·可追溯）';
-    btn.setAttribute('aria-label', '导出专辑曲目数据，含网易云/B站平台直达链接及人工验证指引');
-    btn.addEventListener('click', () => window.exportData(exportData, '专辑曲目热度_严格真实性版_含平台追溯链接', 'csv'));
-    albumCard.appendChild(btn);
-  }
+  grid.querySelectorAll('.mini-expand').forEach(btn => {
+    btn.addEventListener('click', () => openDrawer(Number(btn.dataset.idx)));
+  });
+}
+
+/* ==================== 抽屉 ==================== */
+function openDrawer(idx) {
+  const a = ALBUMS[idx];
+  const region = REGIONS ? REGIONS.find(r => r.id === a.region) : null;
+  const color = region?.color || '#8B5CF6';
+
+  document.getElementById('drawerTitle').textContent = a.name;
+  document.getElementById('drawerSub').innerHTML =
+    `${a.releaseDate} · v${a.version} · ${a.trackCount} 曲 · <span style="color:${color};">${region?.name || '—'}</span> · ${a.desc || ''}`;
+
+  const rows = a.tracks.map(t => {
+    const r = TRACK_REAL && t.ncmId ? TRACK_REAL[t.ncmId] : null;
+    const cmt = r && typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null;
+    const play = r && typeof r.biliPlay === 'number' ? r.biliPlay : null;
+    const heat = (cmt !== null || play !== null) && (typeof getTrackHeatScore === 'function')
+      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play }) : 0;
+    return { t, cmt, play, heat };
+  }).sort((x, y) => y.heat - x.heat);
+
+  document.getElementById('drawerBody').innerHTML = rows.map((r, i) => {
+    const has = r.heat > 0;
+    return `
+    <div class="drawer-row ${has ? '' : 'no-data'}">
+      <span class="dr-no">${i + 1}</span>
+      <span class="dr-name">${r.t.name}</span>
+      <span class="dr-cmt">${r.cmt !== null ? fmtNum(r.cmt) : '—'}</span>
+      <span class="dr-play">${r.play !== null ? fmtCN(r.play) : '—'}</span>
+      <div class="dr-bar"><div class="dr-fill" style="width:${r.heat}%;background:${color};"></div></div>
+      <span class="dr-heat" style="color:${color};">${r.heat ? r.heat.toFixed(0) : '—'}</span>
+      <div class="dr-links">
+        <a href="${r.t.neteaseUrl || a.neteaseUrl || '#'}" target="_blank" title="网易云" style="color:#FE2C55;text-decoration:none;">
+          <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
+        </a>
+        <a href="${r.t.bilibiliUrl || a.bilibiliUrl || '#'}" target="_blank" title="B站" style="color:#FB7299;text-decoration:none;">
+          <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
+        </a>
+      </div>
+    </div>`;
+  }).join('') + `
+    <div class="drawer-foot">
+      <a href="${a.neteaseUrl || '#'}" target="_blank" class="foot-btn foot-nc">网易云专辑直达</a>
+      <a href="${a.bilibiliUrl || '#'}" target="_blank" class="foot-btn foot-bili">B站专辑相关</a>
+    </div>`;
+
+  document.getElementById('drawerMask').classList.add('show');
+  document.getElementById('trackDrawer').classList.add('show');
+  document.getElementById('trackDrawer').setAttribute('aria-hidden', 'false');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerMask').classList.remove('show');
+  document.getElementById('trackDrawer').classList.remove('show');
+  document.getElementById('trackDrawer').setAttribute('aria-hidden', 'true');
+}
+
+/* ==================== 通用小工具 ==================== */
+function fmtNum(n) {
+  if (typeof n !== 'number' || isNaN(n)) return '—';
+  return n >= 10000 ? (n / 10000).toFixed(1).replace(/\.0$/, '') + '万' : String(n);
+}
+function fmtCN(n) {
+  if (typeof n !== 'number' || isNaN(n)) return '—';
+  if (n >= 100000000) return (n / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
+  if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + '万';
+  return n.toLocaleString();
+}
+function statMedian(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function statQ3(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  return s[Math.floor(s.length * 0.75)];
 }
