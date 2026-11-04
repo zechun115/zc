@@ -465,7 +465,7 @@ function renderScatter() {
   if (!svg) return;
   svg.innerHTML = '';
 
-  // 散点图只纳入有真实官方演示数据的角色（无数据者无法定位，不参与分析）
+  // 散点图只纳入有官方角色视频实测数据的角色（无数据者无法定位，不参与分析）
   let data = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
   if (scatterFilter !== 'all') data = data.filter(c => c.region === scatterFilter);
   if (elementFilter !== 'all') data = data.filter(c => c.element === elementFilter);
@@ -1014,7 +1014,7 @@ function renderScatter() {
       const right = c.pv >= midPv, up = c.fav >= midN;
       if (right && up) q.q1++; else if (!right && up) q.q2++; else if (!right && !up) q.q3++; else q.q4++;
     });
-    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名有官方角色视频的角色；B站演示播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明播放量只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自视频内容与受众行为等非播放因素。
+    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名有官方角色视频的角色；B站官方角色视频播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明播放量只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自视频内容与受众行为等非播放因素。
       分割线取 <strong>中位数</strong>（播放 ${midPv}万 / 收藏 ${Math.round(midN * 1000).toLocaleString()}），较均值更能代表典型角色。四象限人数：双高 ${q.q1} 人、收藏突出 ${q.q2} 人、播放突出 ${q.q4} 人、双低 ${q.q3} 人。
       <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置；无官方角色视频的角色不进入样本。</span>`;
   }
@@ -1028,9 +1028,9 @@ function renderScatter() {
       元素: c.element,
       武器: c.weapon,
       星级: c.rarity,
-      B站演示播放量万: c.pv,
-      B站演示收藏数: Math.round(c.fav * 1000),
-      B站演示弹幕数: Math.round(c.danmaku * 1000)
+      B站官方角色视频播放量万: c.pv,
+      B站官方角色视频收藏数: Math.round(c.fav * 1000),
+      B站官方角色视频弹幕数: Math.round(c.danmaku * 1000)
     }));
     scatterCard.setAttribute('data-export', JSON.stringify(exportData));
     scatterCard.setAttribute('data-export-file', '角色B站官方角色视频数据');
@@ -1072,7 +1072,7 @@ function renderCharRanks() {
             <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频播放量"/>
             ${c.pv}万
           </div>
-          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">B站演示播放</div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">官方角色视频播放</div>
         </div>
       </li>`;
     }).join('');
@@ -1099,7 +1099,7 @@ function renderCharRanks() {
             <img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频收藏数"/>
             ${Math.round(c.fav * 1000).toLocaleString()}
           </div>
-          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">B站演示收藏</div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">官方角色视频收藏</div>
         </div>
       </li>`;
     }).join('');
@@ -1151,7 +1151,7 @@ function renderCharHeatmap() {
   const sortedData = [...data].sort((a, b) => b.pv - a.pv).slice(0, 15);
   sortedData.forEach((c, idx) => {
     const color = ELEMENT_COLORS[c.element] || '#999';
-    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>B站演示播放：${c.pv}万<br>B站演示收藏：${Math.round(c.fav * 1000).toLocaleString()}<br>B站演示弹幕：${Math.round(c.danmaku * 1000).toLocaleString()}`;
+    const tooltip = `角色：${c.name}<br>地区：${rName(c.region)}<br>元素：${c.element}<br>武器：${c.weapon}<br>星级：${c.rarity}星<br>官方角色视频播放：${c.pv}万<br>官方角色视频收藏：${Math.round(c.fav * 1000).toLocaleString()}<br>官方角色视频弹幕：${Math.round(c.danmaku * 1000).toLocaleString()}`;
     html += `<div class="heatmap-cell heat-cell" data-char="${c.name}" data-v="${100}" style="background:linear-gradient(180deg,var(--surface-elevated),${color}15);padding:10px 8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-primary);cursor:pointer;border-left:3px solid ${color};" data-tooltip="${tooltip}">
       <a href="character-detail.html?name=${encodeURIComponent(c.name)}" style="color:inherit;text-decoration:none;font-weight:600;">${c.name}</a>
     </div>`;

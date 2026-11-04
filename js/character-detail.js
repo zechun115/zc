@@ -174,11 +174,11 @@ function renderCharacterDetail(char) {
           </div>
           <div class="char-stat">
             <div class="v">${hasData ? fmt(char.fav * 1000) : '—'}</div>
-            <div class="l">${hasData ? `B站收藏 · 第${favRank}名 · ${pctTag(favPct)}` : '无官方角色视频数据'}</div>
+            <div class="l">${hasData ? `官方角色视频收藏 · 第${favRank}名 · ${pctTag(favPct)}` : '无官方角色视频数据'}</div>
           </div>
           <div class="char-stat">
             <div class="v">${hasData ? fmt(char.danmaku * 1000) : '—'}</div>
-            <div class="l">B站弹幕 · ${hasData ? pctTag(dmPct) : '—'}</div>
+            <div class="l">官方角色视频弹幕 · ${hasData ? pctTag(dmPct) : '—'}</div>
           </div>
         </div>
       </div>
@@ -208,7 +208,7 @@ function renderCharacterDetail(char) {
         ${hasData ? `
         <div style="text-align:center;padding:16px 0;">
           <div style="font-size:42px;font-weight:700;background:var(--gold-gradient);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;">${char.pv.toLocaleString()}万</div>
-          <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">B站官方演示累计播放</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">B站官方角色视频累计播放</div>
         </div>
         ${(() => {
           const sorted = validChars.slice().sort((a, b) => b.pv - a.pv);
@@ -327,7 +327,7 @@ function renderCharacterDetail(char) {
                 <div style="font-size:11px;color:var(--text-tertiary);">${p.rarity}星 · ${p.element} · v${p.version}</div>
               </div>
             </div>
-            <div style="font-size:11px;color:var(--text-tertiary);">${typeof p.pv === 'number' ? 'B站演示播放 ' + fmt(p.pv * 1000) : '暂无真实平台数据'}</div>
+            <div style="font-size:11px;color:var(--text-tertiary);">${typeof p.pv === 'number' ? '官方角色视频播放 ' + fmt(p.pv * 10000) : '暂无真实平台数据'}</div>
             <div style="margin-top:6px;height:4px;background:var(--surface);border-radius:2px;overflow:hidden;">
               <div style="width:${typeof p.pv === 'number' ? Math.min(p.pv / 20, 100).toFixed(0) : 0}%;height:100%;background:${pColor};border-radius:2px;"></div>
             </div>

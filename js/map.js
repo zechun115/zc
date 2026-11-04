@@ -300,9 +300,9 @@
           </div>
         </div>
         <div class="map-detail-stats">
-          <div class="map-detail-stat"><div class="v">${char.pv === null ? '—' : fmtCN(char.pv * 10000)}</div><div class="l">演示播放</div></div>
-          <div class="map-detail-stat"><div class="v">${char.fav === null ? '—' : fmtCN(char.fav * 1000)}</div><div class="l">B站收藏</div></div>
-          <div class="map-detail-stat"><div class="v">${char.danmaku === null ? '—' : fmtCN(char.danmaku * 1000)}</div><div class="l">B站弹幕</div></div>
+          <div class="map-detail-stat"><div class="v">${char.pv === null ? '—' : fmtCN(char.pv * 10000)}</div><div class="l">官方角色视频播放</div></div>
+          <div class="map-detail-stat"><div class="v">${char.fav === null ? '—' : fmtCN(char.fav * 1000)}</div><div class="l">官方角色视频收藏</div></div>
+          <div class="map-detail-stat"><div class="v">${char.danmaku === null ? '—' : fmtCN(char.danmaku * 1000)}</div><div class="l">官方角色视频弹幕</div></div>
         </div>
         <div class="map-detail-actions">
           <a href="character-detail.html?name=${encodeURIComponent(char.name)}" class="map-detail-btn primary">查看详情页 →</a>

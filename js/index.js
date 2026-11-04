@@ -60,7 +60,7 @@ function initMapLoading() {
 document.addEventListener('DOMContentLoaded', () => {
   // 统计数据
   const totalPv = CHARACTERS.reduce((s, c) => s + (c.pv || 0), 0);
-  // 角色级指标仅来自 B站「原神」官方角色视频（无官方演示的角色计 0）
+  // 角色级指标仅来自 B站「原神」官方角色视频（无官方角色视频的角色计 0）
   const totalFav = CHARACTERS.reduce((s, c) => s + (c.fav || 0), 0);
   const totalDanmaku = CHARACTERS.reduce((s, c) => s + (c.danmaku || 0), 0);
 

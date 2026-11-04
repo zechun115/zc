@@ -263,8 +263,8 @@ function renderPlatformMatrix() {
       return {
         地区: r.name,
         角色数: chars.length,
-        B站演示播放万: chars.reduce((s, c) => s + c.pv, 0),
-        B站演示收藏: Math.round(chars.reduce((s, c) => s + c.fav, 0) * 1000)
+        B站官方角色视频播放万: chars.reduce((s, c) => s + c.pv, 0),
+        B站官方角色视频收藏: Math.round(chars.reduce((s, c) => s + c.fav, 0) * 1000)
       };
     });
     const btn = document.createElement('button');
@@ -313,7 +313,7 @@ function renderKeyFindings() {
       <span style="display:inline-flex;align-items:center;gap:2px;margin-top:4px;flex-wrap:wrap;">
         <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频播放量"/>
         <span style="color:#FB7299;font-weight:600;">${(topChar.pv).toFixed(1)}万</span>
-        <span style="color:var(--text-tertiary);font-size:10px;margin-left:4px;">B站演示播放 · 百分位 ${pvRank === null ? '—' : pvRank.toFixed(0)}</span>
+        <span style="color:var(--text-tertiary);font-size:10px;margin-left:4px;">官方角色视频播放 · 百分位 ${pvRank === null ? '—' : pvRank.toFixed(0)}</span>
       </span>
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">占全站官方角色视频播放总量的 ${pvTotal ? ((topChar.pv / pvTotal) * 100).toFixed(1) : '—'}%</div>
     `;
@@ -1185,8 +1185,8 @@ function renderCorrelation() {
           <div class="tooltip-title">${name}</div>
           <div class="tooltip-item"><span class="tooltip-label">星级</span><span class="tooltip-value" style="color:${circle.getAttribute('data-rarity') === '5' ? '#F59E0B' : '#6366F1'};">${rarity}</span></div>
           <div class="tooltip-item"><span class="tooltip-label">地区</span><span class="tooltip-value">${rName(region)}</span></div>
-          <div class="tooltip-item"><span class="tooltip-label">B站演示播放</span><span class="tooltip-value">${pv}万</span></div>
-          <div class="tooltip-item"><span class="tooltip-label">B站演示收藏</span><span class="tooltip-value">${Number(fav).toLocaleString()}</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">官方角色视频播放</span><span class="tooltip-value">${pv}万</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">官方角色视频收藏</span><span class="tooltip-value">${Number(fav).toLocaleString()}</span></div>
         `);
       }
     });
