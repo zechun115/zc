@@ -15,3 +15,6 @@ __pycache__/
 # 环境配置（防误传密钥）
 .env
 .env.*
+
+# 网易云登录态凭证（本地专用，绝不上传）
+tools/nc_cookie.json

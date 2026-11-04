@@ -35,7 +35,7 @@
 | 哔哩哔哩 | 曲目相关视频播放量（「原神 + 曲名」最相关视频） | 搜索匹配后取公开计数 | 逐首核对 |
 | 网易云音乐 | 单曲评论总数 | 公开歌曲页计数 | 逐首核对 |
 
-> 数据快照时间：2026-11-02（角色级指标来自官方账号 755 条投稿全量回扫，曲目级为逐首实测）；原始采集结果存于 `tools/characters_real.json`、`tools/official_videos_all.json`、`tools/tracks_real.json`，可由 `tools/crawl_*.py` 复现。
+> 数据快照时间：角色级 2026-11-02（官方账号 755 条投稿全量回扫）；曲目级网易云评论 2026-11-04（经本机网易云桌面客户端登录态逐首复采）、B站播放 2026-10；原始采集结果存于 `tools/characters_real.json`、`tools/official_videos_all.json`、`tools/tracks_real.json`，可由 `tools/crawl_*.py` 复现。
 
 ### 3.2 两级指标体系（关键约束）
 
