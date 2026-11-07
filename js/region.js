@@ -169,6 +169,7 @@ function renderRegion() {
         </div>` : '';
       const metrics = isAlbum ? `
         <div style="font-size:10px;color:var(--text-tertiary);display:flex;gap:6px;flex-wrap:wrap;">
+          ${t.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心/收藏数（客户端 UI 显示值）">红心${t.neteaseFav}</span>` : ''}
           ${t.neteaseCmt !== null && t.neteaseCmt !== undefined ? `<span style="color:#FE2C55;" title="网易云评论数（真实）"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>评${fmtCmt(t.neteaseCmt)}</span>` : ''}
           ${t.biliPlay !== null && t.biliPlay !== undefined ? `<span style="color:#FB7299;" title="B站相关视频播放量（真实）"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-2px;" onerror="this.style.display='none'"/>播${fmtPlay(t.biliPlay)}</span>` : ''}
         </div>` : '<div style="font-size:10px;color:var(--text-quaternary);">暂无真实平台数据</div>';

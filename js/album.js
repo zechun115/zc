@@ -36,19 +36,22 @@ let rankMetric = 'heat';
 
 /* ==================== KPI 总览 ==================== */
 function renderStats() {
+  const hasData = r => r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number' || (typeof favLowerBound === 'function' && favLowerBound(r.neteaseFav) !== null));
   const total = ALBUMS.length;
   const totalTracks = ALBUMS.reduce((s, a) => s + a.trackCount, 0);
   const allReal = ALBUMS.flatMap(a => a.tracks.map(t => ({ album: a, track: t }))).filter(x => {
     const r = TRACK_REAL && x.track.ncmId ? TRACK_REAL[x.track.ncmId] : null;
-    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
+    return r && hasData(r);
   });
   const realTracks = allReal.length;
   const coverage = totalTracks ? (realTracks / totalTracks * 100).toFixed(1) : '0.0';
   const cmtSum = allReal.reduce((s, x) => s + ((TRACK_REAL[x.track.ncmId]?.neteaseCmt) || 0), 0);
   const playSum = allReal.reduce((s, x) => s + ((TRACK_REAL[x.track.ncmId]?.biliPlay) || 0), 0);
+  const favVals = allReal.map(x => TRACK_REAL[x.track.ncmId]?.neteaseFav).filter(v => typeof favLowerBound === 'function' && favLowerBound(v) !== null);
+  const favHot = favVals.filter(v => favLowerBound(v) >= 100000).length;
   const albumsWithData = ALBUMS.filter(a => a.tracks.some(t => {
     const r = TRACK_REAL && t.ncmId ? TRACK_REAL[t.ncmId] : null;
-    return r && (typeof r.neteaseCmt === 'number' || typeof r.biliPlay === 'number');
+    return r && hasData(r);
   })).length;
   const latest = ALBUMS.reduce((m, a) => parseFloat(a.version) > parseFloat(m) ? a.version : m, '0');
 
@@ -57,6 +60,8 @@ function renderStats() {
     { v: fmtNum(totalTracks), l: '收录曲目总数（官方）', c: '#F59E0B' },
     { v: realTracks,     l: '有实测数据的曲目',    c: '#10B981' },
     { v: coverage + '%', l: '实测覆盖率',         c: '#3B82F6' },
+    { v: favVals.length, l: '红心数实测曲目',      c: '#E2556E' },
+    { v: favHot,         l: '红心 ≥10万 曲目',    c: '#EF4444' },
     { v: fmtCN(cmtSum),  l: '网易云评论合计',      c: '#FE2C55' },
     { v: fmtCN(playSum), l: 'B站播放合计',         c: '#FB7299' },
     { v: 'v' + latest,   l: '最新版本',           c: '#F59E0B' },
@@ -77,10 +82,16 @@ function renderStats() {
   const med = cmtVals.length ? statMedian(cmtVals) : 0;
   const q3 = cmtVals.length ? statQ3(cmtVals) : 0;
   const outliers = cmtVals.filter(v => v > q3 + 1.5 * (q3 - med)).length;
+  // 红心标签分布（实时统计，避免静态文案与数据不一致）
+  const favDist = {};
+  favVals.forEach(v => { const k = String(v); favDist[k] = (favDist[k] || 0) + 1; });
+  const bucket = { exact: 0, '999+': 0, '1w+': 0, '10w+': 0, '100w+': 0 };
+  Object.entries(favDist).forEach(([k, n]) => { if (/^\d+$/.test(k)) bucket.exact += n; else if (bucket[k] !== undefined) bucket[k] += n; });
+  const favDistText = [`精确值(<1000) ${bucket.exact} 首`, `999+ ${bucket['999+']} 首`, `1w+ ${bucket['1w+']} 首`, `10w+ ${bucket['10w+']} 首`, `100w+ ${bucket['100w+']} 首`].join(' / ');
   document.getElementById('albumAnalysis').innerHTML =
     `<strong>分析摘要：</strong>43 张官方专辑共收录 ${fmtNum(totalTracks)} 首曲目，其中 ${realTracks} 首具备实测数据（覆盖率 ${coverage}%）；网易云评论合计 ${fmtCN(cmtSum)}，B站相关视频播放合计 ${fmtCN(playSum)}。` +
     `评论中位数 ${med ? fmtNum(med) : '—'}、Q3 ${q3 ? fmtNum(q3) : '—'}，Tukey 规则异常值 ${outliers} 首，说明<strong style="color:var(--gold-light);">右偏严重、少数曲目贡献绝大多数互动</strong>。` +
-    `红心收藏总数字段因网易云官方已下架而留空，不做任何估算。`;
+    `红心数已于 2026-11-07 经桌面客户端 UI 逐首实测：${favVals.length} 首有值（${favDistText}），均为客户端原始显示、未做估算。`;
 }
 
 /* ==================== 排行榜 ==================== */
@@ -99,16 +110,21 @@ function renderRankings() {
     if (!r) return;
     const cmt = typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null;
     const play = typeof r.biliPlay === 'number' ? r.biliPlay : null;
-    if (cmt === null && play === null) return;
+    const fav = typeof r.neteaseFav === 'string' ? r.neteaseFav : null;
+    const favLow = (typeof favLowerBound === 'function') ? favLowerBound(fav) : null;
+    if (cmt === null && play === null && favLow === null) return;
     const heat = (typeof getTrackHeatScore === 'function')
-      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play }) : 0;
-    rows.push({ album: a, track: t, cmt, play, heat });
+      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play, neteaseFav: fav }) : 0;
+    rows.push({ album: a, track: t, cmt, play, fav, favLow, heat });
   }));
 
   let sorted, maxV, unit, label, color;
   if (rankMetric === 'heat') {
     sorted = rows.sort((x, y) => y.heat - x.heat).slice(0, 20);
     maxV = 100; unit = ''; label = '综合热度'; color = '#F59E0B';
+  } else if (rankMetric === 'fav') {
+    sorted = rows.filter(r => r.favLow !== null).sort((x, y) => y.favLow - x.favLow).slice(0, 20);
+    maxV = sorted[0]?.favLow || 1; unit = ''; label = '网易云红心'; color = '#E2556E';
   } else if (rankMetric === 'cmt') {
     sorted = rows.filter(r => r.cmt !== null).sort((x, y) => y.cmt - x.cmt).slice(0, 20);
     maxV = sorted[0]?.cmt || 1; unit = ''; label = '网易云评论'; color = '#FE2C55';
@@ -121,11 +137,12 @@ function renderRankings() {
   if (!sorted.length) { el.innerHTML = `<div class="empty-hint">当前筛选条件下无已核实曲目</div>`; return; }
 
   el.innerHTML = sorted.map((r, i) => {
-    const val = rankMetric === 'heat' ? r.heat : (rankMetric === 'cmt' ? r.cmt : r.play);
+    const val = rankMetric === 'heat' ? r.heat : (rankMetric === 'fav' ? r.favLow : (rankMetric === 'cmt' ? r.cmt : r.play));
     const pct = Math.max(2, (val / maxV) * 100);
     const albumName = r.album.name;
-    const fmtV = rankMetric === 'heat' ? val.toFixed(1) : fmtCN(val);
+    const fmtV = rankMetric === 'heat' ? val.toFixed(1) : (rankMetric === 'fav' ? '红心' + r.fav : fmtCN(val));
     const cmtTag = r.cmt !== null ? `<span style="color:#FE2C55;font-size:10px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtNum(r.cmt)}</span>` : '';
+    const favTag = r.fav !== null ? `<span style="color:#E2556E;font-size:10px;" title="网易云红心/收藏数（客户端 UI 显示值）">红心${r.fav}</span>` : '';
     const playTag = r.play !== null ? `<span style="color:#FB7299;font-size:10px;"><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'"/>${fmtCN(r.play)}</span>` : '';
     return `
     <div class="rank-row" data-album="${encodeURIComponent(albumName)}">
@@ -136,7 +153,7 @@ function renderRankings() {
         <div class="rank-fill" style="width:${pct}%;background:linear-gradient(90deg,${color}88,${color});"></div>
       </div>
       <span class="rank-val" style="color:${color};">${fmtV}</span>
-      <span class="rank-meta">${cmtTag} ${playTag}</span>
+      <span class="rank-meta">${favTag} ${cmtTag} ${playTag}</span>
     </div>`;
   }).join('');
 }
@@ -149,10 +166,10 @@ function renderAlbumGrid() {
     const region = REGIONS ? REGIONS.find(r => r.id === a.region) : null;
     const color = region?.color || '#8B5CF6';
     const realTracks = a.tracks.filter(t => TRACK_REAL && t.ncmId &&
-      (typeof TRACK_REAL[t.ncmId]?.neteaseCmt === 'number' || typeof TRACK_REAL[t.ncmId]?.biliPlay === 'number'));
+      (typeof TRACK_REAL[t.ncmId]?.neteaseCmt === 'number' || typeof TRACK_REAL[t.ncmId]?.biliPlay === 'number' || typeof TRACK_REAL[t.ncmId]?.neteaseFav === 'string'));
     const withHeat = realTracks.map(t => ({
       t, h: (typeof getTrackHeatScore === 'function')
-        ? getTrackHeatScore({ neteaseCmt: TRACK_REAL[t.ncmId].neteaseCmt, biliPlay: TRACK_REAL[t.ncmId].biliPlay }) : 0
+        ? getTrackHeatScore({ neteaseCmt: TRACK_REAL[t.ncmId].neteaseCmt, biliPlay: TRACK_REAL[t.ncmId].biliPlay, neteaseFav: TRACK_REAL[t.ncmId].neteaseFav }) : 0
     })).filter(x => x.h > 0).sort((x, y) => y.h - x.h);
     const top = withHeat.slice(0, 2);
 
@@ -213,17 +230,22 @@ function openDrawer(idx) {
     const r = TRACK_REAL && t.ncmId ? TRACK_REAL[t.ncmId] : null;
     const cmt = r && typeof r.neteaseCmt === 'number' ? r.neteaseCmt : null;
     const play = r && typeof r.biliPlay === 'number' ? r.biliPlay : null;
-    const heat = (cmt !== null || play !== null) && (typeof getTrackHeatScore === 'function')
-      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play }) : 0;
-    return { t, cmt, play, heat };
+    const fav = r && typeof r.neteaseFav === 'string' ? r.neteaseFav : null;
+    const heat = (cmt !== null || play !== null || fav !== null) && (typeof getTrackHeatScore === 'function')
+      ? getTrackHeatScore({ neteaseCmt: cmt, biliPlay: play, neteaseFav: fav }) : 0;
+    return { t, cmt, play, fav, heat };
   }).sort((x, y) => y.heat - x.heat);
 
-  document.getElementById('drawerBody').innerHTML = rows.map((r, i) => {
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-row drawer-row-head" style="font-weight:700;color:var(--text-tertiary);font-size:11px;">
+      <span class="dr-no">#</span><span class="dr-name">曲名</span><span class="dr-fav">红心</span><span class="dr-cmt">评论</span><span class="dr-play">B站播放</span><span></span><span class="dr-heat">热度</span><span></span>
+    </div>` + rows.map((r, i) => {
     const has = r.heat > 0;
     return `
     <div class="drawer-row ${has ? '' : 'no-data'}">
       <span class="dr-no">${i + 1}</span>
       <span class="dr-name">${r.t.name}</span>
+      <span class="dr-fav" title="网易云红心/收藏数（客户端 UI 显示值）">${r.fav !== null ? r.fav : '—'}</span>
       <span class="dr-cmt">${r.cmt !== null ? fmtNum(r.cmt) : '—'}</span>
       <span class="dr-play">${r.play !== null ? fmtCN(r.play) : '—'}</span>
       <div class="dr-bar"><div class="dr-fill" style="width:${r.heat}%;background:${color};"></div></div>

@@ -429,7 +429,7 @@
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">
             <span style="color:var(--text-tertiary);font-size:10px;">v${t.version}</span>
             <span style="flex:1;color:var(--text-primary);">${t.name}</span>
-            <span style="color:var(--text-tertiary);font-size:11px;">网易云评${fmtCN(r.neteaseCmt || 0)} · B站播${fmtCN(r.biliPlay || 0)}</span>
+            <span style="color:var(--text-tertiary);font-size:11px;">${r.neteaseFav ? `<span style="color:#E2556E;">红心${r.neteaseFav}</span> · ` : ''}网易云评${fmtCN(r.neteaseCmt || 0)} · B站播${fmtCN(r.biliPlay || 0)}</span>
           </div>
         `).join('') || '<div style="font-size:11px;color:var(--text-quaternary);">暂无真实平台数据</div>'}
       </div>

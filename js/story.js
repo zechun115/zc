@@ -6,7 +6,7 @@ const ST = ((typeof STORY_TRACKS !== 'undefined' ? STORY_TRACKS : null) || []).m
   const cmtK = r && typeof r.neteaseCmt === 'number' ? +(r.neteaseCmt / 1000).toFixed(1) : null;
   const playK = r && typeof r.biliPlay === 'number' ? +(r.biliPlay / 1000).toFixed(1) : null;
   if (cmtK === null && playK === null) return null;
-  return { ...t, netease: cmtK ?? 0, biliK: playK ?? 0, cmt: cmtK ?? 0 };
+  return { ...t, netease: cmtK ?? 0, biliK: playK ?? 0, cmt: cmtK ?? 0, fav: (r && typeof r.neteaseFav === 'string') ? r.neteaseFav : null };
 }).filter(Boolean);
 
 // 版本热点事件数据（基于各版本剧情与音乐传播热点整理）
@@ -433,7 +433,7 @@ function renderStoryTable() {
       <td>v${t.version}</td>
       ${heatCell}
       <td style="font-size:11px;">
-        ${t.netease > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${t.netease}k</span>` : '—'}
+        ${t.fav ? `<span style="color:#E2556E;" title="网易云红心/收藏数（客户端 UI 显示值）">红心${t.fav}</span> ` : ''}${t.netease > 0 ? `<span style="color:#FE2C55;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:11px;height:11px;vertical-align:-1px;" onerror="this.style.display='none'"/>评${t.netease}k</span>` : '—'}
       </td>
       <td>${t.biliK > 0 ? `${t.biliK}k` : '—'}</td>
       ${platformLinks}

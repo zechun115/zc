@@ -291,6 +291,7 @@ function renderKeyFindings() {
     type: (t.type === 'album' ? '专辑曲目' : t.type),
     neteaseCmt: t.cmt,
     biliPlay: t.play,
+    neteaseFav: (typeof t.fav === 'string') ? t.fav : null,
     albumName: t.album
   }));
   const topTrack = [...allTracks].filter(t => typeof t.neteaseCmt === 'number').sort((a, b) => b.neteaseCmt - a.neteaseCmt)[0];
@@ -332,6 +333,9 @@ function renderKeyFindings() {
           <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/>
           <span style="color:#FB7299;font-weight:600;">${fmt(topTrack.biliPlay)}</span>
           <span style="color:var(--text-tertiary);font-size:10px;">B站播放</span>
+        </span>` : ''}
+        ${topTrack.neteaseFav ? `<span style="display:inline-flex;align-items:center;gap:3px;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">
+          <span style="color:#E2556E;font-weight:600;">红心${topTrack.neteaseFav}</span>
         </span>` : ''}
       </span>
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">为曲目评论中位数的 ${cmtTotal ? (topTrack.neteaseCmt / Math.max(statMedian(census.filter(t => typeof t.cmt === 'number').map(t => t.cmt)), 1)).toFixed(1) : '—'} 倍</div>
@@ -1226,7 +1230,8 @@ function renderPhenomenon() {
       version: t.version,
       type: TYPE_LABEL[t.type] || t.type || '曲目',
       heat: t.cmt,
-      play: typeof t.play === 'number' ? t.play : 0
+      play: typeof t.play === 'number' ? t.play : 0,
+      fav: (typeof t.fav === 'string') ? t.fav : null
     }));
   if (!allTracks.length) {
     el.innerHTML = `<div class="insight-card" style="padding:32px;text-align:center;">
@@ -1320,7 +1325,7 @@ function renderPhenomenon() {
         <div class="rank-badge" style="background:${rankColor};">${i + 1}</div>
         <div class="rank-info">
           <div class="rank-title">${t.name}</div>
-          <div class="rank-meta">${regionLabel(t.region)} · v${t.version || '—'} · ${t.type}</div>
+          <div class="rank-meta">${regionLabel(t.region)} · v${t.version || '—'} · ${t.type}${t.fav ? ` · <span style="color:#E2556E;">红心${t.fav}</span>` : ''}</div>
           <div class="rank-bar-container">
             <div class="rank-bar" style="width:${bar}%;background:linear-gradient(90deg,${rColor(t.region)},${rColor(t.region)}88);"></div>
           </div>

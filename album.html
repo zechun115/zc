@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -9,10 +9,10 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>音乐专辑 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261031f">
-<link rel="stylesheet" href="css/optimize.css?v=20261031f">
-<link rel="stylesheet" href="css/album.css?v=20261031f">
-<link rel="stylesheet" href="css/page-hero.css?v=20261031f">
+<link rel="stylesheet" href="css/style.css?v=20261107a">
+<link rel="stylesheet" href="css/optimize.css?v=20261107a">
+<link rel="stylesheet" href="css/album.css?v=20261107a">
+<link rel="stylesheet" href="css/page-hero.css?v=20261107a">
 <script>window.globalImgFallback=function(img){try{if(img)img.style.display='none';}catch(e){}};</script>
 </head>
 <body>
@@ -68,18 +68,19 @@
     </h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
       <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(168,85,247,0.18);background:rgba(168,85,247,0.03);">
-        <div class="ds-title-sub" style="font-weight:700;color:var(--chart-4);margin-bottom:8px;">✓ 已核实的两项指标</div>
+        <div class="ds-title-sub" style="font-weight:700;color:var(--chart-4);margin-bottom:8px;">✓ 已核实的三项指标</div>
         <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.9;color:var(--text-secondary);">
+          <li><strong style="color:#E2556E;">网易云单曲红心/收藏数</strong>（2026-11-07 CDP 接管桌面客户端 UI 逐首实测，播放时校验 songId 一致才采信）</li>
           <li><strong style="color:#FE2C55;">网易云单曲评论总数</strong>（逐首接口实测，2026-11-04 桌面客户端登录态复采，1712 首，0 失败）</li>
           <li><strong style="color:#FB7299;">B站「原神+曲名」相关视频播放量</strong>（逐首搜索匹配最相关视频的真实播放数，2026-10）</li>
-          <li><strong style="color:var(--gold-light);">综合热度分</strong>（0–100）= <code>log10(1+评论)/5×0.4 + log10(1+播放)/7×0.6</code>，缺失项按可用权重重新归一</li>
+          <li><strong style="color:var(--gold-light);">综合热度分</strong>（0–100）= <code>log10(1+红心)/6×0.3 + log10(1+评论)/5×0.3 + log10(1+播放)/7×0.4</code>，红心按客户端标签下限值计，缺失项按可用权重重新归一</li>
         </ul>
       </div>
-      <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(239,68,68,0.22);background:rgba(239,68,68,0.03);">
-        <div class="ds-title-sub" style="font-weight:700;color:#EF4444;margin-bottom:8px;">✕ 暂缺：网易云红心总数</div>
+      <div class="ds-item-box" style="padding:14px 16px;border-radius:12px;border:1px solid rgba(226,85,110,0.22);background:rgba(226,85,110,0.03);">
+        <div class="ds-title-sub" style="font-weight:700;color:#E2556E;margin-bottom:8px;">♥ 红心数粒度说明（客户端原始显示，未做估算）</div>
         <div style="font-size:12px;line-height:1.8;color:var(--text-secondary);">
-          网易云 2024 年起已从<strong style="color:var(--gold-light);">公开 HTTP API + 网页前端</strong>两条路彻底下架单曲维度的收藏总数（红心数）接口；客户端 UI 仍能显示但走内部加密协议。本页<strong style="color:#EF4444;">未做任何逆向估算</strong>，数字诚实留空，不捏造不推导。<br>
-          <span style="color:var(--text-quaternary);font-size:11px;">采集时间：2026-11-04 · 爬虫脚本骨架见 <code style="background:var(--bg-elevated);padding:1px 5px;border-radius:4px;">tools/crawl_nc_fav.py</code></span>
+          网易云已从公开 API + 网页端下架单曲收藏总数接口，仅<strong style="color:var(--gold-light);">桌面客户端 UI</strong> 仍显示。本站通过 CDP 自动化逐首播放并读取客户端迷你播放条数值：<strong>&lt;1000 显示精确数字</strong>（如 687），≥1000 显示客户端标签 <strong>999+ / 1w+ / 10w+ / 100w+</strong>。页面展示一律使用客户端原始显示值；排序与热度加权仅取其区间下限。少量曲目（61/1712）因客户端搜索结果无法确认到同一首歌，红心数诚实留空。<br>
+          <span style="color:var(--text-quaternary);font-size:11px;">采集时间：2026-11-07 · 爬虫脚本 <code style="background:var(--bg-elevated);padding:1px 5px;border-radius:4px;">tools/crawl_nc_fav.py</code> · 原始记录 <code style="background:var(--bg-elevated);padding:1px 5px;border-radius:4px;">tools/tracks_fav.jsonl</code></span>
         </div>
       </div>
     </div>
@@ -95,6 +96,7 @@
     <p class="subtitle">以下排行榜<strong style="color:var(--gold-light);">仅基于已核实的真实数据</strong>，缺失评论/播放的曲目不出现在榜单中。点击行可定位到所属专辑。</p>
     <div class="rank-tabs" id="rankTabs">
       <button class="rank-tab active" data-metric="heat">综合热度 TOP 20</button>
+      <button class="rank-tab" data-metric="fav">网易云红心 TOP 20</button>
       <button class="rank-tab" data-metric="cmt">网易云评论 TOP 20</button>
       <button class="rank-tab" data-metric="play">B站播放 TOP 20</button>
     </div>
@@ -143,6 +145,7 @@
     <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源 · 采集时间</div>
     <div class="ds-grid">
       <div class="ds-item"><span class="ds-label">专辑信息 · 曲目列表</span><span class="ds-value">网易云 music.163.com（专辑公开元数据）</span></div>
+      <div class="ds-item"><span class="ds-label">网易云红心/收藏数</span><span class="ds-value">CDP 接管桌面客户端 UI 逐首实测 · 2026-11-07</span></div>
       <div class="ds-item"><span class="ds-label">网易云评论数</span><span class="ds-value">桌面客户端登录态 · 2026-11-04 全量复采 1712 首</span></div>
       <div class="ds-item"><span class="ds-label">B站相关视频播放量</span><span class="ds-value">搜索匹配最相关视频 · 2026-10</span></div>
       <div class="ds-item"><span class="ds-label">用户核对方式</span><span class="ds-value">每首曲目附 <img src="assets/img/items/UI_ItemIcon_112001.png" alt="网易云" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"><img src="assets/img/deco/UI_NameCardIcon_0.png" alt="B站" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"> 直达按钮</span></div>
@@ -152,11 +155,11 @@
 
 </div>
 
-<script src="js/data.js?v=20261031f"></script>
-<script src="js/avatar-map.js?v=20261031f"></script>
-<script src="js/nav.js?v=20261031f"></script>
-<script src="js/album.js?v=20261031f"></script>
-<script src="js/page-hero.js?v=20261031f"></script>
-<script src="js/optimize.js?v=20261031f"></script>
+<script src="js/data.js?v=20261107a"></script>
+<script src="js/avatar-map.js?v=20261107a"></script>
+<script src="js/nav.js?v=20261107a"></script>
+<script src="js/album.js?v=20261107a"></script>
+<script src="js/page-hero.js?v=20261107a"></script>
+<script src="js/optimize.js?v=20261107a"></script>
 </body>
 </html>

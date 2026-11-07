@@ -276,6 +276,7 @@ function renderCharacterDetail(char) {
           const heatScore = isAlbumData && typeof getTrackHeatScore === 'function' ? getTrackHeatScore(m) : null;
           const platformMetrics = isAlbumData ? `
             <div style="margin-top:6px;display:flex;gap:10px;font-size:11px;color:var(--text-tertiary);flex-wrap:wrap;">
+              ${m.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心/收藏数（客户端 UI 显示值）">网易云 红心${m.neteaseFav}</span>` : ''}
               ${m.neteaseCmt !== null && m.neteaseCmt !== undefined ? `<span style="color:#FE2C55;">网易云 ${fmt(m.neteaseCmt)} 评论</span>` : ''}
               ${m.biliPlay !== null && m.biliPlay !== undefined ? `<span style="color:#FB7299;">B站 ${fmt(m.biliPlay)} 播放</span>` : ''}
             </div>` : `
@@ -362,7 +363,7 @@ function renderCharacterDetail(char) {
                     : `<span>发行版本: v${t.version}</span>`
                   }
                   ${isAlbumData 
-                    ? `${t.neteaseCmt !== null && t.neteaseCmt !== undefined ? `<span style="color:#FE2C55;">网易云${fmt(t.neteaseCmt)}评论</span>` : ''}${t.biliPlay !== null && t.biliPlay !== undefined ? `<span style="color:#FB7299;">B站${fmt(t.biliPlay)}播放</span>` : ''}`
+                    ? `${t.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心/收藏数（客户端 UI 显示值）">红心${t.neteaseFav}</span>` : ''}${t.neteaseCmt !== null && t.neteaseCmt !== undefined ? `<span style="color:#FE2C55;">网易云${fmt(t.neteaseCmt)}评论</span>` : ''}${t.biliPlay !== null && t.biliPlay !== undefined ? `<span style="color:#FB7299;">B站${fmt(t.biliPlay)}播放</span>` : ''}`
                     : `<span>暂无真实平台数据</span>`
                   }
                 </div>
