@@ -156,7 +156,7 @@ function renderVersionTrend() {
       tx2.setAttribute('x', p.x); tx2.setAttribute('y', p.y - 24);
       tx2.setAttribute('text-anchor', 'middle'); tx2.setAttribute('font-size', '10');
       tx2.setAttribute('fill', '#ccc');
-      tx2.textContent = `v${p.t.version} · ${p.t.netease}k · ${rName(p.t.region)}`;
+      tx2.textContent = `v${p.t.version} · ${p.t.netease}k · ${rName(p.t.region)}${p.t.fav ? ' · 红心' + p.t.fav : ''}`;
       svg.appendChild(tx2);
     });
     c.addEventListener('mouseleave', () => {
@@ -192,6 +192,7 @@ function renderVersionTrend() {
       曲目: t.name,
       地区: rName(t.region),
       网易云评论千: t.netease,
+      网易云红心: t.fav || '',
       B站播放千: t.biliK
     }));
     const btn = document.createElement('button');

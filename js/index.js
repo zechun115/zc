@@ -75,6 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
   statEl('statRegions', REGIONS.length);
   // 音乐曲目统计口径与 insight.js 一致：使用官方专辑曲目总数
   statEl('statTracks', typeof ALBUMS !== 'undefined' ? ALBUMS.reduce((s, a) => s + (a.trackCount || 0), 0) : STORY_TRACKS.length + Object.values(REGION_TRACKS).flat().length);
+  // 红心数实测曲目数：TRACK_REAL 中 neteaseFav 有客户端 UI 显示值的曲目（2026-11-07 实测）
+  statEl('statTrackFav', typeof TRACK_REAL !== 'undefined'
+    ? Object.values(TRACK_REAL).filter(r => r && typeof r.neteaseFav === 'string').length
+    : '—');
 
   renderRankLists();
   initSearch();

@@ -139,7 +139,7 @@ function renderExecutiveSummary() {
   f3.innerHTML = `地区人均官方角色视频播放最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色播放中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。结构差异真实存在，但需结合各组样本量解读。`;
 
   if (lim) {
-    lim.innerHTML = `分析局限：① 播放、收藏、弹幕虽来自同一支视频，但属于不同互动行为，不能换算为同一用户行为；② B站曲目播放量取搜索最相关视频，同专辑曲目可能共用同一支视频；③ 数据为 2026 年 10 月单次快照，无法据此推断长期趋势；④ 曲目样本仅覆盖有真实接口数据的作品（${census.length} 首 / 官方收录 1909 首），存在收录偏差。`;
+    lim.innerHTML = `分析局限：① 播放、收藏、弹幕虽来自同一支视频，但属于不同互动行为，不能换算为同一用户行为；② B站曲目播放量取搜索最相关视频，同专辑曲目可能共用同一支视频；③ 数据为 2026 年 10 月单次快照（网易云红心数为 2026-11-07 客户端 UI 粗粒度标签：999+/1w+/10w+/100w+，&lt;1000 为精确值，统计取下限不估算精确值），无法据此推断长期趋势；④ 曲目样本仅覆盖有真实接口数据的作品（${census.length} 首 / 官方收录 1909 首），存在收录偏差。`;
   }
 }
 
@@ -161,6 +161,8 @@ function renderKPI() {
     { icon: kpiIcon('assets/img/deco/UI_ItemIcon_204.png', ''), label: '角色样本量 n', value: totalChars.toLocaleString(), unit: '人', color: '#4ADE80' },
     // 可核实曲目样本 → 旋曜玉帛（icons/旋曜玉帛.png），紫色
     { icon: kpiIcon('assets/img/icons/旋曜玉帛.png', ''), label: '可核实曲目样本', value: census.length.toLocaleString(), unit: '首', color: '#8B5CF6' },
+    // 红心数实测曲目 → 粉色（客户端 UI 粗粒度标签，2026-11-07 实测）
+    { icon: kpiIcon('assets/img/icons/旋曜玉帛.png', ''), label: '红心数实测曲目（网易云）', value: census.filter(t => typeof t.fav === 'string').length.toLocaleString(), unit: '首', color: '#E2556E' },
     // 官方角色视频播放总量 → 名片装饰（deco/UI_NameCardIcon_0.png），金色
     { icon: kpiIcon('assets/img/deco/UI_NameCardIcon_0.png', ''), label: '官方角色视频播放总量', value: fmtCN(totalPv * 10000), unit: '', color: '#F59E0B' },
     // 播放 × 收藏相关系数 → 音乐宝石（deco/UI_ItemIcon_211.png），蓝金双色
@@ -356,6 +358,11 @@ function renderKeyFindings() {
           <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>
           <span style="color:#FB7299;font-weight:600;font-size:11px;">${fmt(playTotal)}</span>
           <span style="color:var(--text-tertiary);font-size:10px;">播放</span>
+        </span>
+        <span style="color:var(--text-quaternary);">|</span>
+        <span style="display:inline-flex;align-items:center;gap:1px;" title="网易云红心数为客户端 UI 粗粒度标签，此处仅统计实测覆盖曲目数，不加总">
+          <span style="color:#E2556E;font-weight:600;font-size:11px;">${allTracks.filter(t => t.neteaseFav).length}</span>
+          <span style="color:var(--text-tertiary);font-size:10px;">首红心实测</span>
         </span>
       </span>
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">样本占官方收录 1909 首的 ${((allTracks.length / 1909) * 100).toFixed(1)}%</div>
