@@ -94,6 +94,7 @@ function renderExecutiveSummary() {
   const f1 = document.getElementById('execFinding1');
   const f2 = document.getElementById('execFinding2');
   const f3 = document.getElementById('execFinding3');
+  const f4 = document.getElementById('execFinding4');
   const lim = document.getElementById('execLimitation');
   if (!lead || !f1 || !f2 || !f3) return;
 
@@ -107,6 +108,14 @@ function renderExecutiveSummary() {
   const outliers = cmts.filter(v => v > threshold);
   const cmtTotal = cmts.reduce((s, v) => s + v, 0);
   const topTrack = census.filter(t => typeof t.cmt === 'number').sort((a, b) => b.cmt - a.cmt)[0];
+
+  // 红心数分布（客户端 UI 粗粒度标签，统计取下限；census 已透传 fav 字符串）
+  const favLB = v => (typeof favLowerBound === 'function') ? (favLowerBound(v) || 0) : 0;
+  const favTracks = census.filter(t => typeof t.fav === 'string');
+  const favGe1w = favTracks.filter(t => favLB(t.fav) >= 10000);
+  const favGe10w = favTracks.filter(t => favLB(t.fav) >= 100000);
+  const favGe100w = favTracks.filter(t => favLB(t.fav) >= 1000000);
+  const topFavTrack = favTracks.slice().sort((a, b) => favLB(b.fav) - favLB(a.fav))[0];
 
   // 角色级指标仅统计有官方角色视频数据的角色
   const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
@@ -137,6 +146,11 @@ function renderExecutiveSummary() {
   f2.innerHTML = `曲目评论数中位数 <strong>${fmtCN(cmtMedian)}</strong> 条，Q3 = ${fmtCN(cmtQ3)}，IQR = ${fmtCN(cmtIQR)}；Tukey 上界 <strong>${fmtCN(threshold)}</strong>。共 <strong>${outliers.length}</strong> 首曲目越过阈值（占 ${((outliers.length / Math.max(cmts.length, 1)) * 100).toFixed(1)}%），呈明显右偏长尾。最高为《${topTrack ? topTrack.name : '—'}》${topTrack ? fmtCN(topTrack.cmt) : '—'} 条，约占全站评论总量的 ${topTrack && cmtTotal ? ((topTrack.cmt / cmtTotal) * 100).toFixed(1) : '—'}%。`;
 
   f3.innerHTML = `地区人均官方角色视频播放最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色播放中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。结构差异真实存在，但需结合各组样本量解读。`;
+
+  if (f4) {
+    const coverPct = census.length ? (favTracks.length / census.length * 100).toFixed(1) : '—';
+    f4.innerHTML = `网易云红心数已实测 <strong style="color:#E2556E;">${favTracks.length}</strong> 首（占可核实样本 ${coverPct}%）：红心 ≥1万 共 <strong>${favGe1w.length}</strong> 首，≥10万 <strong>${favGe10w.length}</strong> 首，≥100万 <strong>${favGe100w.length}</strong> 首${topFavTrack ? `；红心最高的曲目为《${topFavTrack.name}》（${topFavTrack.fav}）` : ''}。红心为客户端 UI 档位标签（999+/1w+/10w+/100w+），统计一律取下限，不做精确估算。`;
+  }
 
   if (lim) {
     lim.innerHTML = `分析局限：① 播放、收藏、弹幕虽来自同一支视频，但属于不同互动行为，不能换算为同一用户行为；② B站曲目播放量取搜索最相关视频，同专辑曲目可能共用同一支视频；③ 数据为 2026 年 10 月单次快照（网易云红心数为 2026-11-07 客户端 UI 粗粒度标签：999+/1w+/10w+/100w+，&lt;1000 为精确值，统计取下限不估算精确值），无法据此推断长期趋势；④ 曲目样本仅覆盖有真实接口数据的作品（${census.length} 首 / 官方收录 1909 首），存在收录偏差。`;
@@ -186,7 +200,7 @@ function renderKPI() {
 function renderPlatformMatrix() {
   const el = document.getElementById('platformMatrix');
   if (!el) return;
-  const platforms = ['B站播放', 'B站收藏'];
+  const platforms = ['B站播放', 'B站收藏', 'B站弹幕'];
   const regionColors = {};
   REGIONS.forEach(r => { regionColors[r.id] = r.color; });
   
@@ -198,13 +212,15 @@ function renderPlatformMatrix() {
    * ═══════════════════════════════════════════════════════════ */
   const pfmCfg = [
     { name: 'B站播放', png: 'assets/img/deco/UI_NameCardIcon_0.png', color: '#FB7299', src: 'bilibili.com @原神 官方角色视频播放量' },
-    { name: 'B站收藏', png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'bilibili.com @原神 官方角色视频收藏数' }
+    { name: 'B站收藏', png: 'assets/img/icons/旋曜玉帛.png',         color: '#FE2C55', src: 'bilibili.com @原神 官方角色视频收藏数' },
+    { name: 'B站弹幕', png: 'assets/img/deco/UI_ItemIcon_202.png',   color: '#F59E0B', src: 'bilibili.com @原神 官方角色视频弹幕数' }
   ];
 
   // 角色级指标仅统计有官方角色视频数据的角色
-  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number');
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
   const maxPvOne = Math.max(...validChars.map(c => c.pv));
   const maxFavOne = Math.max(...validChars.map(c => c.fav));
+  const maxDmOne = Math.max(...validChars.map(c => c.danmaku));
 
   const ratioList = [];
   REGIONS.forEach(r => {
@@ -212,9 +228,11 @@ function renderPlatformMatrix() {
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
     const nf = chars.reduce((s, c) => s + c.fav, 0);
+    const dm = chars.reduce((s, c) => s + c.danmaku, 0);
     const mpv = maxPvOne * chars.length;
     const mnf = maxFavOne * chars.length;
-    [pv / mpv, nf / mnf].forEach(ratio => ratioList.push(ratio));
+    const mdm = maxDmOne * chars.length;
+    [pv / mpv, nf / mnf, dm / mdm].forEach(ratio => ratioList.push(ratio));
   });
   const maxR = Math.max(...ratioList);
 
@@ -231,11 +249,13 @@ function renderPlatformMatrix() {
     if (chars.length === 0) return;
     const pv = chars.reduce((s, c) => s + c.pv, 0);
     const nf = chars.reduce((s, c) => s + c.fav, 0);
+    const dm = chars.reduce((s, c) => s + c.danmaku, 0);
     const mpv = maxPvOne * chars.length;
     const mnf = maxFavOne * chars.length;
+    const mdm = maxDmOne * chars.length;
 
     html += `<div class="heatmap-cell heat-cell h r-label" style="background:var(--surface-elevated);padding:12px 14px;font-size:12px;font-weight:600;color:${regionColors[r.id]};text-align:left;border-top:1px solid rgba(201,162,39,0.1);">${r.name}</div>`;
-    [pv / mpv, nf / mnf].forEach(ratio => {
+    [pv / mpv, nf / mnf, dm / mdm].forEach(ratio => {
       const inten = Math.round(ratio * 100);
       const norm = maxR > 0 ? ratio / maxR : 0;
       let lvl = inten === 0 ? 0 : (norm < 0.22 ? 1 : (norm < 0.42 ? 2 : (norm < 0.62 ? 3 : (norm < 0.82 ? 4 : 5))));
@@ -266,7 +286,8 @@ function renderPlatformMatrix() {
         地区: r.name,
         角色数: chars.length,
         B站官方角色视频播放万: chars.reduce((s, c) => s + c.pv, 0),
-        B站官方角色视频收藏: Math.round(chars.reduce((s, c) => s + c.fav, 0) * 1000)
+        B站官方角色视频收藏: Math.round(chars.reduce((s, c) => s + c.fav, 0) * 1000),
+        B站官方角色视频弹幕: Math.round(chars.reduce((s, c) => s + c.danmaku, 0) * 1000)
       };
     });
     const btn = document.createElement('button');
@@ -692,15 +713,28 @@ function renderSankey() {
     }
   });
 
-  // 数据来源说明
+  // 数据来源说明 + 曲目级网易云对照（口径不同，仅供量级参考）
+  const censusSk = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
+  const favLBSk = v => (typeof favLowerBound === 'function') ? (favLowerBound(v) || 0) : 0;
+  const favN = censusSk.filter(t => typeof t.fav === 'string').length;
+  const favSumLB = censusSk.reduce((s, t) => s + favLBSk(t.fav), 0);
+  const cmtSum = censusSk.reduce((s, t) => s + (typeof t.cmt === 'number' ? t.cmt : 0), 0);
   const sourceNote = document.createElementNS(NS, 'text');
   sourceNote.setAttribute('x', W / 2);
-  sourceNote.setAttribute('y', H - 12);
+  sourceNote.setAttribute('y', H - 24);
   sourceNote.setAttribute('text-anchor', 'middle');
   sourceNote.setAttribute('font-size', '9');
   sourceNote.setAttribute('fill', 'var(--text-tertiary)');
-  sourceNote.textContent = '数据来源：B站「原神」官方账号角色演示/角色PV/角色预告的播放、收藏、弹幕数';
+  sourceNote.textContent = '数据来源：B站「原神」官方账号角色演示/角色PV/角色预告的播放、收藏、弹幕数（同一支视频的三类互动）';
   svg.appendChild(sourceNote);
+  const trackNote = document.createElementNS(NS, 'text');
+  trackNote.setAttribute('x', W / 2);
+  trackNote.setAttribute('y', H - 10);
+  trackNote.setAttribute('text-anchor', 'middle');
+  trackNote.setAttribute('font-size', '9');
+  trackNote.setAttribute('fill', '#E2556E');
+  trackNote.textContent = `曲目级对照（跨平台口径，仅参考量级）：网易云红心实测 ${favN} 首、红心下限合计 ≥${fmtCN(favSumLB)}；网易云评论合计 ${fmtCN(cmtSum)} 条`;
+  svg.appendChild(trackNote);
 
   // 添加数据导出
   const sankeyCard = svg.closest('.card');

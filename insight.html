@@ -9,10 +9,10 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>数据洞察 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261108f">
-<link rel="stylesheet" href="css/optimize.css?v=20261108f">
-<link rel="stylesheet" href="css/insight.css?v=20261108f">
-<link rel="stylesheet" href="css/page-hero.css?v=20261108f">
+<link rel="stylesheet" href="css/style.css?v=20261108g">
+<link rel="stylesheet" href="css/optimize.css?v=20261108g">
+<link rel="stylesheet" href="css/insight.css?v=20261108g">
+<link rel="stylesheet" href="css/page-hero.css?v=20261108g">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="character.html">
@@ -85,7 +85,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <div class="card" style="border-left:4px solid var(--gold);background:linear-gradient(90deg,rgba(201,162,39,0.06),transparent);">
     <h3>执行摘要 <span class="method-tag">结论先行</span></h3>
     <p class="subtitle" id="execSummaryLead">正在基于真实样本计算核心结论……</p>
-    <div class="three-col" style="margin-top:14px;">
+    <div class="three-col" style="margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
       <div class="insight-finding">
         <h4 style="color:var(--chart-1);">发现一 · 平台联动</h4>
         <p id="execFinding1"></p>
@@ -97,6 +97,10 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       <div class="insight-finding purple">
         <h4 style="color:var(--chart-4);">发现三 · 结构差异</h4>
         <p id="execFinding3"></p>
+      </div>
+      <div class="insight-finding">
+        <h4 style="color:#E2556E;">发现四 · 红心收藏</h4>
+        <p id="execFinding4"></p>
       </div>
     </div>
     <div class="ds-note" id="execLimitation" style="margin-top:14px;"></div>
@@ -112,14 +116,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
           <div><strong style="color:var(--text-primary);">RQ1 平台联动：</strong>角色 B 站官方视频的播放量与收藏数是否同步？相关性强度如何？</div>
           <div><strong style="color:var(--text-primary);">RQ2 结构差异：</strong>地区、元素、武器、星级分组下的热度分布是否存在系统性差异？</div>
           <div><strong style="color:var(--text-primary);">RQ3 分布形态：</strong>曲目级互动是否呈长尾分布？现象级作品集中在哪些版本与地区？</div>
-          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频播放到收藏、弹幕互动，各层规模量级差多少？</div>
+          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频播放到收藏、弹幕互动，再到曲目级红心收藏与评论，各层规模量级差多少？</div>
         </div>
       </div>
       <div>
         <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">指标定义与统计方法</div>
         <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
           <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站「原神」官方账号角色视频的播放量（万）、收藏数（千）、弹幕数（千）。</div>
-          <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、B站「原神+曲名」最相关视频播放量（次）。</div>
+          <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、网易云红心数（客户端 UI 粗粒度标签：&lt;1000 为精确值，999+/1w+/10w+/100w+ 为档位，统计取下限不估算精确值）、B站「原神+曲名」最相关视频播放量（次）。</div>
           <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、min-max 与对数归一化、IQR 异常值判定。</div>
           <div><strong style="color:var(--text-primary);">样本：</strong><span id="defCharN">122</span> 名可玩角色（角色级统计仅纳入有官方角色视频实测数据的样本）；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
         </div>
@@ -130,7 +134,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 平台矩阵 -->
   <div class="card">
     <h3>跨平台热度对比矩阵 <span class="method-tag">分组归一化</span></h3>
-    <p class="subtitle">按地区汇总的角色级平台指标（n = 该地区可玩角色数）。方法：先计算地区内角色的人均指标（地区总和 ÷ 地区角色数），再以「全角色单人最大值 × 地区角色数」为理论上限做 min-max 归一化，得到 0–100% 的相对强度，从而消除万/千等量纲差异。注意：百分比表示相对位置，不是绝对值。</p>
+    <p class="subtitle">按地区汇总的角色级平台指标（n = 该地区可玩角色数），覆盖 B站官方角色视频播放、收藏、弹幕三项实测指标。方法：先计算地区内角色的人均指标（地区总和 ÷ 地区角色数），再以「全角色单人最大值 × 地区角色数」为理论上限做 min-max 归一化，得到 0–100% 的相对强度，从而消除万/千等量纲差异。注意：百分比表示相对位置，不是绝对值。</p>
     <div id="platformMatrix" style="margin-top:16px;"></div>
   </div>
 
@@ -234,11 +238,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261108f"></script>
-<script src="js/avatar-map.js?v=20261108f"></script>
-<script src="js/nav.js?v=20261108f"></script>
-<script src="js/insight.js?v=20261108f"></script>
-<script src="js/page-hero.js?v=20261108f"></script>
-<script src="js/optimize.js?v=20261108f"></script>
+<script src="js/data.js?v=20261108g"></script>
+<script src="js/avatar-map.js?v=20261108g"></script>
+<script src="js/nav.js?v=20261108g"></script>
+<script src="js/insight.js?v=20261108g"></script>
+<script src="js/page-hero.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261108g"></script>
 </body>
 </html>

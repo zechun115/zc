@@ -9,9 +9,9 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>地区探索 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261108f">
-<link rel="stylesheet" href="css/optimize.css?v=20261108f">
-<link rel="stylesheet" href="css/page-hero.css?v=20261108f">
+<link rel="stylesheet" href="css/style.css?v=20261108g">
+<link rel="stylesheet" href="css/optimize.css?v=20261108g">
+<link rel="stylesheet" href="css/page-hero.css?v=20261108g">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="character.html">
@@ -100,7 +100,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <!-- 雷达图 -->
     <div class="card radar-card">
       <h3>地区音乐风格雷达图</h3>
-      <p class="subtitle">五维指标：人均评论、人均播放、播放峰值、曲目规模、互动深度（每万次播放对应评论数）。各组指标先经 log1p 变换再做 min-max 归一化（0.08–1），以压缩长尾、避免头部曲目把其他地区压到接近圆心；维度值只表示相对强弱，不是绝对值。</p>
+      <p class="subtitle">六维指标：人均评论、人均播放、播放峰值、曲目规模、互动深度（每万次播放对应评论数）、红心覆盖（红心数已实测曲目占比，网易云客户端 UI 标签 2026-11-07 采集）。各组指标先经 log1p 变换再做 min-max 归一化（0.08–1），以压缩长尾、避免头部曲目把其他地区压到接近圆心；维度值只表示相对强弱，不是绝对值。</p>
       <svg id="radarSvg" viewBox="0 0 300 300" style="width:100%;height:300px;"></svg>
       <div id="radarLegend" class="radar-legend"></div>
       <div class="radar-actions">
@@ -151,12 +151,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261108f"></script>
-<script src="js/avatar-map.js?v=20261108f"></script>
-<script src="js/character.js?v=20261108f"></script>
-<script src="js/nav.js?v=20261108f"></script>
-<script src="js/region.js?v=20261108f"></script>
-<script src="js/page-hero.js?v=20261108f"></script>
-<script src="js/optimize.js?v=20261108f"></script>
+<script src="js/data.js?v=20261108g"></script>
+<script src="js/avatar-map.js?v=20261108g"></script>
+<script src="js/character.js?v=20261108g"></script>
+<script src="js/nav.js?v=20261108g"></script>
+<script src="js/region.js?v=20261108g"></script>
+<script src="js/page-hero.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261108g"></script>
 </body>
 </html>

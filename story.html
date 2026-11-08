@@ -9,9 +9,9 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>剧情场景 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261108f">
-<link rel="stylesheet" href="css/optimize.css?v=20261108f">
-<link rel="stylesheet" href="css/page-hero.css?v=20261108f">
+<link rel="stylesheet" href="css/style.css?v=20261108g">
+<link rel="stylesheet" href="css/optimize.css?v=20261108g">
+<link rel="stylesheet" href="css/page-hero.css?v=20261108g">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="character.html">
@@ -80,7 +80,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本热度趋势图 -->
   <div class="card">
     <h3>剧情音乐版本热度趋势 <span class="method-tag">趋势分析</span></h3>
-    <p class="subtitle">按发行版本排序，追踪各版本代表剧情曲的网易云评论数（真实采集）变化；版本事件仅作为背景解释，不构成因果证据。</p>
+    <p class="subtitle">按发行版本排序，追踪各版本代表剧情曲的网易云评论数（真实采集）变化，悬停数据点可查看该曲网易云红心数（客户端 UI 标签口径）；版本事件仅作为背景解释，不构成因果证据。</p>
     <svg id="versionTrendSvg" viewBox="0 0 720 320" style="width:100%;height:auto;"></svg>
     <div id="versionTrendLegend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;"></div>
   </div>
@@ -88,7 +88,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   <!-- 版本热点解读 -->
   <div class="card">
     <h3>版本热点音乐解读 <span class="method-tag">热点分析</span></h3>
-    <p class="subtitle">以各版本评论数最高的剧情曲为代表，比较其相对全样本<strong>中位数</strong>的倍数与百分位；倍数越高说明该曲越接近分布右端，不代表版本整体质量。</p>
+    <p class="subtitle">以各版本评论数最高的剧情曲为代表，比较其相对全样本<strong>中位数</strong>的倍数与百分位，卡片同时展示该曲网易云红心数（客户端 UI 标签）与 B站播放量；倍数越高说明该曲越接近分布右端，不代表版本整体质量。</p>
     <div id="versionHotspots" style="margin-top:16px;"></div>
   </div>
 
@@ -160,11 +160,11 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261108f"></script>
-<script src="js/avatar-map.js?v=20261108f"></script>
-<script src="js/nav.js?v=20261108f"></script>
-<script src="js/story.js?v=20261108f"></script>
-<script src="js/page-hero.js?v=20261108f"></script>
-<script src="js/optimize.js?v=20261108f"></script>
+<script src="js/data.js?v=20261108g"></script>
+<script src="js/avatar-map.js?v=20261108g"></script>
+<script src="js/nav.js?v=20261108g"></script>
+<script src="js/story.js?v=20261108g"></script>
+<script src="js/page-hero.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261108g"></script>
 </body>
 </html>
