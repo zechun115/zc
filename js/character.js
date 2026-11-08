@@ -327,6 +327,7 @@ window.renderCharCard = function(c) {
 (function () {
   renderScatter();
   renderCharRanks();
+  renderCharTrackInsights();
   renderCharHeatmap();
   renderCharGrid();
   renderFilterOptions();
@@ -340,6 +341,7 @@ window.renderCharCard = function(c) {
       scatterFilter = btn.dataset.r;
       renderScatter();
       renderCharRanks();
+      renderCharTrackInsights();
       renderCharHeatmap();
       renderCharGrid();
     });
@@ -350,6 +352,7 @@ window.renderCharCard = function(c) {
       elementFilter = e.target.value;
       renderScatter();
       renderCharRanks();
+      renderCharTrackInsights();
       renderCharHeatmap();
       renderCharGrid();
     }
@@ -357,6 +360,7 @@ window.renderCharCard = function(c) {
       weaponFilter = e.target.value;
       renderScatter();
       renderCharRanks();
+      renderCharTrackInsights();
       renderCharHeatmap();
       renderCharGrid();
     }
@@ -1015,9 +1019,18 @@ function renderScatter() {
       const right = c.pv >= midPv, up = c.fav >= midN;
       if (right && up) q.q1++; else if (!right && up) q.q2++; else if (!right && !up) q.q3++; else q.q4++;
     });
-    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名有官方角色视频的角色；B站官方角色视频播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，说明播放量只能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自视频内容与受众行为等非播放因素。
-      分割线取 <strong>中位数</strong>（播放 ${midPv}万 / 收藏 ${Math.round(midN * 1000).toLocaleString()}），较均值更能代表典型角色。四象限人数：双高 ${q.q1} 人、收藏突出 ${q.q2} 人、播放突出 ${q.q4} 人、双低 ${q.q3} 人。
-      <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置；无官方角色视频的角色不进入样本。</span>`;
+    // 播放量的 Tukey 异常值（Q3 + 1.5×IQR）：识别显著高于典型水平的头部角色
+    const pvArr = data.map(c => c.pv).sort((a, b) => a - b);
+    const pvQ1 = (typeof statQ1 === 'function') ? statQ1(pvArr) : null;
+    const pvQ3 = (typeof statQ3 === 'function') ? statQ3(pvArr) : null;
+    const pvIQR = (pvQ1 !== null && pvQ3 !== null) ? pvQ3 - pvQ1 : null;
+    const pvTukey = pvIQR !== null ? pvQ3 + 1.5 * pvIQR : null;
+    const outliers = pvTukey !== null ? data.filter(c => c.pv > pvTukey).sort((a, b) => b.pv - a.pv) : [];
+    const topChar = data.slice().sort((a, b) => b.pv - a.pv)[0];
+    summEl.innerHTML = `<strong>分析摘要：</strong>当前样本 n = ${data.length} 名有官方角色视频的角色；播放量最高为 <strong style="color:var(--gold-light);">${topChar ? topChar.name : '—'}（${topChar ? topChar.pv : '—'}万）</strong>。播放与收藏的 Pearson 相关系数 <strong style="color:var(--gold-light);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关），r² = ${r2 === null ? '—' : r2 + '%'}，即播放量仅能解释约 ${r2 === null ? '—' : r2 + '%'} 的收藏差异，其余来自视频内容与受众行为等非播放因素。
+      分割线取 <strong>中位数</strong>（播放 ${midPv}万 / 收藏 ${Math.round(midN * 1000).toLocaleString()}），较均值更稳健。四象限人数：双高 ${q.q1} 人、收藏突出 ${q.q2} 人、播放突出 ${q.q4} 人、双低 ${q.q3} 人。
+      按 Tukey 法则（Q3+1.5×IQR = ${pvTukey !== null ? pvTukey.toFixed(1) : '—'}万），播放量显著高于典型水平的头部角色共 <strong>${outliers.length}</strong> 名${outliers.length ? '：' + outliers.slice(0, 5).map(c => c.name).join('、') + (outliers.length > 5 ? ' 等' : '') : ''}。
+      <span style="color:var(--text-tertiary);">注：相关不等于因果，象限归类仅表示相对位置；无官方角色视频的角色不进入样本。数据采集时间 2026-11-02。</span>`;
   }
 
   // 添加数据导出属性到散点图卡片
@@ -1106,10 +1119,91 @@ function renderCharRanks() {
     }).join('');
   }
 
+  // 弹幕榜：三指标全覆盖，与播放/收藏榜同口径（仅统计有官方角色视频的角色）
+  const dSorted = [...data].sort((a, b) => b.danmaku - a.danmaku).slice(0, 10);
+  const dEl = document.getElementById('dmRank');
+  if (dEl) {
+    dEl.innerHTML = dSorted.map((c, i) => {
+      const color = ELEMENT_COLORS[c.element] || '#999';
+      const bgGradient = `linear-gradient(135deg,${color}33,${color}11)`;
+      return `
+      <li class="rank-item" data-char="${c.name}">
+        <div class="rank-num ${i < 3 ? 'top' : ''}">${i + 1}</div>
+        <div class="rank-info">
+          ${rankAvatarHtml(c.name, color, bgGradient)}
+          <div>
+            <div class="rank-name">${c.name}</div>
+            <div class="rank-meta">${rName(c.region)} · ${elementEmblem(c.element, 12)}${c.element} · ${c.rarity}星</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="rank-val" style="color:${color};display:flex;align-items:center;gap:3px;">
+            <img src="assets/img/deco/UI_ItemIcon_204.png" style="width:10px;height:10px;vertical-align:-1px;" onerror="this.style.display='none'" title="来源：bilibili.com @原神 官方角色视频弹幕数"/>
+            ${Math.round(c.danmaku * 1000).toLocaleString()}
+          </div>
+          <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">官方角色视频弹幕</div>
+        </div>
+      </li>`;
+    }).join('');
+  }
+
   document.querySelectorAll('.rank-item[data-char]').forEach(item => {
     item.addEventListener('mouseenter', () => highlightLinked(item.dataset.char, item));
     item.addEventListener('mouseleave', () => clearHighlight(item));
   });
+}
+
+function renderCharTrackInsights() {
+  const el = document.getElementById('charTrackInsight');
+  const summEl = document.getElementById('charTrackInsightSummary');
+  if (!el || typeof getTracksByCharacter !== 'function') return;
+
+  // 与排行榜同口径：仅有官方角色视频数据的角色参与；曲目须具备至少一项曲目级真实指标
+  let chars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  if (scatterFilter !== 'all') chars = chars.filter(c => c.region === scatterFilter);
+  if (elementFilter !== 'all') chars = chars.filter(c => c.element === elementFilter);
+  if (weaponFilter !== 'all') chars = chars.filter(c => c.weapon === weaponFilter);
+
+  const favLB = v => (typeof favLowerBound === 'function') ? (favLowerBound(v) || 0) : 0;
+  const rows = [];
+  chars.forEach(c => {
+    const tks = getTracksByCharacter(c.name).filter(t =>
+      typeof t.neteaseFav === 'string' || typeof t.neteaseCmt === 'number' || typeof t.biliPlay === 'number');
+    if (!tks.length) return;
+    // 代表曲目 = 红心下限最高，红心相同比评论
+    const best = tks.slice().sort((a, b) => (favLB(b.neteaseFav) - favLB(a.neteaseFav)) || ((b.neteaseCmt || 0) - (a.neteaseCmt || 0)))[0];
+    rows.push({ char: c, track: best, n: tks.length });
+  });
+  rows.sort((a, b) => (favLB(b.track.neteaseFav) - favLB(a.track.neteaseFav)) || ((b.track.neteaseCmt || 0) - (a.track.neteaseCmt || 0)));
+
+  el.innerHTML = rows.slice(0, 10).map((r, i) => {
+    const color = ELEMENT_COLORS[r.char.element] || '#999';
+    const bgGradient = `linear-gradient(135deg,${color}33,${color}11)`;
+    const t = r.track;
+    const trackName = t.trackName || t.name;
+    const tip = `${trackName}\n网易云红心：${typeof t.neteaseFav === 'string' ? t.neteaseFav : '未实测'}（客户端 UI 显示值，2026-11-07）\n网易云评论：${typeof t.neteaseCmt === 'number' ? t.neteaseCmt.toLocaleString() : '—'}（2026-11-04）\nB站相关视频播放：${typeof t.biliPlay === 'number' ? t.biliPlay + '万' : '—'}（2026-10）`;
+    return `
+    <li class="rank-item" data-char="${r.char.name}" title="${tip}">
+      <div class="rank-num ${i < 3 ? 'top' : ''}">${i + 1}</div>
+      <div class="rank-info">
+        ${rankAvatarHtml(r.char.name, color, bgGradient)}
+        <div>
+          <div class="rank-name">${r.char.name}</div>
+          <div class="rank-meta" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${trackName}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="rank-val" style="color:#E2556E;">${typeof t.neteaseFav === 'string' ? '红心' + t.neteaseFav : '红心未实测'}</div>
+        <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;opacity:0.85;">评论${typeof t.neteaseCmt === 'number' ? (t.neteaseCmt >= 10000 ? (t.neteaseCmt / 10000).toFixed(1) + '万' : t.neteaseCmt) : '—'} · 播放${typeof t.biliPlay === 'number' ? t.biliPlay + '万' : '—'}</div>
+      </div>
+    </li>`;
+  }).join('') || '<li style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:12px;">当前筛选下无关联曲目实测数据</li>';
+
+  if (summEl) {
+    const withTrack = rows.length;
+    const favWan = rows.filter(r => favLB(r.track.neteaseFav) >= 10000).length;
+    summEl.innerHTML = `<strong>分析摘要：</strong>当前筛选下 ${chars.length} 名有官方角色视频的角色中，${withTrack} 名可关联到具备实测指标的专辑曲目；代表曲目红心 ≥1万 的角色共 ${favWan} 名。红心数为客户端 UI 粗粒度标签（999+/1w+/10w+/100w+），排序取下限，展示保留原始标签不做精确估算。`;
+  }
 }
 
 function highlightLinked(charName, source) {

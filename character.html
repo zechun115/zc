@@ -9,9 +9,9 @@
 <meta name="theme-color" content="#0F0D0A">
 <link rel="preconnect" href="https://game.gtimg.cn">
 <title>角色音乐 - 原神音乐热度数据</title>
-<link rel="stylesheet" href="css/style.css?v=20261108d">
-<link rel="stylesheet" href="css/optimize.css?v=20261108d">
-<link rel="stylesheet" href="css/page-hero.css?v=20261108d">
+<link rel="stylesheet" href="css/style.css?v=20261108e">
+<link rel="stylesheet" href="css/optimize.css?v=20261108e">
+<link rel="stylesheet" href="css/page-hero.css?v=20261108e">
 <!-- 页面预加载：优化导航切换体验 -->
 <link rel="prefetch" href="index.html">
 <link rel="prefetch" href="story.html">
@@ -142,7 +142,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     </div>
   </div>
 
-  <!-- 双栏排行榜 -->
+  <!-- 三指标排行榜 -->
   <div class="two-col">
     <div class="card animate-on-scroll" data-animation="slideInLeft">
       <h3>B站官方角色视频播放榜 <span class="method-tag">排名分析</span></h3>
@@ -151,6 +151,20 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="card animate-on-scroll" data-animation="slideInRight">
       <h3>B站官方角色视频收藏榜 <span class="method-tag">排名分析</span></h3>
       <ul class="rank-list" id="musicRank"></ul>
+    </div>
+  </div>
+
+  <!-- 弹幕榜 + 角色关联曲目洞察 -->
+  <div class="two-col">
+    <div class="card animate-on-scroll" data-animation="slideInLeft">
+      <h3>B站官方角色视频弹幕榜 <span class="method-tag">排名分析</span></h3>
+      <ul class="rank-list" id="dmRank"></ul>
+    </div>
+    <div class="card animate-on-scroll" data-animation="slideInRight">
+      <h3>角色关联曲目洞察 <span class="method-tag">曲目级三指标</span></h3>
+      <p class="subtitle">每名角色取其关联专辑曲目中红心数最高的一首作为代表曲目，按红心下限排序。指标：网易云红心 / 网易云评论 / B站相关视频播放。</p>
+      <ul class="rank-list" id="charTrackInsight"></ul>
+      <div class="ds-note" id="charTrackInsightSummary" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -190,12 +204,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
 </div>
 
-<script src="js/data.js?v=20261108d"></script>
-<script src="js/avatar-map.js?v=20261108d"></script>
-<script src="js/character_info.js?v=20261108d"></script>
-<script src="js/nav.js?v=20261108d"></script>
-<script src="js/character.js?v=20261108d"></script>
-<script src="js/page-hero.js?v=20261108d"></script>
-<script src="js/optimize.js?v=20261108d"></script>
+<script src="js/data.js?v=20261108e"></script>
+<script src="js/avatar-map.js?v=20261108e"></script>
+<script src="js/character_info.js?v=20261108e"></script>
+<script src="js/nav.js?v=20261108e"></script>
+<script src="js/character.js?v=20261108e"></script>
+<script src="js/page-hero.js?v=20261108e"></script>
+<script src="js/optimize.js?v=20261108e"></script>
 </body>
 </html>
