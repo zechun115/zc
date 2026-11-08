@@ -255,7 +255,8 @@ function renderRadar() {
     { key: 'avgPlay', label: '平均播放' },
     { key: 'peakPlay', label: '播放峰值' },
     { key: 'trackScale', label: '曲目规模' },
-    { key: 'interaction', label: '互动深度' }
+    { key: 'interaction', label: '互动深度' },
+    { key: 'favShare', label: '红心覆盖' }
   ];
 
   // 计算所有地区的原始指标（仅基于真实数据）
@@ -269,13 +270,16 @@ function renderRadar() {
     const peak = Math.max(...withData.map(t => t.biliPlay || 0), 0);
     const ac = tc / withData.length;
     const ap = tp / withData.length;
+    // 红心覆盖：红心数有客户端 UI 实测值的曲目占比（0~1）
+    const nf = withData.filter(t => typeof t.neteaseFav === 'string').length;
     regionMetrics[r.id] = {
       avgCmt: ac,
       avgPlay: ap,
       peakPlay: peak,
       trackScale: withData.length,
       // 互动深度：每万次播放对应的评论数
-      interaction: ap > 0 ? ac / (ap / 10000) : 0
+      interaction: ap > 0 ? ac / (ap / 10000) : 0,
+      favShare: nf / withData.length
     };
   });
 
@@ -376,7 +380,9 @@ function renderRadar() {
       c.style.cursor = 'pointer';
       const raw = regionMetrics[rid][dims[i].key];
       c.addEventListener('mouseenter', (e) => {
-        const displayVal = dims[i].key === 'trackScale' ? raw + '首' : raw.toFixed(1);
+        const displayVal = dims[i].key === 'trackScale' ? raw + '首'
+          : dims[i].key === 'favShare' ? (raw * 100).toFixed(1) + '%'
+          : raw.toFixed(1);
         showRadarTooltip(e.clientX + 12, e.clientY - 10, `
           <div class="tooltip-title" style="color:${regionColor}">${rName(rid)} · ${dims[i].label}</div>
           <div class="tooltip-item"><span class="tooltip-label">原始值</span><span class="tooltip-value">${displayVal}</span></div>

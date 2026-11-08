@@ -256,6 +256,7 @@ function renderVersionHotspots() {
           <img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:10px;height:10px;vertical-align:-1px;margin-right:2px;" onerror="this.style.display='none'"/>
           B站播放 ${t.biliK}k
         </span>
+        ${t.fav ? `<span style="background:rgba(226,85,110,0.06);padding:2px 6px;border-radius:4px;font-weight:600;color:#E2556E;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">红心 ${t.fav}</span>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -336,7 +337,7 @@ function renderStoryBars() {
     </div>
     <div style="display:flex;gap:12px;margin-left:112px;margin-top:-4px;margin-bottom:6px;font-size:11px;color:var(--text-tertiary);">
       <span>发行版本: v${t.version}</span>
-      <span>网易云评论 ${t.netease}k</span><span>B站播放 ${t.biliK}k</span>
+      <span>网易云评论 ${t.netease}k</span><span>B站播放 ${t.biliK}k</span>${t.fav ? `<span style="color:#E2556E;">红心 ${t.fav}</span>` : ''}
     </div>
   `).join('');
 }
