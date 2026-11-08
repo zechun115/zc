@@ -374,7 +374,7 @@
         <div style="font-size:16px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${topTrack.name}</div>
         <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;display:flex;gap:12px;">
           <span>v${topTrack.version}</span>
-          ${topTrackReal ? `<span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 评${fmtCN(topTrackReal.neteaseCmt || 0)}</span>
+          ${topTrackReal ? `${topTrackReal.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">红心${topTrackReal.neteaseFav}</span>` : ''}<span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 评${fmtCN(topTrackReal.neteaseCmt || 0)}</span>
           <span><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 播${fmtCN(topTrackReal.biliPlay || 0)}</span>` : ''}
         </div>
       </div>

@@ -6137,7 +6137,9 @@ function getRealByName(name) {
   }
   if (typeof TRACK_EXTRA !== 'undefined' && TRACK_EXTRA[n]) {
     const r = TRACK_EXTRA[n];
-    return { neteaseCmt: r.neteaseCmt, biliPlay: r.biliPlay };
+    // TRACK_EXTRA 仅存评论/播放；有 ncmId 时回查 TRACK_REAL 取红心数实测标签
+    const tr = (r.ncmId && typeof TRACK_REAL !== 'undefined') ? TRACK_REAL[r.ncmId] : null;
+    return { neteaseCmt: r.neteaseCmt, biliPlay: r.biliPlay, neteaseFav: (tr && typeof tr.neteaseFav === 'string') ? tr.neteaseFav : null };
   }
   return null;
 }
