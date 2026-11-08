@@ -277,7 +277,8 @@ window.renderCharCard = function(c) {
           ${topTracks.map(t => `
             <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:2px;">
               <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:var(--text-secondary);">${t.trackName || t.name}</span>
-              <span style="color:${color};font-weight:600;flex-shrink:0;"><img src="assets/img/deco/UI_ItemIcon_105.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>${t.heatScore > 0 ? t.heatScore : '—'}</span>
+              ${typeof t.neteaseFav === 'string' ? `<span style="color:#E2556E;font-weight:600;flex-shrink:0;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">红心${t.neteaseFav}</span>` : ''}
+              <span style="color:${color};font-weight:600;flex-shrink:0;" title="曲目综合热度分（红心0.3+评论0.3+播放0.4 对数加权）"><img src="assets/img/deco/UI_ItemIcon_105.png" style="width:9px;height:9px;vertical-align:-1px;" onerror="this.style.display='none'"/>${t.heatScore > 0 ? t.heatScore : '—'}</span>
             </div>
           `).join('')}
         </div>`;
