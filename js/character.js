@@ -383,6 +383,23 @@ function renderFilterOptions() {
   }
 }
 
+// 角色代表曲目（红心下限最高的一首）缓存，供 KPI 与散点 tooltip 共用
+// 注：用 window 挂载避免 IIFE 先于顶层 const 执行导致的 TDZ 错误
+function charBestFavTrack(charName) {
+  if (typeof getTracksByCharacter !== 'function') return null;
+  const cache = window.__bestFavTrackCache || (window.__bestFavTrackCache = {});
+  if (!(charName in cache)) {
+    const tks = getTracksByCharacter(charName).filter(t => typeof t.neteaseFav === 'string');
+    const lb = v => (typeof favLowerBound === 'function') ? (favLowerBound(v) || 0) : 0;
+    cache[charName] = tks.length ? tks.sort((a, b) => lb(b.neteaseFav) - lb(a.neteaseFav))[0] : null;
+  }
+  return cache[charName];
+}
+function charBestFavTipHtml(c) {
+  const t = charBestFavTrack(c.name);
+  return t ? `<div style="grid-column:1/-1;"><span style="color:var(--text-tertiary);">代表曲目红心:</span> <strong style="color:#E2556E;">${t.neteaseFav}</strong> <span style="font-size:10px;color:var(--text-tertiary);">${t.trackName || t.name}（网易云客户端UI显示值）</span></div>` : '';
+}
+
 function renderKpiBanner() {
   const total = CHARACTERS.length;
   // 仅统计有真实官方角色视频数据的角色，无数据者不进入任何聚合
@@ -403,8 +420,18 @@ function renderKpiBanner() {
   const topEl = document.getElementById('kpiTopElement');
   if (topEl) topEl.textContent = topElement;
 
+  // 代表曲目红心≥1万角色数：每名角色关联曲目中红心下限最高者 ≥1万（客户端 UI 粗粒度标签，2026-11-07 实测）
+  let favChars = 0;
+  if (typeof getTracksByCharacter === 'function' && typeof favLowerBound === 'function') {
+    valid.forEach(c => {
+      const best = charBestFavTrack(c.name);
+      if (best && (favLowerBound(best.neteaseFav) || 0) >= 10000) favChars++;
+    });
+  }
+  animateValue('kpiFavChars', 0, favChars, 1500);
+
   // 动态切换 KPI 图标为最多元素对应的官方元素图标
-  const kpiElIcon = document.querySelector('.kpi-card:last-child .kpi-icon-img');
+  const kpiElIcon = document.querySelector('.kpi-card:nth-child(4) .kpi-icon-img');
   if (kpiElIcon && typeof ELEMENT_CDN_MAP !== 'undefined' && ELEMENT_CDN_MAP[topElement]) {
     kpiElIcon.src = 'assets/img/elements/' + ELEMENT_CDN_MAP[topElement];
     kpiElIcon.alt = topElement + '元素';
@@ -803,12 +830,13 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">播放:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${Math.round(c.fav * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">弹幕:</span> <strong style="color:var(--gold-light);">${Math.round(c.danmaku * 1000).toLocaleString()}</strong></div>
+          ${charBestFavTipHtml(c)}
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">点击查看角色详情</div>
       `;
 
       const tipWidth = 260;
-      const tipHeight = 180;
+      const tipHeight = 200;
       let tipX = (e.clientX - rect.left) / scaleX + 15;
       let tipY = (e.clientY - rect.top) / scaleY - tipHeight / 2;
 
@@ -827,7 +855,7 @@ function renderScatter() {
       const scaleX = rect.width / W;
       const scaleY = rect.height / H;
       const tipWidth = 260;
-      const tipHeight = 180;
+      const tipHeight = 200;
       let tipX = (e.clientX - rect.left) / scaleX + 15;
       let tipY = (e.clientY - rect.top) / scaleY - tipHeight / 2;
 
@@ -890,10 +918,11 @@ function renderScatter() {
           <div><span style="color:var(--text-tertiary);">播放:</span> <strong style="color:var(--gold-light);">${c.pv}万</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${pvPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">收藏:</span> <strong style="color:var(--gold-light);">${Math.round(c.fav * 1000).toLocaleString()}</strong> <span style="font-size:10px;color:var(--text-tertiary);">(前${musicPct}%)</span></div>
           <div><span style="color:var(--text-tertiary);">弹幕:</span> <strong style="color:var(--gold-light);">${Math.round(c.danmaku * 1000).toLocaleString()}</strong></div>
+          ${charBestFavTipHtml(c)}
         </div>
         <div style="font-size:10px;color:var(--text-tertiary);margin-top:10px;text-align:center;">按 Enter 查看角色详情</div>
       `;
-      const tipWidth = 260, tipHeight = 180;
+      const tipWidth = 260, tipHeight = 200;
       let tipX = cx + 15, tipY = cy - tipHeight / 2;
       if (tipX + tipWidth > W) tipX = cx - tipWidth - 15;
       if (tipY < 0) tipY = 10;
