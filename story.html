@@ -50,7 +50,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   </div>
 </nav>
 
-<div class="container">
+<div class="container" id="main">
 
   <!-- 统一顶栏：立绘大图横幅 -->
   <section class="page-hero" data-hero="雷电将军">
@@ -72,51 +72,61 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>剧情场景音乐</h1>
       <div class="hero-line"></div>
-      <p>剧情原声与角色音乐在流媒体平台的传播对比 · 版本热点驱动的音乐热度演变</p>
+      <p>剧情原声音乐的单次平台快照 · 按版本聚合的评论中位数与有效样本比较</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
 
-  <!-- 版本热度趋势图 -->
+  <!-- KPI 统计横幅 -->
+  <div class="kpi-banner" id="storyKpis" style="border-top-left-radius:0;border-top-right-radius:0;"></div>
+
+  <!-- 核心结论 -->
   <div class="card">
-    <h3>剧情音乐版本热度趋势 <span class="method-tag">趋势分析</span></h3>
-    <p class="subtitle">按发行版本排序，追踪各版本代表剧情曲的网易云评论数（真实采集）变化，悬停数据点可查看该曲网易云红心数（客户端 UI 标签口径）；版本事件仅作为背景解释，不构成因果证据。</p>
+    <h3>核心结论 <span class="method-tag">动态计算</span></h3>
+    <p class="subtitle">以下结论由当前数据运行时计算并分条给出：分布形态、平台覆盖、样本规模与对照的边界，先说清口径再读图表。</p>
+    <div id="storyConclusions" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- 版本评论快照 -->
+  <div class="card">
+    <h3>各版本剧情曲当前评论快照 <span class="method-tag">版本聚合比较</span></h3>
+    <p class="subtitle">先在每个版本内取“有有效评论数”的剧情曲，再计算该版本评论中位数；柱上标注有效 n。所有指标来自同一次采集快照，因此这不是版本上线后的时间演化，也不能据此判断热度升降。</p>
     <svg id="versionTrendSvg" viewBox="0 0 720 320" style="width:100%;height:auto;"></svg>
     <div id="versionTrendLegend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;"></div>
   </div>
 
   <!-- 版本热点解读 -->
   <div class="card">
-    <h3>版本热点音乐解读 <span class="method-tag">热点分析</span></h3>
-    <p class="subtitle">以各版本评论数最高的剧情曲为代表，比较其相对全样本<strong>中位数</strong>的倍数与百分位，卡片同时展示该曲网易云红心数（客户端 UI 标签）与 B站播放量；倍数越高说明该曲越接近分布右端，不代表版本整体质量。</p>
+    <h3>各版本评论最高剧情曲 <span class="method-tag">有效样本内比较</span></h3>
+    <p class="subtitle">只在各版本“评论数有效”的剧情曲中选取最高者，比较其相对全样本<strong>中位数</strong>的倍数与百分位；缺失值不参与最高值比较。卡片同时展示网易云红心标签与 B站播放（缺失则明确标注）。版本事件仅作背景说明，不代表版本整体质量或传播因果。</p>
     <div id="versionHotspots" style="margin-top:16px;"></div>
   </div>
 
   <!-- 版本时间轴·实测指标 -->
   <div class="card">
     <h3>版本音乐时间轴 · 实测指标 <span class="method-tag">分位比较</span></h3>
-    <p class="subtitle">沿版本迭代追踪各版本代表剧情曲的网易云评论与 B站相关视频播放，分位标签表示该曲在全部剧情曲样本中的位置。所有数值均来自实测采集，不使用模拟舆论或估算指数。</p>
+    <p class="subtitle">沿版本顺序排列各版本代表剧情曲的<strong>当前评论快照</strong>与 B站相关视频播放；分位标签表示该曲在全部有效剧情曲样本中的位置。数值为单次采集，缺失值显示“—”，不使用模拟舆论或估算指数。</p>
     <div class="version-timeline" id="versionTimeline"></div>
   </div>
 
   <!-- 剧情音乐热度对比 -->
   <div class="card">
-    <h3>剧情音乐热度对比</h3>
-    <p class="subtitle">网易云评论数 vs B站相关视频播放量（均为爬虫实测真实数据）</p>
+    <h3>剧情曲评论数排序（有效样本）</h3>
+    <p class="subtitle">仅展示有实测网易云评论数的剧情曲，按评论数降序；B站播放和红心作为辅助信息，缺失不按 0 处理。</p>
     <div class="bar-chart" id="storyBars" style="margin-top:16px;"></div>
   </div>
 
   <!-- 版本 × 地区 热度矩阵 -->
   <div class="card">
-    <h3>版本 × 地区 热度矩阵 <span class="method-tag">交叉分析</span></h3>
-    <p class="subtitle">剧情音乐在不同版本与地区的热度分布。方法：按「版本 × 地区」分组取网易云评论<strong>中位数</strong>（分组样本量 n 见单元格悬浮提示），色块深浅映射相对强度，用于识别版本迭代中的地区偏好迁移；分组样本较小处不宜作为独立结论。</p>
+    <h3>版本 × 地区 剧情曲评论快照 <span class="method-tag">交叉分组</span></h3>
+    <p class="subtitle">按「版本 × 地区」分组，仅在评论有效的剧情曲中计算<strong>中位数</strong>；真实 0 保留在样本内，缺失不参与。悬浮单元格可查看有效 n / 定义曲目数 / 真实 0 值数。分组样本通常很小，单元格只用于描述当前快照，不可据此推断地区偏好迁移。</p>
     <div id="versionRegionMatrix" style="margin-top:16px;overflow-x:auto;"></div>
   </div>
 
   <!-- 剧情 vs 角色 -->
   <div class="card">
-    <h3>剧情曲目 vs 官方角色视频 B站播放对比</h3>
-    <p class="subtitle">同地区剧情曲目相关视频播放量与官方角色视频播放量（均为 B站实测口径，单位：万次）</p>
+    <h3>剧情曲与角色视频的单条内容播放中位数 <span class="method-tag">描述性对照</span></h3>
+    <p class="subtitle">同一地区内，分别计算“人工选择的剧情曲”和“官方角色视频”的单条内容 B站播放中位数，并标注各自 n。两组样本来源与选择机制不同，图示只描述当前两组内容的差异，不比较地区总量，也不推断哪一种内容传播更强。</p>
     <div id="storyVsChar" style="margin-top:16px;"></div>
   </div>
 
@@ -135,7 +145,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 数据来源说明 -->
   <div class="data-source-card">
-    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源与分析方法说明</div>
+    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源与分析方法说明</div>
     <div class="ds-grid">
       <div class="ds-item">
         <span class="ds-label">剧情音乐数据</span>
@@ -151,10 +161,10 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="ds-item">
         <span class="ds-label">分析方法</span>
-        <span class="ds-value">趋势分析·分位比较·交叉分组</span>
+        <span class="ds-value">评论快照 · 分位比较 · 交叉分组</span>
       </div>
     </div>
-    <div class="ds-note">说明：版本热点解读以各版本评论数最高的剧情曲为代表，倍数与百分位以全部可核实剧情曲的中位数和分布为基准；事件描述仅作背景说明，不含模拟舆论或估算数据。</div>
+    <div class="ds-note">说明：① 所有指标为同一次采集快照，不具备时间序列含义；② 缺失值与真实 0 分开处理，缺失不进入对应统计；③ 版本说明中的曲目名与该版本对应专辑均来自本项目数据（曲目在网易云可查、专辑在官方发行列表可查），版本主题本身属于背景信息，不由统计自动验证；④ 剧情曲和角色视频的样本规模、选择方式不同，相关对照只作描述，不支持因果或传播强弱判断。</div>
     <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
   </div>
 
@@ -165,6 +175,6 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 <script src="js/nav.js?v=20261108g"></script>
 <script src="js/story.js?v=20261108g"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

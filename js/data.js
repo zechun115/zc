@@ -6032,13 +6032,15 @@ const ALBUMS = [
   },
   // ===== 珍珠之歌6（version · 6.8 六周年）=====
   { id:"shimmering-voyage-6", name:"原神-珍珠之歌6 The Shimmering Voyage Vol. 6", type:"version", region:"other", trackCount:92, releaseDate:"2026-07-22", version:"6.8",
-    neteaseUrl:"https://music.163.com/#/search/m/?s=" + encodeURIComponent("原神 珍珠之歌6") + "&type=10",
+    neteaseAlbumId:"388961122",
+    neteaseUrl:"https://music.163.com/#/album?id=388961122",
     desc:"《原神》六周年纪念音乐专辑《珍珠之歌6 The Shimmering Voyage Vol. 6》于2026年7月22日上线，共4张分碟、92首曲目，收录6.x版本旅途中的代表性原声音乐。",
     tracks:[],
     notice:"该专辑曲目列表未逐一核实（4张分碟共92首），遵循「宁空勿假」原则不展示具体曲目热度。请点击下方网易云/B站按钮进入官方专辑页查看完整曲目。" },
   // ===== 悯宥慈怜之垠（ep · 至冬 OST）=====
   { id:"102291928", name:"原神-悯宥慈怜之垠 Where Mercy Endures", type:"ep", region:"snezhnaya", trackCount:102, releaseDate:"2026-09-14", version:"7.0",
-    neteaseUrl:"https://music.163.com/#/search/m/?s=" + encodeURIComponent("原神 悯宥慈怜之垠") + "&type=10",
+    neteaseAlbumId:"398969728",
+    neteaseUrl:"https://music.163.com/#/album?id=398969728",
     desc:"《原神》至冬篇OST《悯宥慈怜之垠 Where Mercy Endures》于2026年9月14日上线，共4张分碟、102首曲目，由HOYO-MiX音乐团队为至冬地区创作。",
     tracks:[
       {name:"至冬", realData:false},
@@ -6052,7 +6054,8 @@ const ALBUMS = [
     notice:"以上仅列出7首已核实曲目，且不展示未经核实的播放/收藏数字；其余曲目请通过下方官方专辑链接查看完整列表。" },
   // ===== 愿逐月华照君明（ep · 7.1 逐月节）=====
   { id:"105292823", name:"原神-愿逐月华照君明 A Lyght of the Mone for Thee", type:"ep", region:"liyue", trackCount:3, releaseDate:"2026-10-21", version:"7.1",
-    neteaseUrl:"https://music.163.com/#/search/m/?s=" + encodeURIComponent("原神 愿逐月华照君明") + "&type=10",
+    neteaseAlbumId:"406082715",
+    neteaseUrl:"https://music.163.com/#/album?id=406082715",
     desc:"7.1版本逐月节主题EP《愿逐月华照君明 A Lyght of the Mone for Thee》于2026年10月21日上线，共3首曲目。",
     tracks:[],
     notice:"该EP曲目列表未逐一核实（共3首），遵循「宁空勿假」原则不展示具体曲目热度。请点击下方网易云/B站按钮进入官方专辑页查看完整曲目。" },
@@ -6161,23 +6164,26 @@ function getTracksByRegion(regionId) {
   return results.sort((a, b) => heatOf(b) - heatOf(a));
 }
 
-/* 从ALBUMS获取特定角色相关曲目（基于地区+关键词匹配） */
+/* 从ALBUMS获取角色名直接匹配的曲目。
+ * 仅保留可核实专辑条目，不用同地区热门曲补全；地区推荐须单独调用 getTracksByRegion。
+ */
 function getTracksByCharacter(characterName) {
   const char = CHARACTERS.find(c => c.name === characterName);
   if (!char) return [];
-  
-  const regionTracks = getTracksByRegion(char.region);
-  const charNames = [characterName, char.name.replace(/[·・]/g, ''), char.enName].filter(Boolean);
-  
-  const directMatches = ALBUMS.flatMap(album => 
+
+  const charNames = [...new Set([characterName, char.name, char.name.replace(/[·・]/g, '')]
+    .filter(Boolean)
+    .map(n => String(n).trim().toLowerCase())
+    .filter(Boolean))];
+  const directMatches = ALBUMS.flatMap(album =>
     album.tracks
-      .filter(t => charNames.some(n => t.name.includes(n) || (t.name && t.name.toLowerCase().includes(n.toLowerCase()))))
+      .filter(t => t.realData !== false && typeof t.name === 'string' &&
+        charNames.some(n => t.name.toLowerCase().includes(n)))
       .map(t => getTrackFullData(album, t))
   );
-  
-  const allTracks = [...regionTracks.slice(0, 10), ...directMatches];
+
   const heatOf = t => (typeof getTrackHeatScore === 'function') ? getTrackHeatScore(t) : 0;
-  return allTracks.sort((a, b) => heatOf(b) - heatOf(a))
+  return directMatches.sort((a, b) => heatOf(b) - heatOf(a))
     .filter((t, i, arr) => arr.findIndex(x => x.trackName === t.trackName) === i);
 }
 

@@ -61,9 +61,14 @@ function hideTooltip() {
 }
 
 function syncSampleCounts() {
-  // 静态文案中的样本量与实时统计口径保持一致，避免「1712 / 1753」这类硬编码漂移
+  // 角色级联合分析仅使用播放、收藏、弹幕三项均有效的角色，缺失值不按 0 计入
   const census = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
-  ['heroCharN', 'defCharN'].forEach(id => {
+  const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
+  ['heroCharN', 'defCharN', 'noteCharN', 'matrixCharN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = validChars.length;
+  });
+  ['heroCharTotalN', 'defCharTotalN'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = CHARACTERS.length;
   });
@@ -139,13 +144,13 @@ function renderExecutiveSummary() {
   const med5 = statMedian(five);
   const med4 = statMedian(four);
 
-  lead.innerHTML = `本页以 <strong>${CHARACTERS.length} 名可玩角色</strong>（其中 <strong>${validChars.length}</strong> 名有 B站官方角色视频实测数据）与 <strong>${census.length} 首可核实曲目</strong>（至少具备一项真实平台指标）为样本，围绕平台联动、结构差异、分布形态与传播量级四个问题展开分析。所有结论均由页面统计量实时生成，不使用预设文案。`;
+  lead.innerHTML = `本页以 <strong>${CHARACTERS.length} 名可玩角色</strong>（其中 <strong>${validChars.length}</strong> 名有 B站官方角色视频实测数据）与 <strong>${census.length} 首可核实曲目</strong>（至少具备一项真实平台指标）为样本，围绕平台联动、结构差异、分布形态与互动规模四个问题展开分析。所有结论均由页面统计量实时生成，不使用预设文案。`;
 
-  f1.innerHTML = `同一支 B站「原神」官方角色视频的播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--chart-1);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关，n = ${validChars.length}）。模型可解释的方差约 <strong>${r2 === null ? '—' : r2.toFixed(1)}%</strong>：播放量能在一定程度上解释收藏差异，但其余部分来自视频内容、观众构成与发布时间等播放量之外的因素。`;
+  f1.innerHTML = `同一支 B站「原神」官方角色视频的播放量与收藏数的 Pearson 相关系数 <strong style="color:var(--chart-1);">r = ${r === null ? '—' : r.toFixed(3)}</strong>（${rLabel}正相关，n = ${validChars.length}）。当前线性模型可解释约 <strong>${r2 === null ? '—' : r2.toFixed(1)}%</strong> 的收藏方差；未解释部分不能归因到任何具体因素，相关关系也不等于因果。`;
 
   f2.innerHTML = `曲目评论数中位数 <strong>${fmtCN(cmtMedian)}</strong> 条，Q3 = ${fmtCN(cmtQ3)}，IQR = ${fmtCN(cmtIQR)}；Tukey 上界 <strong>${fmtCN(threshold)}</strong>。共 <strong>${outliers.length}</strong> 首曲目越过阈值（占 ${((outliers.length / Math.max(cmts.length, 1)) * 100).toFixed(1)}%），呈明显右偏长尾。最高为《${topTrack ? topTrack.name : '—'}》${topTrack ? fmtCN(topTrack.cmt) : '—'} 条，约占全站评论总量的 ${topTrack && cmtTotal ? ((topTrack.cmt / cmtTotal) * 100).toFixed(1) : '—'}%。`;
 
-  f3.innerHTML = `地区人均官方角色视频播放最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色播放中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。结构差异真实存在，但需结合各组样本量解读。`;
+  f3.innerHTML = `地区官方角色视频播放均值最高为 <strong>${highestRegion ? highestRegion.name : '—'}</strong>（${highestRegion ? Math.round(highestRegion.avg) : '—'} 万，n = ${highestRegion ? highestRegion.n : '—'}），最低为 ${lowestRegion ? lowestRegion.name : '—'}（${lowestRegion ? Math.round(lowestRegion.avg) : '—'} 万），均值极值比 <strong>${highestRegion && lowestRegion && lowestRegion.avg ? (highestRegion.avg / lowestRegion.avg).toFixed(1) : '—'} 倍</strong>；5 星角色播放中位数 ${Math.round(med5)} 万，4 星 ${Math.round(med4)} 万，比值 ${med4 ? (med5 / med4).toFixed(1) : '—'}。这些是当前样本的描述性差异，均值受组内头部角色和样本量影响，不支持因果解释。`;
 
   if (f4) {
     const coverPct = census.length ? (favTracks.length / census.length * 100).toFixed(1) : '—';
@@ -171,8 +176,8 @@ function renderKPI() {
   const r = (typeof statPearson === 'function') ? statPearson(pvArr, favArr) : null;
 
   const kpis = [
-    // 角色样本量 → 皇冠图标（deco/UI_ItemIcon_204.png），绿色
-    { icon: kpiIcon('assets/img/deco/UI_ItemIcon_204.png', ''), label: '角色样本量 n', value: totalChars.toLocaleString(), unit: '人', color: '#4ADE80' },
+    // 角色级联合分析有效样本 → 皇冠图标（deco/UI_ItemIcon_204.png），绿色
+    { icon: kpiIcon('assets/img/deco/UI_ItemIcon_204.png', ''), label: '角色级有效样本 n', value: validChars.length.toLocaleString(), unit: '人', color: '#4ADE80' },
     // 可核实曲目样本 → 旋曜玉帛（icons/旋曜玉帛.png），紫色
     { icon: kpiIcon('assets/img/icons/旋曜玉帛.png', ''), label: '可核实曲目样本', value: census.length.toLocaleString(), unit: '首', color: '#8B5CF6' },
     // 红心数实测曲目 → 粉色（客户端 UI 粗粒度标签，2026-11-07 实测）
@@ -254,20 +259,20 @@ function renderPlatformMatrix() {
     const mnf = maxFavOne * chars.length;
     const mdm = maxDmOne * chars.length;
 
-    html += `<div class="heatmap-cell heat-cell h r-label" style="background:var(--surface-elevated);padding:12px 14px;font-size:12px;font-weight:600;color:${regionColors[r.id]};text-align:left;border-top:1px solid rgba(201,162,39,0.1);">${r.name}</div>`;
+    html += `<div class="heatmap-cell heat-cell h r-label" style="background:var(--surface-elevated);padding:12px 14px;font-size:12px;font-weight:600;color:${regionColors[r.id]};text-align:left;border-top:1px solid rgba(201,162,39,0.1);">${r.name}<small style="display:block;color:var(--text-quaternary);font-weight:400;font-size:10px;">有效 n=${chars.length}</small></div>`;
     [pv / mpv, nf / mnf, dm / mdm].forEach(ratio => {
       const inten = Math.round(ratio * 100);
       const norm = maxR > 0 ? ratio / maxR : 0;
       let lvl = inten === 0 ? 0 : (norm < 0.22 ? 1 : (norm < 0.42 ? 2 : (norm < 0.62 ? 3 : (norm < 0.82 ? 4 : 5))));
       const cls = inten === 0 ? 'hlvl-0' : `hlvl-${lvl}`;
       const display = inten === 0 ? '—' : `${inten}%`;
-      html += `<div class="heatmap-cell heat-cell ${cls}" data-v="${inten}" style="border-top:1px solid rgba(201,162,39,0.08);font-weight:${inten > 60 ? 700 : 500};font-size:13px;${inten > 60 ? 'color:#fff;' : ''}">${display}</div>`;
+      html += `<div class="heatmap-cell heat-cell ${cls}" data-v="${inten}" style="display:flex;align-items:center;justify-content:center;border-top:1px solid rgba(201,162,39,0.08);font-weight:${inten > 60 ? 700 : 600};font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:0.5px;${inten > 60 ? 'color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.35);' : ''}">${display}</div>`;
     });
   });
   html += '</div>';
   // 图例（与 story-heatmap 完全一致）
   html += `<div class="legend legend-bottom" style="margin-top:14px;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
-    <span style="font-size:11px;color:var(--text-tertiary);margin-right:6px;">归一化热度</span>
+    <span style="font-size:11px;color:var(--text-tertiary);margin-right:6px;">相对全角色最大值</span>
     <span class="legend-item"><span class="legend-swatch" style="background:rgba(255,255,255,0.02);border:1px solid var(--border);"></span>—</span>
     <span class="legend-item"><span class="legend-swatch hlvl-1"></span>低</span>
     <span class="legend-item"><span class="legend-swatch hlvl-2"></span>较低</span>
@@ -411,51 +416,55 @@ function renderTrend() {
   if (!svg) return;
   svg.innerHTML = '';
   const order = ['mondstadt', 'liyue', 'inazuma', 'sumeru', 'fontaine', 'natlan', 'nodkrai', 'snezhnaya'];
-  const data = order.map((rid, i) => {
-    // 仅统计有官方角色视频数据的角色
+  const data = order.map(rid => {
     const chars = CHARACTERS.filter(c => c.region === rid && typeof c.pv === 'number');
-    if (chars.length === 0) return { x: i, label: rName(rid), val: 0, color: '#94a3b8', count: 0, rid, maxPv: 0, minPv: 0 };
-    return { 
-      x: i, 
-      label: rName(rid), 
-      val: chars.reduce((s, c) => s + c.pv, 0) / chars.length, 
-      color: rColor(rid),
-      count: chars.length,
+    if (!chars.length) return null;
+    const vals = chars.map(c => c.pv);
+    return {
+      label: rName(rid),
+      mean: statMean(vals),
+      median: statMedian(vals),
+      count: vals.length,
       rid,
-      maxPv: Math.max(...chars.map(c => c.pv)),
-      minPv: Math.min(...chars.map(c => c.pv))
+      maxPv: Math.max(...vals),
+      minPv: Math.min(...vals)
     };
-  });
-  const maxV = Math.max(...data.map(d => d.val));
-  const M = { l: 60, r: 30, t: 45, b: 55 }, W = 750, H = 300;
+  }).filter(Boolean).sort((a, b) => b.mean - a.mean);
+  if (!data.length) {
+    svg.innerHTML = '<text x="375" y="150" text-anchor="middle" font-size="13" fill="var(--text-tertiary)">暂无官方角色视频播放数据</text>';
+    return;
+  }
+
+  const maxV = Math.max(...data.flatMap(d => [d.mean, d.median]), 1);
+  const M = { l: 62, r: 24, t: 42, b: 64 }, W = 750, H = 300;
   const w = W - M.l - M.r, h = H - M.t - M.b;
   const NS = 'http://www.w3.org/2000/svg';
 
+  // 渐变定义：均值柱按地区色生成（上亮下深），中位数柱统一紫色
   const defs = document.createElementNS(NS, 'defs');
-  const grad = document.createElementNS(NS, 'linearGradient');
-  grad.setAttribute('id', 'trendGrad');
-  grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%'); grad.setAttribute('x2', '0%'); grad.setAttribute('y2', '100%');
-  grad.innerHTML = `<stop offset="0%" stop-color="#C9A227" stop-opacity="0.25"/><stop offset="50%" stop-color="#6366F1" stop-opacity="0.15"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>`;
-  defs.appendChild(grad);
-  
-  const shadow = document.createElementNS(NS, 'filter');
-  shadow.setAttribute('id', 'lineShadow');
-  shadow.innerHTML = `<feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.3"/>`;
-  defs.appendChild(shadow);
-  
-  const glow = document.createElementNS(NS, 'filter');
-  glow.setAttribute('id', 'pointGlow');
-  glow.innerHTML = `<feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>`;
-  defs.appendChild(glow);
-  
+  data.forEach(d => {
+    const g = document.createElementNS(NS, 'linearGradient');
+    g.setAttribute('id', `trendG-${d.rid}`);
+    g.setAttribute('x1', '0%'); g.setAttribute('y1', '0%');
+    g.setAttribute('x2', '0%'); g.setAttribute('y2', '100%');
+    g.innerHTML = `<stop offset="0%" stop-color="${rColor(d.rid)}" stop-opacity="0.98"/><stop offset="100%" stop-color="${rColor(d.rid)}" stop-opacity="0.42"/>`;
+    defs.appendChild(g);
+  });
+  const gMed = document.createElementNS(NS, 'linearGradient');
+  gMed.setAttribute('id', 'trendG-med');
+  gMed.setAttribute('x1', '0%'); gMed.setAttribute('y1', '0%');
+  gMed.setAttribute('x2', '0%'); gMed.setAttribute('y2', '100%');
+  gMed.innerHTML = `<stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.92"/><stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.38"/>`;
+  defs.appendChild(gMed);
   svg.appendChild(defs);
 
+  // 网格 + Y轴
   for (let i = 0; i <= 5; i++) {
     const y = M.t + (i / 5) * h;
     const line = document.createElementNS(NS, 'line');
     line.setAttribute('x1', M.l); line.setAttribute('y1', y); line.setAttribute('x2', W - M.r); line.setAttribute('y2', y);
-    line.setAttribute('stroke', 'var(--border)'); line.setAttribute('stroke-width', '0.5'); line.setAttribute('stroke-dasharray', '4,4');
-    line.setAttribute('stroke-opacity', '0.5');
+    line.setAttribute('stroke', 'var(--border)'); line.setAttribute('stroke-width', '0.5');
+    line.setAttribute('stroke-dasharray', '4,4'); line.setAttribute('stroke-opacity', '0.5');
     svg.appendChild(line);
     const lab = document.createElementNS(NS, 'text');
     lab.setAttribute('x', M.l - 10); lab.setAttribute('y', y + 3); lab.setAttribute('text-anchor', 'end');
@@ -464,120 +473,96 @@ function renderTrend() {
     svg.appendChild(lab);
   }
 
-  const pts = data.map(d => `${M.l + (d.x / (data.length - 1)) * w},${M.t + (1 - d.val / maxV) * h}`).join(' ');
-  
-  const areaPts = pts + ` ${M.l + w},${H - M.b} ${M.l},${H - M.b}`;
-  const area = document.createElementNS(NS, 'polygon');
-  area.setAttribute('points', areaPts); area.setAttribute('fill', 'url(#trendGrad)');
-  svg.appendChild(area);
+  const groupW = w / data.length;
+  const barW = Math.min(20, groupW * 0.26);
+  data.forEach((d, i) => {
+    const groupX = M.l + i * groupW;
+    const color = rColor(d.rid);
+    const series = [
+      { key: 'mean', val: d.mean, fill: `url(#trendG-${d.rid})`, color, label: '均值' },
+      { key: 'median', val: d.median, fill: 'url(#trendG-med)', color: '#8B5CF6', label: '中位数' }
+    ];
+    series.forEach((s, j) => {
+      const barH = s.val / maxV * h;
+      const x = groupX + groupW * 0.24 + j * (barW + 5);
+      const y = M.t + h - barH;
+      const rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', x); rect.setAttribute('y', y);
+      rect.setAttribute('width', barW); rect.setAttribute('height', Math.max(1, barH));
+      rect.setAttribute('rx', '3'); rect.setAttribute('fill', s.fill);
+      rect.setAttribute('stroke', s.color); rect.setAttribute('stroke-opacity', '0.55'); rect.setAttribute('stroke-width', '1');
+      rect.style.cursor = 'pointer';
+      rect.style.transition = 'filter 0.2s ease';
+      rect.addEventListener('mouseenter', (e) => {
+        rect.style.filter = 'brightness(1.3)';
+        showTooltip(e.clientX + 15, e.clientY - 10, `
+          <div class="tooltip-title">${d.label} · ${s.label}</div>
+          <div class="tooltip-item"><span class="tooltip-label">${s.label}播放</span><span class="tooltip-value">${Math.round(s.val)}万</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">有效角色 n</span><span class="tooltip-value">${d.count}</span></div>
+          <div class="tooltip-item"><span class="tooltip-label">最高 / 最低</span><span class="tooltip-value">${Math.round(d.maxPv)} / ${Math.round(d.minPv)}万</span></div>
+        `);
+      });
+      rect.addEventListener('mouseleave', () => { rect.style.filter = ''; hideTooltip(); });
+      rect.addEventListener('click', () => { window.location.href = `region.html?r=${d.rid}`; });
+      svg.appendChild(rect);
+    });
 
-  const polyline = document.createElementNS(NS, 'polyline');
-  polyline.setAttribute('points', pts); polyline.setAttribute('fill', 'none');
-  polyline.setAttribute('stroke', '#C9A227'); polyline.setAttribute('stroke-width', '3'); 
-  polyline.setAttribute('stroke-linecap', 'round'); polyline.setAttribute('stroke-linejoin', 'round');
-  polyline.setAttribute('filter', 'url(#lineShadow)');
-  svg.appendChild(polyline);
-
-  data.forEach(d => {
-    const cx = M.l + (d.x / (data.length - 1)) * w;
-    const cy = M.t + (1 - d.val / maxV) * h;
-    
-    const bg = document.createElementNS(NS, 'circle');
-    bg.setAttribute('cx', cx); bg.setAttribute('cy', cy); bg.setAttribute('r', '12');
-    bg.setAttribute('fill', d.color); bg.setAttribute('fill-opacity', '0.08');
-    bg.setAttribute('transition', 'r 0.25s');
-    svg.appendChild(bg);
-    
-    const c = document.createElementNS(NS, 'circle');
-    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', '6');
-    c.setAttribute('fill', d.color); c.setAttribute('stroke', 'var(--surface-raised)'); 
-    c.setAttribute('stroke-width', '2.5');
-    c.setAttribute('filter', 'url(#pointGlow)');
-    c.style.cursor = 'pointer';
-    c.style.transition = 'all 0.25s ease';
-    c.addEventListener('mouseenter', (e) => {
-      c.setAttribute('r', '9');
-      c.setAttribute('stroke-width', '3');
-      bg.setAttribute('r', '16');
-      bg.setAttribute('fill-opacity', '0.15');
-      showTooltip(e.clientX + 15, e.clientY - 10, `
-        <div class="tooltip-title">${d.label}</div>
-        <div class="tooltip-item"><span class="tooltip-label">人均播放</span><span class="tooltip-value">${Math.round(d.val)}万</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${d.count}人</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">最高播放</span><span class="tooltip-value">${Math.round(d.maxPv)}万</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">最低播放</span><span class="tooltip-value">${Math.round(d.minPv)}万</span></div>
-      `);
-    });
-    c.addEventListener('mouseleave', () => {
-      c.setAttribute('r', '6');
-      c.setAttribute('stroke-width', '2.5');
-      bg.setAttribute('r', '12');
-      bg.setAttribute('fill-opacity', '0.08');
-      hideTooltip();
-    });
-    c.addEventListener('click', () => {
-      window.location.href = `region.html?r=${d.rid}`;
-    });
-    svg.appendChild(c);
+    // 均值柱顶数值标签（带描边光晕，避免与网格线混叠）
+    const valLab = document.createElementNS(NS, 'text');
+    const meanBarH = d.mean / maxV * h;
+    valLab.setAttribute('x', groupX + groupW * 0.24 + barW / 2);
+    valLab.setAttribute('y', M.t + h - meanBarH - 5);
+    valLab.setAttribute('text-anchor', 'middle');
+    valLab.setAttribute('font-size', '9.5'); valLab.setAttribute('font-weight', '700');
+    valLab.setAttribute('fill', color);
+    valLab.setAttribute('paint-order', 'stroke');
+    valLab.setAttribute('stroke', 'var(--surface-elevated)');
+    valLab.setAttribute('stroke-width', '3');
+    valLab.textContent = Math.round(d.mean);
+    svg.appendChild(valLab);
 
     const lab = document.createElementNS(NS, 'text');
-    lab.setAttribute('x', cx); lab.setAttribute('y', H - M.b + 24); lab.setAttribute('text-anchor', 'middle');
-    lab.setAttribute('font-size', '12'); lab.setAttribute('fill', 'var(--text-secondary)'); 
-    lab.setAttribute('font-weight', '500');
-    lab.textContent = d.label;
-    lab.style.cursor = 'pointer';
-    lab.addEventListener('click', () => {
-      window.location.href = `region.html?r=${d.rid}`;
-    });
+    lab.setAttribute('x', groupX + groupW / 2); lab.setAttribute('y', H - M.b + 22); lab.setAttribute('text-anchor', 'middle');
+    lab.setAttribute('font-size', '11'); lab.setAttribute('fill', 'var(--text-secondary)'); lab.setAttribute('font-weight', '500');
+    lab.textContent = d.label; lab.style.cursor = 'pointer';
+    lab.addEventListener('click', () => { window.location.href = `region.html?r=${d.rid}`; });
     svg.appendChild(lab);
 
-    const vlab = document.createElementNS(NS, 'text');
-    vlab.setAttribute('x', cx); vlab.setAttribute('y', cy - 16); vlab.setAttribute('text-anchor', 'middle');
-    vlab.setAttribute('font-size', '11'); vlab.setAttribute('fill', '#C9A227'); 
-    vlab.setAttribute('font-weight', '700');
-    vlab.textContent = Math.round(d.val);
-    svg.appendChild(vlab);
-    
-    const clab = document.createElementNS(NS, 'text');
-    clab.setAttribute('x', cx); clab.setAttribute('y', cy + 22); clab.setAttribute('text-anchor', 'middle');
-    clab.setAttribute('font-size', '9'); clab.setAttribute('fill', 'var(--text-tertiary)'); 
-    clab.textContent = `${d.count}人`;
-    svg.appendChild(clab);
+    const nlab = document.createElementNS(NS, 'text');
+    nlab.setAttribute('x', groupX + groupW / 2); nlab.setAttribute('y', H - M.b + 38); nlab.setAttribute('text-anchor', 'middle');
+    nlab.setAttribute('font-size', '9'); nlab.setAttribute('fill', 'var(--text-quaternary)');
+    nlab.textContent = `n=${d.count}`;
+    svg.appendChild(nlab);
   });
 
-  // 洞察标注：按当前数据动态取最高/最低地区，避免固定结论与数据不符
-  const peakIdx = data.reduce((bi, d, i) => (d.val > data[bi].val ? i : bi), 0);
-  const lowIdx = data.reduce((bi, d, i) => (d.val < data[bi].val ? i : bi), 0);
-  const annotations = [
-    { x: M.l + (peakIdx / (data.length - 1)) * w, y: M.t + (1 - data[peakIdx].val / maxV) * h, text: '人均播放最高', dy: -24, color: '#C9A227' },
-    { x: M.l + (lowIdx / (data.length - 1)) * w, y: M.t + (1 - data[lowIdx].val / maxV) * h, text: '人均播放最低', dy: 18, color: '#D9A04A' }
-  ];
-  annotations.forEach(ann => {
-    const g = document.createElementNS(NS, 'g');
-    const line = document.createElementNS(NS, 'line');
-    line.setAttribute('x1', ann.x); line.setAttribute('y1', ann.y);
-    line.setAttribute('x2', ann.x); line.setAttribute('y2', ann.y + ann.dy);
-    line.setAttribute('stroke', ann.color); line.setAttribute('stroke-width', '1');
-    line.setAttribute('stroke-dasharray', '3,2'); line.setAttribute('opacity', '0.6');
-    g.appendChild(line);
-    const text = document.createElementNS(NS, 'text');
-    text.setAttribute('x', ann.x); text.setAttribute('y', ann.y + ann.dy + (ann.dy > 0 ? 12 : -4));
-    text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '10');
-    text.setAttribute('fill', ann.color); text.setAttribute('font-weight', '600');
-    text.textContent = ann.text;
-    g.appendChild(text);
-    svg.appendChild(g);
+  const legendData = [{ l: '均值', c: '#C9A227', o: 0.82 }, { l: '中位数', c: '#8B5CF6', o: 0.6 }];
+  legendData.forEach((x, i) => {
+    const gx = M.l + i * 100, gy = 22;
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', gx); rect.setAttribute('y', gy - 9); rect.setAttribute('width', 12); rect.setAttribute('height', 12);
+    rect.setAttribute('rx', '2'); rect.setAttribute('fill', x.c); rect.setAttribute('fill-opacity', x.o);
+    svg.appendChild(rect);
+    const tx = document.createElementNS(NS, 'text');
+    tx.setAttribute('x', gx + 18); tx.setAttribute('y', gy); tx.setAttribute('font-size', '10'); tx.setAttribute('fill', 'var(--text-secondary)');
+    tx.textContent = x.l;
+    svg.appendChild(tx);
   });
 
-  // 添加数据导出
+  const ytitle = document.createElementNS(NS, 'text');
+  ytitle.setAttribute('x', 14); ytitle.setAttribute('y', M.t + h / 2); ytitle.setAttribute('text-anchor', 'middle');
+  ytitle.setAttribute('font-size', '11'); ytitle.setAttribute('fill', 'var(--text-tertiary)');
+  ytitle.setAttribute('transform', `rotate(-90,14,${M.t + h / 2})`);
+  ytitle.textContent = '官方角色视频播放（万）';
+  svg.appendChild(ytitle);
+
   const trendCard = svg.closest('.card');
   if (trendCard && !trendCard.querySelector('.export-btn')) {
-    const exportData = data.map(d => ({ 地区: d.label, 人均播放万: Math.round(d.val), 角色数: d.count, 最高播放万: Math.round(d.maxPv), 最低播放万: Math.round(d.minPv) }));
+    const exportData = data.map(d => ({ 地区: d.label, 播放均值万: Math.round(d.mean), 播放中位数万: Math.round(d.median), 有效角色数: d.count, 最高播放万: Math.round(d.maxPv), 最低播放万: Math.round(d.minPv) }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
-    btn.setAttribute('aria-label', '导出此图表的数据');
-    btn.addEventListener('click', () => window.exportData(exportData, '地区热度趋势数据', 'csv'));
+    btn.setAttribute('aria-label', '导出地区角色视频播放数据');
+    btn.addEventListener('click', () => window.exportData(exportData, '地区角色视频播放对比', 'csv'));
     trendCard.appendChild(btn);
   }
 }
@@ -588,163 +573,98 @@ function renderSankey() {
   svg.innerHTML = '';
   const NS = 'http://www.w3.org/2000/svg';
 
-  // 角色级指标仅统计有官方角色视频数据的角色
+  // 同一批三项指标完整的角色；三组仅比较各自总量，不构成顺序转化。
   const validChars = CHARACTERS.filter(c => typeof c.pv === 'number' && typeof c.fav === 'number' && typeof c.danmaku === 'number');
-  const totalPv = validChars.reduce((s, c) => s + c.pv, 0) * 10000;
-  const totalFav = validChars.reduce((s, c) => s + c.fav, 0) * 1000;
-  const totalDanmaku = validChars.reduce((s, c) => s + c.danmaku, 0) * 1000;
-
-  // 三个阶段：播放、收藏、弹幕（同一支视频的不同互动维度，仅比较量级，不是转化率）
   const stages = [
-    { name: 'B站播放', value: totalPv, color: '#FB7299', iconPng: 'assets/img/deco/UI_NameCardIcon_0.png', desc: '官方角色视频总播放量' },
-    { name: 'B站收藏', value: totalFav, color: '#FE2C55', iconPng: 'assets/img/items/UI_ItemIcon_112001.png', desc: '官方角色视频总收藏数' },
-    { name: 'B站弹幕', value: totalDanmaku, color: '#F59E0B', iconPng: 'assets/img/deco/UI_ItemIcon_202.png', desc: '官方角色视频总弹幕数' }
+    { name: 'B站播放', value: validChars.reduce((s, c) => s + c.pv, 0) * 10000, color: '#FB7299', iconPng: 'assets/img/deco/UI_NameCardIcon_0.png' },
+    { name: 'B站收藏', value: validChars.reduce((s, c) => s + c.fav, 0) * 1000, color: '#FE2C55', iconPng: 'assets/img/items/UI_ItemIcon_112001.png' },
+    { name: 'B站弹幕', value: validChars.reduce((s, c) => s + c.danmaku, 0) * 1000, color: '#F59E0B', iconPng: 'assets/img/deco/UI_ItemIcon_202.png' }
   ];
+  const base = stages[0].value || 1;
+  stages.forEach(s => { s.rate = s.value / base * 100; });
 
-  // 以首阶段为基准的相对量级占比（不是同源用户的转化率）
-  stages.forEach((s, i) => {
-    s.rate = i === 0 ? 100 : (s.value / stages[0].value * 100);
-    s.prevRate = i === 0 ? 100 : (s.value / stages[i - 1].value * 100);
-  });
+  const W = 700, H = 280, M = { l: 96, r: 150, t: 44, b: 48 };
+  const maxW = W - M.l - M.r;
 
-  const W = 700, H = 280;
-  const M = { l: 40, r: 40, t: 50, b: 60 };
-  const stageCount = stages.length;
-  const gap = 36;
-  const stageW = (W - M.l - M.r - (stageCount - 1) * gap) / stageCount;
-  const maxH = H - M.t - M.b;
-  const maxValue = stages[0].value;
-
-  // 渐变定义
+  // 渐变定义：每条指标条从亮到暗，轨道更立体
   const defs = document.createElementNS(NS, 'defs');
   stages.forEach((s, i) => {
-    const grad = document.createElementNS(NS, 'linearGradient');
-    grad.setAttribute('id', `funnelGrad${i}`);
-    grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
-    grad.setAttribute('x2', '0%'); grad.setAttribute('y2', '100%');
-    grad.innerHTML = `<stop offset="0%" stop-color="${s.color}" stop-opacity="0.95"/><stop offset="100%" stop-color="${s.color}" stop-opacity="0.55"/>`;
-    defs.appendChild(grad);
+    const g = document.createElementNS(NS, 'linearGradient');
+    g.setAttribute('id', `skG-${i}`);
+    g.setAttribute('x1', '0%'); g.setAttribute('y1', '0%');
+    g.setAttribute('x2', '100%'); g.setAttribute('y2', '0%');
+    g.innerHTML = `<stop offset="0%" stop-color="${s.color}" stop-opacity="0.95"/><stop offset="100%" stop-color="${s.color}" stop-opacity="0.55"/>`;
+    defs.appendChild(g);
   });
   svg.appendChild(defs);
 
-  // 标题
   const title = document.createElementNS(NS, 'text');
-  title.setAttribute('x', W / 2); title.setAttribute('y', 28);
-  title.setAttribute('text-anchor', 'middle');
-  title.setAttribute('font-size', '14'); title.setAttribute('font-weight', '600');
-  title.setAttribute('fill', 'var(--gold-light)');
-  title.textContent = '官方角色视频互动规模对比（以播放量为 100%）';
+  title.setAttribute('x', 20); title.setAttribute('y', 24);
+  title.setAttribute('font-size', '13'); title.setAttribute('font-weight', '600'); title.setAttribute('fill', 'var(--gold-light)');
+  title.textContent = `同一批 ${validChars.length} 名角色视频的三项指标总量（播放 = 100%）`;
   svg.appendChild(title);
 
   stages.forEach((s, i) => {
-    const x = M.l + i * (stageW + gap);
-    const h = maxValue > 0 ? maxH * (s.value / maxValue) : 0;
-    const y = M.t + (maxH - h);
+    const y = M.t + i * 62;
+    const barW = Math.max(2, s.value / base * maxW);
 
-    // 与前一个阶段的连接线（梯形）
-    if (i > 0) {
-      const prevH = maxH * (stages[i - 1].value / maxValue);
-      const prevY = M.t + (maxH - prevH);
-      const prevX = x - gap;
-      const path = document.createElementNS(NS, 'path');
-      path.setAttribute('d', `M${prevX},${prevY} L${x},${y} L${x},${y + h} L${prevX},${prevY + prevH} Z`);
-      path.setAttribute('fill', s.color);
-      path.setAttribute('fill-opacity', '0.22');
-      svg.appendChild(path);
-    }
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('x', M.l - 12); label.setAttribute('y', y + 20);
+    label.setAttribute('text-anchor', 'end'); label.setAttribute('font-size', '12');
+    label.setAttribute('fill', 'var(--text-secondary)'); label.setAttribute('font-weight', '600');
+    label.textContent = s.name;
+    svg.appendChild(label);
 
-    // 主漏斗条
+    const bg = document.createElementNS(NS, 'rect');
+    bg.setAttribute('x', M.l); bg.setAttribute('y', y); bg.setAttribute('width', maxW); bg.setAttribute('height', 30);
+    bg.setAttribute('rx', '6'); bg.setAttribute('fill', 'var(--surface)');
+    bg.setAttribute('stroke', 'var(--border-gold)'); bg.setAttribute('stroke-opacity', '0.28'); bg.setAttribute('stroke-width', '1');
+    svg.appendChild(bg);
+
     const rect = document.createElementNS(NS, 'rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', y);
-    rect.setAttribute('width', stageW); rect.setAttribute('height', h);
-    rect.setAttribute('fill', `url(#funnelGrad${i})`);
-    rect.setAttribute('rx', '8');
-    rect.setAttribute('stroke', s.color);
-    rect.setAttribute('stroke-width', '1.5');
+    rect.setAttribute('x', M.l); rect.setAttribute('y', y); rect.setAttribute('width', barW); rect.setAttribute('height', 30);
+    rect.setAttribute('rx', '6'); rect.setAttribute('fill', `url(#skG-${i})`);
+    rect.setAttribute('stroke', s.color); rect.setAttribute('stroke-opacity', '0.5'); rect.setAttribute('stroke-width', '1');
     rect.style.cursor = 'pointer';
+    rect.style.transition = 'filter 0.2s ease';
     rect.addEventListener('mouseenter', (e) => {
+      rect.style.filter = 'brightness(1.25)';
       showTooltip(e.clientX + 15, e.clientY - 10, `
         <div class="tooltip-title"><img src="${s.iconPng}" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/>${s.name}</div>
-        <div class="tooltip-item"><span class="tooltip-label">数值</span><span class="tooltip-value">${fmtCN(s.value)}</span></div>
-        <div class="tooltip-item"><span class="tooltip-label">占播放量</span><span class="tooltip-value">${s.rate.toFixed(1)}%</span></div>
-        ${i > 0 ? `<div class="tooltip-item"><span class="tooltip-label">相对前一阶段</span><span class="tooltip-value">${s.prevRate.toFixed(1)}%</span></div>` : ''}
-        <div class="tooltip-item"><span class="tooltip-label">说明</span><span class="tooltip-value">${s.desc}</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">总量</span><span class="tooltip-value">${fmtCN(s.value)}</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">相对播放总量</span><span class="tooltip-value">${s.rate.toFixed(1)}%</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">有效角色 n</span><span class="tooltip-value">${validChars.length}</span></div>
+        <div class="tooltip-item"><span class="tooltip-label">说明</span><span class="tooltip-value">同一视频的不同互动指标，不可相加或换算为转化率</span></div>
       `);
     });
-    rect.addEventListener('mouseleave', hideTooltip);
+    rect.addEventListener('mouseleave', () => { rect.style.filter = ''; hideTooltip(); });
     svg.appendChild(rect);
 
-    // 数值标签
-    const valText = document.createElementNS(NS, 'text');
-    valText.setAttribute('x', x + stageW / 2); valText.setAttribute('y', y + h / 2 - 4);
-    valText.setAttribute('text-anchor', 'middle');
-    valText.setAttribute('font-size', '12'); valText.setAttribute('font-weight', '700');
-    valText.setAttribute('fill', 'white');
-    valText.textContent = fmtCN(s.value);
-    svg.appendChild(valText);
+    const value = document.createElementNS(NS, 'text');
+    value.setAttribute('x', M.l + maxW + 10); value.setAttribute('y', y + 13);
+    value.setAttribute('font-size', '11'); value.setAttribute('fill', s.color); value.setAttribute('font-weight', '700');
+    value.setAttribute('paint-order', 'stroke');
+    value.setAttribute('stroke', 'var(--surface-elevated)');
+    value.setAttribute('stroke-width', '3');
+    value.textContent = fmtCN(s.value);
+    svg.appendChild(value);
 
-    // 百分比标签
-    const rateText = document.createElementNS(NS, 'text');
-    rateText.setAttribute('x', x + stageW / 2); rateText.setAttribute('y', y + h / 2 + 10);
-    rateText.setAttribute('text-anchor', 'middle');
-    rateText.setAttribute('font-size', '10');
-    rateText.setAttribute('fill', 'rgba(255,255,255,0.92)');
-    rateText.textContent = `${s.rate.toFixed(1)}%`;
-    svg.appendChild(rateText);
-
-    // 阶段名称
-    const nameText = document.createElementNS(NS, 'text');
-    nameText.setAttribute('x', x + stageW / 2); nameText.setAttribute('y', M.t + maxH + 22);
-    nameText.setAttribute('text-anchor', 'middle');
-    nameText.setAttribute('font-size', '12'); nameText.setAttribute('font-weight', '600');
-    nameText.setAttribute('fill', 'var(--text-secondary)');
-    nameText.textContent = s.name;
-    svg.appendChild(nameText);
-
-    // 相对前一阶段的量级占比箭头
-    if (i > 0) {
-      const arrowText = document.createElementNS(NS, 'text');
-      arrowText.setAttribute('x', x - gap / 2); arrowText.setAttribute('y', M.t + maxH / 2 + 4);
-      arrowText.setAttribute('text-anchor', 'middle');
-      arrowText.setAttribute('font-size', '10'); arrowText.setAttribute('font-weight', '600');
-      arrowText.setAttribute('fill', s.color);
-      arrowText.textContent = `↓${s.prevRate.toFixed(1)}%`;
-      svg.appendChild(arrowText);
-    }
+    const pct = document.createElementNS(NS, 'text');
+    pct.setAttribute('x', M.l + maxW + 10); pct.setAttribute('y', y + 27);
+    pct.setAttribute('font-size', '10'); pct.setAttribute('fill', 'var(--text-tertiary)');
+    pct.textContent = `占播放总量 ${s.rate.toFixed(1)}%`;
+    svg.appendChild(pct);
   });
 
-  // 数据来源说明 + 曲目级网易云对照（口径不同，仅供量级参考）
-  const censusSk = (typeof getVerifiedTrackCensus === 'function') ? getVerifiedTrackCensus() : [];
-  const favLBSk = v => (typeof favLowerBound === 'function') ? (favLowerBound(v) || 0) : 0;
-  const favN = censusSk.filter(t => typeof t.fav === 'string').length;
-  const favSumLB = censusSk.reduce((s, t) => s + favLBSk(t.fav), 0);
-  const cmtSum = censusSk.reduce((s, t) => s + (typeof t.cmt === 'number' ? t.cmt : 0), 0);
-  const sourceNote = document.createElementNS(NS, 'text');
-  sourceNote.setAttribute('x', W / 2);
-  sourceNote.setAttribute('y', H - 24);
-  sourceNote.setAttribute('text-anchor', 'middle');
-  sourceNote.setAttribute('font-size', '9');
-  sourceNote.setAttribute('fill', 'var(--text-tertiary)');
-  sourceNote.textContent = '数据来源：B站「原神」官方账号角色演示/角色PV/角色预告的播放、收藏、弹幕数（同一支视频的三类互动）';
-  svg.appendChild(sourceNote);
-  const trackNote = document.createElementNS(NS, 'text');
-  trackNote.setAttribute('x', W / 2);
-  trackNote.setAttribute('y', H - 10);
-  trackNote.setAttribute('text-anchor', 'middle');
-  trackNote.setAttribute('font-size', '9');
-  trackNote.setAttribute('fill', '#E2556E');
-  trackNote.textContent = `曲目级对照（跨平台口径，仅参考量级）：网易云红心实测 ${favN} 首、红心下限合计 ≥${fmtCN(favSumLB)}；网易云评论合计 ${fmtCN(cmtSum)} 条`;
-  svg.appendChild(trackNote);
+  const note = document.createElementNS(NS, 'text');
+  note.setAttribute('x', 20); note.setAttribute('y', H - 14);
+  note.setAttribute('font-size', '9'); note.setAttribute('fill', 'var(--text-tertiary)');
+  note.textContent = '数据来源：B站「原神」官方账号角色视频，同一支视频的播放/收藏/弹幕。三条互不相连，仅比较规模。';
+  svg.appendChild(note);
 
-  // 添加数据导出
   const sankeyCard = svg.closest('.card');
   if (sankeyCard && !sankeyCard.querySelector('.export-btn')) {
-    const exportData = stages.map(s => ({
-      阶段: s.name,
-      数值: s.value,
-      占播放量比例: s.rate.toFixed(2) + '%',
-      相对前一阶段: s.prevRate.toFixed(2) + '%'
-    }));
+    const exportData = stages.map(s => ({ 指标: s.name, 总量: s.value, 相对播放总量: s.rate.toFixed(2) + '%', 有效角色数: validChars.length }));
     const btn = document.createElement('button');
     btn.className = 'export-btn';
     btn.textContent = '导出数据';
@@ -868,16 +788,19 @@ function renderBox() {
       rect.setAttribute('x', x); rect.setAttribute('y', M.t + halfH - h5);
       rect.setAttribute('width', bw); rect.setAttribute('height', h5);
       rect.setAttribute('fill', 'url(#distGrad5)');
+      rect.setAttribute('stroke', '#F59E0B'); rect.setAttribute('stroke-opacity', '0.5'); rect.setAttribute('stroke-width', '1');
       rect.setAttribute('rx', '2');
       rect.style.cursor = 'pointer';
+      rect.style.transition = 'filter 0.2s ease';
       rect.addEventListener('mouseenter', (e) => {
+        rect.style.filter = 'brightness(1.3)';
         showTooltip(e.clientX + 15, e.clientY - 10, `
           <div class="tooltip-title">5星角色分布</div>
           <div class="tooltip-item"><span class="tooltip-label">播放区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
           <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${bins5[i]}人</span></div>
         `);
       });
-      rect.addEventListener('mouseleave', hideTooltip);
+      rect.addEventListener('mouseleave', () => { rect.style.filter = ''; hideTooltip(); });
       svg.appendChild(rect);
     }
 
@@ -888,19 +811,30 @@ function renderBox() {
       rect.setAttribute('x', x); rect.setAttribute('y', M.t + halfH + 2);
       rect.setAttribute('width', bw); rect.setAttribute('height', h4);
       rect.setAttribute('fill', 'url(#distGrad4)');
+      rect.setAttribute('stroke', '#6366F1'); rect.setAttribute('stroke-opacity', '0.5'); rect.setAttribute('stroke-width', '1');
       rect.setAttribute('rx', '2');
       rect.style.cursor = 'pointer';
+      rect.style.transition = 'filter 0.2s ease';
       rect.addEventListener('mouseenter', (e) => {
+        rect.style.filter = 'brightness(1.3)';
         showTooltip(e.clientX + 15, e.clientY - 10, `
           <div class="tooltip-title">4星角色分布</div>
           <div class="tooltip-item"><span class="tooltip-label">播放区间</span><span class="tooltip-value">${Math.round(rangeStart)}-${Math.round(rangeEnd)}万</span></div>
           <div class="tooltip-item"><span class="tooltip-label">角色数</span><span class="tooltip-value">${bins4[i]}人</span></div>
         `);
       });
-      rect.addEventListener('mouseleave', hideTooltip);
+      rect.addEventListener('mouseleave', () => { rect.style.filter = ''; hideTooltip(); });
       svg.appendChild(rect);
     }
   }
+
+  // X 轴基线
+  const baseLine = document.createElementNS(NS, 'line');
+  baseLine.setAttribute('x1', M.l); baseLine.setAttribute('y1', H - M.b);
+  baseLine.setAttribute('x2', M.l + w); baseLine.setAttribute('y2', H - M.b);
+  baseLine.setAttribute('stroke', 'var(--border-gold)'); baseLine.setAttribute('stroke-width', '1');
+  baseLine.setAttribute('stroke-opacity', '0.45');
+  svg.appendChild(baseLine);
 
   // 均值/中位数标记线
   function drawStatLine(value, color, label, yOffset) {
@@ -916,6 +850,9 @@ function renderBox() {
     lab.setAttribute('x', x + 5); lab.setAttribute('y', yOffset);
     lab.setAttribute('font-size', '9'); lab.setAttribute('font-weight', '600');
     lab.setAttribute('fill', color);
+    lab.setAttribute('paint-order', 'stroke');
+    lab.setAttribute('stroke', 'var(--surface-elevated)');
+    lab.setAttribute('stroke-width', '3');
     lab.textContent = `${label}:${Math.round(value)}`;
     svg.appendChild(lab);
   }
@@ -1304,12 +1241,12 @@ function renderPhenomenon() {
     <div class="insight-card" style="border-top:3px solid #f59e0b;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_105.png','','')}</div>
       <div class="insight-value">${threshold.toFixed(0)}</div>
-      <div class="insight-label">Tukey 异常值上界 Q3+1.5×IQR</div>
+      <div class="insight-label">Tukey 高异常值上界 Q3+1.5×IQR</div>
     </div>
     <div class="insight-card" style="border-top:3px solid #ef4444;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_210.png','','')}</div>
       <div class="insight-value">${phenomenons.length}<span style="font-size:13px;color:var(--text-tertiary);">（${coverage.toFixed(1)}%）</span></div>
-      <div class="insight-label">越界曲目数 / 样本占比</div>
+      <div class="insight-label">评论高异常值曲目数（样本占比）</div>
     </div>
     <div class="insight-card" style="border-top:3px solid #10b981;">
       <div class="insight-icon">${icoPng('assets/img/deco/UI_ItemIcon_211.png','','')}</div>
@@ -1328,9 +1265,10 @@ function renderPhenomenon() {
     </div>
   </div>
   <div class="ds-note" style="margin:10px 0 14px;">
-    <strong>方法说明：</strong>评论数呈典型右偏长尾分布，均值 ${avgHeat.toFixed(0)} 明显高于中位数 ${median}，说明少数头部曲目把整体均值抬高；
-    因此本页采用中位数与四分位距（IQR）衡量典型水平与离散程度，并用 Tukey 规则（Q3+1.5×IQR）判定异常值。
-    变异系数 CV = ${cv === null ? '—' : (cv * 100).toFixed(1) + '%'}，数值越大说明曲目间冷热差距越悬殊；最高曲目占全样本评论总量 ${topShare.toFixed(1)}%。
+    <strong>方法说明：</strong>评论数呈明显右偏长尾，均值 ${avgHeat.toFixed(0)} 高于中位数 ${median}，说明少数头部曲目抬高了均值；
+    因此采用中位数与四分位距（IQR）衡量典型水平与离散程度，并用 Tukey 规则（Q3+1.5×IQR）标记高异常值。
+    变异系数 CV = ${cv === null ? '—' : (cv * 100).toFixed(1) + '%'}；最高评论曲目占全样本评论总量 ${topShare.toFixed(1)}%。
+    <strong>“高异常值”只表示相对当前样本分布靠右，不等于“现象级”“出圈”或社会影响力。</strong>
   </div>`;
 
   if (sng) {
@@ -1339,13 +1277,13 @@ function renderPhenomenon() {
     html += `<div class="featured-card">
       <div class="featured-header">
         <span class="featured-icon">${featIcon('assets/img/items/UI_ItemIcon_201.png','')}</span>
-        <h3>"神女劈观" —— 京剧跨界的现象级出圈</h3>
+        <h3>"神女劈观" —— 人工选取的背景案例</h3>
       </div>
       <div class="featured-content">
         <p><strong>${sng.name}</strong>（${regionLabel(sng.region)} · v${sng.version}）实测 <span class="highlight">${fmt(sng.heat)}</span> 条网易云评论，
         位于样本第 <span class="highlight">${pct === null ? '—' : pct.toFixed(0)}</span> 百分位，为曲目评论中位数（${median}）的 <span class="highlight">${ratioMed} 倍</span>。</p>
-        <p>该曲以京剧唱腔演绎，将中国传统戏曲融入游戏音乐，在 2.4 版本海灯节期间形成跨圈层传播。从统计视角看，它属于长尾分布右端的极端样本，
-        其量级不能作为全站曲目的平均水平参照。</p>
+        <p>该曲以京剧唱腔演绎，是游戏音乐与中国传统戏曲结合的常见讨论案例；此处作为人工选取的背景案例展示，并非由 Tukey 规则自动得出的传播结论。
+        从统计视角看，它在当前评论样本中位于右端，属于高异常值；其量级不能作为全站曲目的平均水平参照。</p>
       </div>
       <div class="featured-stats">
         <div class="stat-item"><span><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;"/></span> <span>${fmt(sng.heat)} 评论</span></div>
@@ -1356,7 +1294,7 @@ function renderPhenomenon() {
   }
 
   const listTracks = phenomenons.slice(0, 15);
-  html += `<div class="section-header"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/> 异常值曲目清单（Tukey 规则：评论数 &gt; Q3+1.5×IQR，共 ${phenomenons.length} 首，列出前 ${listTracks.length} 首）</div>`;
+  html += `<div class="section-header"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"/> 评论高异常值曲目清单（Tukey 规则：评论数 &gt; Q3+1.5×IQR，共 ${phenomenons.length} 首，列出前 ${listTracks.length} 首）</div>`;
   html += '<div class="ranking-list">';
   listTracks.forEach((t, i) => {
     const bar = Math.min(100, (t.heat / phenomenons[0].heat) * 100);

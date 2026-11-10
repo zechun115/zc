@@ -50,7 +50,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
   </div>
 </nav>
 
-<div class="container">
+<div class="container" id="main">
 
   <!-- 统一顶栏：立绘大图横幅 -->
   <section class="page-hero" data-hero="胡桃">
@@ -90,18 +90,22 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <button class="chip" data-r="other"><img src="assets/img/icons/秘境.png" class="chip-region-svg" alt="其他"/>其他</button>
   </div>
 
+  <!-- KPI 统计横幅：全站地区样本规模 -->
+  <div class="kpi-banner" id="regionKpis" style="border-top-left-radius:0;border-top-right-radius:0;"></div>
+
   <div class="two-col">
     <!-- 排行榜 -->
     <div class="card">
-      <h3>地区音乐热度排行榜</h3>
+      <h3>地区音乐综合热度排行榜</h3>
       <p class="subtitle" id="regionRankTitle">璃月地区 · v1.1</p>
+      <div class="ds-note" style="margin:-4px 0 10px;">样本为地区精选曲目，不是该地区全部官方专辑曲目；综合热度分仅用于当前样本内排序。</div>
       <ul class="rank-list" id="regionRank"></ul>
     </div>
     <!-- 雷达图 -->
     <div class="card radar-card">
       <h3>地区音乐风格雷达图</h3>
-      <p class="subtitle">六维指标：人均评论、人均播放、播放峰值、曲目规模、互动深度（每万次播放对应评论数）、红心覆盖（红心数已实测曲目占比，网易云客户端 UI 标签 2026-11-07 采集）。各组指标先经 log1p 变换再做 min-max 归一化（0.08–1），以压缩长尾、避免头部曲目把其他地区压到接近圆心；维度值只表示相对强弱，不是绝对值。</p>
-      <svg id="radarSvg" viewBox="0 0 300 300" style="width:100%;height:300px;"></svg>
+      <p class="subtitle">六维指标：评论均值、播放均值、播放峰值、有效曲目规模、互动深度（同组评论总量 ÷ 同组播放总量 × 1万）、红心覆盖（有红心标签的曲目占比）。评论与播放分别使用各自有效 n，互动深度只使用两者同时有效的曲目；各组先经 log1p 变换再做 min-max 归一化（0.08–1）。维度值只表示相对强弱，不是绝对值。</p>
+      <svg id="radarSvg" viewBox="0 0 300 300" style="width:100%;height:340px;"></svg>
       <div id="radarLegend" class="radar-legend"></div>
       <div class="radar-actions">
         <button class="radar-action-btn" onclick="selectAllRegions()">对比全部地区</button>
@@ -122,10 +126,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <h3>地区音乐数据总览</h3>
     <div style="overflow-x:auto;">
       <table>
-        <thead><tr><th>地区</th><th>版本</th><th>曲目数</th><th>红心实测</th><th>红心≥1万</th><th>总评论</th><th>总播放</th><th>人均评论</th><th>人均播放</th><th>中位评论</th><th>中位播放</th></tr></thead>
+        <thead><tr><th>地区</th><th>版本</th><th>有效曲目 n</th><th>红心实测</th><th>红心≥1万</th><th>总评论</th><th>总播放</th><th>评论均值（n）</th><th>播放均值（n）</th><th>中位评论</th><th>中位播放</th></tr></thead>
         <tbody id="regionTable"></tbody>
       </table>
     </div>
+    <div style="font-weight:700;color:var(--gold-light);margin-top:18px;letter-spacing:0.5px;">◆ 分析结论</div>
+    <div class="an-concl-wrap" id="regionConclusions" style="margin-top:14px;"></div>
     <div class="ds-note" id="regionSummary" style="margin-top:12px;">分析摘要计算中……</div>
   </div>
 
@@ -152,11 +158,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 </div>
 
 <script src="js/data.js?v=20261108g"></script>
+<script src="js/char-music.js?v=20261110a"></script>
 <script src="js/avatar-map.js?v=20261108g"></script>
-<script src="js/character.js?v=20261108g"></script>
+<script src="js/character.js?v=20261110a"></script>
 <script src="js/nav.js?v=20261108g"></script>
 <script src="js/region.js?v=20261108g"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

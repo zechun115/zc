@@ -62,7 +62,11 @@ var AVATAR_MAP = {
   "迪希雅":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
   "闲云":"Liuyun","阿蕾奇诺":"Arlecchino","阿贝多":"Albedo","雅珂达":"Jahoda",
   "雷泽":"Razor","雷电将军":"Shougun","香菱":"Xiangling","魈":"Xiao",
-  "鹿野院平藏":"Heizo"
+  "鹿野院平藏":"Heizo",
+  /* 至冬 7.0/7.1 新角色（enka.network 已收录，官方英文名经 HoYoWiki/官方公告核实） */
+  "奥黛塔":"Odette","阿罗夏":"Alyosha","薇斯纳":"Vesna","沃雅妮莎":"Vodyanitsa",
+  /* 旅行者冰形态无独立头像 icon，与「旅行者」复用同一官方头像 */
+  "旅行者·冰":"PlayerGirl"
 };
 
 var SPLASH_MAP = {
@@ -95,7 +99,9 @@ var SPLASH_MAP = {
   "迪希雅":"Dehya","那维莱特":"Neuvillette","重云":"Chongyun","钟离":"Zhongli",
   "闲云":"Liuyun","阿蕾奇诺":"Arlecchino","阿贝多":"Albedo","雅珂达":"Jahoda",
   "雷泽":"Razor","雷电将军":"Shougun","香菱":"Xiangling","魈":"Xiao",
-  "鹿野院平藏":"Heizo"
+  "鹿野院平藏":"Heizo",
+  /* 旅行者冰形态复用既有立绘；奥黛塔等新角色立绘 enka 暂未收录，走头像兜底 */
+  "旅行者·冰":"PlayerGirl"
 };
 
 /**

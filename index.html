@@ -153,7 +153,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <!-- 右侧：详情浮层（点击地区/角色标记后覆盖显示，可关闭） -->
     <div class="map-detail-panel map-detail-float" id="mapDetailPanel">
       <div class="map-detail-empty">
-        <div class="map-detail-icon"><img src="assets/img/icons/传送锚点.png" onerror="this.style.display='none'" style="width:48px;height:48px;"/></div>
+        <div class="map-detail-icon"><img src="assets/img/icons/传送锚点.png" alt="" onerror="this.style.display='none'" style="width:48px;height:48px;"/></div>
         <div class="map-detail-title">提瓦特大陆</div>
         <div class="map-detail-desc">点击地图上的国家区域或角色标记，在此处查看详情</div>
       </div>
@@ -162,7 +162,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <div class="data-section" id="dataSection">
     <div class="data-section-header">
-      <h3><img src="assets/img/deco/UI_ItemIcon_108.png" onerror="this.style.display='none'" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"/>实时数据概览</h3>
+      <h3><img src="assets/img/deco/UI_ItemIcon_108.png" alt="" onerror="this.style.display='none'" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"/>实时数据概览</h3>
       <div class="data-section-subtitle">提瓦特角色视频与曲目数据总览 · 截至 2026 年 10 月 · 角色级指标与曲目级指标分开统计，不同源、不可换算</div>
     </div>
     <div class="data-grid">
@@ -199,22 +199,31 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div class="data-row" style="max-width:1400px;margin:20px auto 0;">
       <div class="data-card-wide">
         <div class="card-wide-header">
-          <h4><img src="assets/img/deco/UI_ItemIcon_204.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>官方角色视频播放量排行榜</h4>
+          <h4><img src="assets/img/deco/UI_ItemIcon_204.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>官方角色视频播放量排行榜</h4>
           <a href="insight.html" class="card-wide-link">查看完整榜单 →</a>
         </div>
         <div class="rank-list" id="pvRankList"></div>
+        <div id="pvRankNote" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;line-height:1.8;color:var(--text-tertiary);"></div>
       </div>
       <div class="data-card-wide">
         <div class="card-wide-header">
-          <h4><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>官方角色视频收藏排行榜</h4>
+          <h4><img src="assets/img/items/UI_ItemIcon_112001.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"/>官方角色视频收藏排行榜</h4>
           <a href="album.html" class="card-wide-link">查看音乐专辑 →</a>
         </div>
         <div class="rank-list" id="musicRankList"></div>
+        <div id="musicRankNote" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;line-height:1.8;color:var(--text-tertiary);"></div>
       </div>
     </div>
 
+    <!-- 全局数据画像（由当前数据动态计算） -->
+    <div class="card" style="max-width:1400px;margin:20px auto 0;">
+      <h3 style="display:flex;align-items:center;gap:8px;"><img src="assets/img/deco/UI_ItemIcon_105.png" onerror="this.style.display='none'" style="width:18px;height:18px;" alt="">全局数据画像</h3>
+      <p class="subtitle">角色级与曲目级指标分开统计、不同源不可换算；以下结论全部由当前数据动态计算，详细分析见各分页。</p>
+      <ol class="an-concl-list" id="homeConclusions"></ol>
+    </div>
+
     <div class="data-source-card" style="margin-top:20px;">
-      <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源</div>
+      <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源</div>
       <div class="ds-grid">
         <div class="ds-item">
           <span class="ds-label">B站官方角色视频</span>
@@ -230,7 +239,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         </div>
       </div>
       <div class="ds-note" style="margin-bottom:8px;"><strong>指标口径：</strong>角色级 = B站「原神」官方角色视频的播放量、收藏数、弹幕数（仅统计有官方角色视频的角色）；曲目级 = 网易云单曲评论总数 + 网易云红心数（客户端 UI 粗粒度标签：999+/1w+/10w+/100w+，&lt;1000 为精确值）+ B站「原神+曲名」相关视频播放量。两级指标<strong>不同源、不同样本，不可相加或换算</strong>；无法从平台核实到的字段一律留空，不做估算。数据采集时间：角色级 2026-11-02 · 网易云评论 2026-11-04（桌面客户端登录态复采）· 网易云红心 2026-11-07（桌面客户端 UI 逐首实测）· B站播放 2026-10。</div>
-      <div class="ds-note"><img src="assets/img/deco/UI_ItemIcon_210.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>向下滚动查看数据概览 · 点击国家区域查看代表音乐 · 点击角色标记查看详情 · 滚轮缩放浏览全图</div>
+      <div class="ds-note"><img src="assets/img/deco/UI_ItemIcon_210.png" alt="" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>向下滚动查看数据概览 · 点击国家区域查看精选曲目（按综合热度排序） · 点击角色标记查看详情 · 滚轮缩放浏览全图</div>
       <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
     </div>
   </div>
@@ -242,8 +251,8 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 <script src="vendor/leaflet.js"></script>
 <script src="js/map-presets.js?v=20261108g"></script>
 <script src="js/map.js?v=20261108g"></script>
-<script src="js/index.js?v=20261108g"></script>
+<script src="js/index.js?v=20261109b"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

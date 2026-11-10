@@ -30,7 +30,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     </div>
     <div class="nav-tabs">
       <a href="index.html" class="nav-tab">地图中枢</a>
-      <a href="character.html" class="nav-tab">角色音乐</a>
+      <a href="character.html" class="nav-tab active">角色音乐</a>
       <a href="story.html" class="nav-tab">剧情场景</a>
       <a href="region.html" class="nav-tab">地区探索</a>
       <a href="insight.html" class="nav-tab">数据洞察</a>
@@ -68,14 +68,14 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 面包屑 -->
   <div class="breadcrumb">
-    <a href="index.html"><img src="assets/img/icons/传送锚点.png" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>地图</a>
+    <a href="index.html"><img src="assets/img/icons/传送锚点.png" alt="" onerror="this.style.display='none'" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"/>地图</a>
     <span class="sep">›</span>
     <a href="character.html">角色音乐</a>
     <span class="sep">›</span>
     <a id="breadcrumbRegion" href="#">-</a>
     <span class="sep">›</span>
     <span id="breadcrumbName" style="color:var(--text-primary);font-weight:500;">角色详情</span>
-    <a href="index.html" class="back-btn" style="margin-left:auto;">← 返回地图</a>
+    <a href="index.html" id="smartBack" class="back-btn" style="margin-left:auto;">← 返回地图</a>
   </div>
 
   <!-- 详情内容容器 -->
@@ -83,7 +83,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 数据来源说明 -->
   <div class="data-source-card" style="margin-top:20px;">
-    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源</div>
+    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源</div>
     <div class="ds-grid">
       <div class="ds-item">
         <span class="ds-label">角色元数据</span>
@@ -104,11 +104,12 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 </div>
 
 <script src="js/data.js?v=20261108g"></script>
+<script src="js/char-music.js?v=20261110a"></script>
 <script src="js/avatar-map.js?v=20261108g"></script>
 <script src="js/character_info.js?v=20261108g"></script>
 <script src="js/nav.js?v=20261108g"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/character-detail.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/character-detail.js?v=20261110a"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

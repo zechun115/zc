@@ -72,48 +72,57 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>角色视频热度</h1>
       <div class="hero-line"></div>
-      <p>B站官方角色视频的播放、收藏、弹幕交叉分析 · 双指标散点与排行榜</p>
+      <p>105 名角色的 B站官方视频三项实测指标 · 关联强度、分布结构与单位播放转化</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
 
-  <!-- KPI统计横幅（与顶栏无缝连接：去掉顶部圆角；图标改为原神官方道具） -->
+  <!-- KPI统计横幅（与顶栏无缝连接：去掉顶部圆角；图标改为原神官方道具）
+       口径：全部指标均取「B站@原神 官方角色视频」的三项实测值，不含任何估算或换算 -->
   <div class="kpi-banner animate-on-scroll" data-animation="fadeInUp" id="kpiBanner" style="border-top-left-radius:0;border-top-right-radius:0;">
     <div class="kpi-card">
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_210.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="纠缠之缘"></div>
       <div class="kpi-content">
-        <div class="kpi-value" id="kpiTotal">0</div>
-        <div class="kpi-label">总角色数</div>
+        <div class="kpi-value" id="kpiValid">0</div>
+        <div class="kpi-label">三项指标有效角色（目录 122）</div>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_201.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="摩拉"></div>
       <div class="kpi-content">
         <div class="kpi-value" id="kpiTotalPv">0</div>
-        <div class="kpi-label">总播放量（B站官方角色视频）</div>
+        <div class="kpi-label">官方角色视频总播放</div>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_202.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="原石"></div>
       <div class="kpi-content">
-        <div class="kpi-value" id="kpiAvgFav">0</div>
-        <div class="kpi-label">人均B站收藏数</div>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon"><img src="assets/img/elements/UI_Element_Ice.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="元素"></div>
-      <div class="kpi-content">
-        <div class="kpi-value" id="kpiTopElement">-</div>
-        <div class="kpi-label">最多元素</div>
+        <div class="kpi-value" id="kpiMedPv">0</div>
+        <div class="kpi-label">播放中位数（万）</div>
       </div>
     </div>
     <div class="kpi-card">
       <div class="kpi-icon"><img src="assets/img/icons/旋曜玉帛.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="旋曜玉帛"></div>
       <div class="kpi-content">
-        <div class="kpi-value" id="kpiFavChars">0</div>
-        <div class="kpi-label">代表曲目红心≥1万角色</div>
+        <div class="kpi-value" id="kpiFavRate">0</div>
+        <div class="kpi-label">中位收藏率（次/万播放）</div>
       </div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><img src="assets/img/items/UI_ItemIcon_112001.png" onerror="this.style.display='none'" class="kpi-icon-img" alt="收藏"></div>
+      <div class="kpi-content">
+        <div class="kpi-value" id="kpiHeadShare">0%</div>
+        <div class="kpi-label">头部 10% 角色播放占比</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 核心结论：先给结论，再用下方图表逐条验证 -->
+  <div class="card animate-on-scroll" data-animation="fadeInUp">
+    <h3>核心结论 <span class="method-tag" id="conclSample">n = 0</span></h3>
+    <p class="subtitle">下列每条结论都由当前筛选样本实时计算，括号内为对应统计量与样本量，可与下方散点图、榜单、对照表逐条核对。结论只描述样本内的差异，不外推到因果。</p>
+    <ol class="char-concl-list" id="charConclusions"></ol>
+    <div class="ds-note" id="charConclNote"></div>
   </div>
 
   <!-- 筛选器：每个地区按钮带对应 神之瞳 官方素材图标（保证图标来源统一且均已存在） -->
@@ -134,64 +143,95 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
 
   <!-- 散点图 -->
   <div class="card animate-on-scroll" data-animation="fadeInUp">
-    <h3>角色视频播放 × 收藏散点图 <span class="method-tag">聚类分析</span></h3>
-    <p class="subtitle">横轴：B站官方角色视频播放量（万） | 纵轴：B站官方角色视频收藏数（千） | 气泡大小：B站弹幕数 | 颜色：元素属性 | 点击气泡跳转详情。仅包含有官方角色视频实测数据的角色。方法：以各指标的<strong>中位数</strong>为分界做四象限分类（中位数比均值更稳健，可避免头部角色抬高分割线），并在图下给出 Pearson 相关系数与各象限人数。</p>
+    <h3>播放 × 红心 分布图 <span class="method-tag">中位数四象限 · 对数纵轴</span></h3>
+    <p class="subtitle">横轴为 B站官方角色视频播放量（万），纵轴为该角色主题曲在网易云的红心数——网易云只公开量级标签（如"10w+"），按下限折算、多曲取合计下限，<strong>是量级估计而非精确计数</strong>；跨 1千~100万共 3 个数量级，故纵轴取对数刻度。两条虚线为各自<strong>中位数</strong>；气泡半径只编码弹幕数，颜色编码元素，星级只用描边与光晕区分。分割线取中位数而非均值：样本右偏，均值会被头部角色抬高。气泡为避免遮挡做过轻微位移，精确数值以悬停提示为准。仅含已发行主题曲的角色（无主题曲者无法定位，不参与本图）。</p>
     <div class="scatter-wrap">
       <svg class="scatter-svg" id="scatterSvg" viewBox="0 0 780 480" preserveAspectRatio="xMidYMid meet"></svg>
       <div class="tooltip" id="scatterTip"></div>
     </div>
     <div class="legend" id="scatterLegend"></div>
     <div class="quad-hints">
-      <div><div class="t">左上：收藏突出</div><div class="d">播放一般 + 收藏高</div></div>
-      <div><div class="t">右上：双高明星</div><div class="d">播放高 + 收藏高</div></div>
-      <div><div class="t">左下：双低</div><div class="d">两项均低于中位数</div></div>
-      <div><div class="t">右下：播放突出</div><div class="d">播放高 + 收藏一般</div></div>
+      <div><div class="t">左上：红心突出</div><div class="d">播放 &lt; 中位数 + 红心 ≥ 中位数</div></div>
+      <div><div class="t">右上：双高</div><div class="d">两项均 ≥ 中位数</div></div>
+      <div><div class="t">左下：双低</div><div class="d">两项均 &lt; 中位数</div></div>
+      <div><div class="t">右下：播放突出</div><div class="d">播放 ≥ 中位数 + 红心 &lt; 中位数</div></div>
     </div>
+    <div class="ds-note" id="scatterSummary" style="margin-top:12px;font-size:12px;color:var(--text-tertiary);line-height:1.8;">图内读数计算中……</div>
   </div>
 
-  <!-- 三指标排行榜 -->
+  <!-- 三指标排行榜：绝对值排名，附重合度说明 -->
   <div class="two-col">
     <div class="card animate-on-scroll" data-animation="slideInLeft">
-      <h3>B站官方角色视频播放榜 <span class="method-tag">排名分析</span></h3>
+      <h3>播放量 TOP10 <span class="method-tag">绝对值排名</span></h3>
       <ul class="rank-list" id="pvRank"></ul>
+      <div class="ds-note" id="pvRankNote"></div>
     </div>
     <div class="card animate-on-scroll" data-animation="slideInRight">
-      <h3>B站官方角色视频收藏榜 <span class="method-tag">排名分析</span></h3>
+      <h3>收藏数 TOP10 <span class="method-tag">绝对值排名</span></h3>
       <ul class="rank-list" id="musicRank"></ul>
+      <div class="ds-note" id="musicRankNote"></div>
     </div>
   </div>
 
-  <!-- 弹幕榜 + 角色关联曲目洞察 -->
+  <!-- 弹幕榜 + 单位播放转化 -->
   <div class="two-col">
     <div class="card animate-on-scroll" data-animation="slideInLeft">
-      <h3>B站官方角色视频弹幕榜 <span class="method-tag">排名分析</span></h3>
+      <h3>弹幕数 TOP10 <span class="method-tag">绝对值排名</span></h3>
       <ul class="rank-list" id="dmRank"></ul>
+      <div class="ds-note" id="dmRankNote"></div>
     </div>
     <div class="card animate-on-scroll" data-animation="slideInRight">
-      <h3>角色关联曲目洞察 <span class="method-tag">曲目级三指标</span></h3>
-      <p class="subtitle">每名角色取其关联专辑曲目中红心数最高的一首作为代表曲目，按红心下限排序。指标：网易云红心 / 网易云评论 / B站相关视频播放。</p>
-      <ul class="rank-list" id="charTrackInsight"></ul>
-      <div class="ds-note" id="charTrackInsightSummary" style="margin-top:10px;"></div>
+      <h3>单位播放转化率 <span class="method-tag">比值指标</span></h3>
+      <p class="subtitle">收藏率 = 收藏数 ÷ 播放量 × 1 万，即「每万次播放换来多少次收藏」，用于剥离曝光规模、只看内容本身的转化效率。条形长度为该比率，右侧同时给出弹幕率。比值指标对低播放样本不稳定，故标注了播放量。</p>
+      <ul class="rank-list" id="charRateRank"></ul>
+      <div class="ds-note" id="charRateNote"></div>
     </div>
+  </div>
+
+  <!-- 分组对照表：把「谁高」变成「按什么分组才有差异」 -->
+  <div class="card animate-on-scroll" data-animation="fadeInUp">
+    <h3>分组对照 <span class="method-tag">中位数比较</span></h3>
+    <p class="subtitle">按星级、地区、元素、武器四个维度切分样本，每列给出中位数而非均值（右偏样本下均值会被头部拉高）。n 为该组有效角色数，n &lt; 5 的组仅列示不作结论；加粗为该列最高值。重点看差异幅度是否大于组内离散——若各组中位数落在同一区间，说明该维度并不能解释差异。</p>
+    <div style="overflow-x:auto;">
+      <table class="grp-table">
+        <thead><tr><th>分组</th><th>n</th><th>播放中位数（万）</th><th>收藏中位数</th><th>收藏率（次/万播放）</th><th>弹幕率（次/万播放）</th><th>播放占比</th></tr></thead>
+        <tbody id="charGroupTable"></tbody>
+      </table>
+    </div>
+    <div class="ds-note" id="charGroupNote"></div>
+  </div>
+
+  <!-- 角色主题 OST：官方曲目表与 PV 一一对应 -->
+  <div class="card animate-on-scroll" data-animation="fadeInUp">
+    <h3>角色主题 OST <span class="method-tag" id="charMusicCount">—</span></h3>
+    <p class="subtitle">HOYO-MiX《闪耀的群星 The Stellar Moments》Vol.1–6 收录的角色主题曲，按官方曲目表与该角色的角色演示 / 角色PV / 角色预告一一对应。<strong>曲名与 PV 名并不相同</strong>（例如演示「听书人」的曲目是《尘世闲游 Rex Incognito》），点击曲名可到网易云官方专辑核实，点击 PV 名可到 B站官方投稿核实。末列为该曲对应官方 PV 投稿的实测播放量。只列出已发行主题曲的角色——尚未发行的不推测，也不用地区 BGM 替代。</p>
+    <div style="overflow-x:auto;">
+      <table class="grp-table">
+        <thead><tr><th>#</th><th>角色</th><th>主题曲</th><th>专辑</th><th>对应官方 PV</th><th>网易云评论</th><th>对应 PV 播放</th></tr></thead>
+        <tbody id="charThemeTracks"></tbody>
+      </table>
+    </div>
+    <div class="ds-note" id="charThemeSummary"></div>
   </div>
 
   <!-- 热力图 -->
   <div class="card animate-on-scroll" data-animation="fadeInUp">
-    <h3>角色矩阵热力图 <span class="method-tag">多维对比</span></h3>
-    <p class="subtitle">角色 × 热度指标 交叉分析（颜色深浅 = 相对强度）| 点击名字跳转详情。方法：对每项指标独立归一化后用色彩强度编码，便于横向对比角色间的多维度差异。</p>
+    <h3>角色 × 指标 相对强度矩阵 <span class="method-tag">最大值归一化</span></h3>
+    <p class="subtitle">每列（指标）独立除以该列最大值后分档着色，只表示「在本样本中占最大值的几成」，不是绝对热度，也不能跨列比较。由于最大值由少数头部角色占据，多数格会落在低档位——这是右偏分布的必然结果，而非图表失效。显示当前筛选下播放量前 15 名，点击名字跳转详情。</p>
     <div id="charHeatmap" style="overflow-x:auto;"></div>
+    <div class="ds-note" id="charHeatmapNote"></div>
   </div>
 
   <!-- 完整角色列表 -->
   <div class="card animate-on-scroll" data-animation="fadeInUp">
     <h3>全部角色一览 <span class="method-tag" id="charGridCount">共0人</span></h3>
-    <p class="subtitle">点击角色卡片跳转详情页。支持按地区、元素、武器筛选。</p>
+    <p class="subtitle">此处列出全部目录角色（含没有官方角色视频的角色，卡片上会标注「暂无官方角色视频数据」，不参与任何统计与排名）。点击卡片跳转详情页，支持按地区、元素、武器筛选。</p>
     <div class="char-grid" id="charGrid"></div>
   </div>
 
   <!-- 数据来源说明 -->
   <div class="data-source-card">
-    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源说明</div>
+    <div class="ds-title"><img src="assets/img/deco/UI_ItemIcon_211.png" alt="" onerror="this.style.display='none'" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"/>数据来源说明</div>
     <div class="ds-grid">
       <div class="ds-item">
         <span class="ds-label">B站角色视频数据</span>
@@ -206,17 +246,20 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <span class="ds-value">米游社wiki · 原神官方</span>
       </div>
     </div>
-    <div class="ds-note" id="scatterSummary">分析摘要计算中……</div>
+    <div class="ds-note">
+      <strong>样本口径：</strong>角色目录 122 名，其中 105 名具备 B站官方角色视频的播放 / 收藏 / 弹幕三项实测值，进入本页全部统计与排名；其余 17 名只在「全部角色一览」中展示，不参与任何均值、中位数、相关系数或分组比较。播放量按「万」记录，收藏与弹幕按「千」记录，展示时已换算为绝对值。所有指标为累计值、单次快照（2026-11-02），不含时间序列，无法用于判断增长或衰退。缺失即排除，不做估算或插值。相关强度与分组差异均为描述性统计，不代表因果。
+    </div>
   </div>
 
 </div>
 
 <script src="js/data.js?v=20261108g"></script>
+<script src="js/char-music.js?v=20261110a"></script>
 <script src="js/avatar-map.js?v=20261108g"></script>
 <script src="js/character_info.js?v=20261108g"></script>
 <script src="js/nav.js?v=20261108g"></script>
-<script src="js/character.js?v=20261108g"></script>
+<script src="js/character.js?v=20261110a"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

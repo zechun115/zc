@@ -130,11 +130,18 @@ window.safeRender = window.safeRender || function(containerId, renderFn, fallbac
   }
 
   // ===== 卡片渐入（旧版兼容） =====
+  // 兜底原则：卡片初始 opacity:0 完全依赖本段恢复，任何异常路径都不能让内容永久空白。
+  const resumeCard = (card) => { card.style.animationPlayState = 'running'; };
+  const resumeAllCards = () => {
+    document.querySelectorAll('.card').forEach(card => {
+      if (card.style.animationPlayState === 'paused') resumeCard(card);
+    });
+  };
   if ('IntersectionObserver' in window) {
     const cardObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.style.animationPlayState = 'running';
+          resumeCard(entry.target);
           cardObserver.unobserve(entry.target);
         }
       });
@@ -145,6 +152,27 @@ window.safeRender = window.safeRender || function(containerId, renderFn, fallbac
       if (!card.style.animationPlayState) card.style.animationPlayState = 'paused';
       cardObserver.observe(card);
     });
+  } else {
+    // 无 IntersectionObserver：直接全部显示
+    resumeAllCards();
+  }
+  // 双保险：无论何种原因（观察器异常、截图/虚拟时间、打印等），加载后 2.5s 强制显示剩余卡片
+  if (window.addEventListener) {
+    window.addEventListener('load', () => setTimeout(resumeAllCards, 2500));
+    setTimeout(resumeAllCards, 2500);
+  }
+
+  // ===== 滚动渐显终极兜底 =====
+  // .data-card/.rank-item 等被加上 .scroll-animate（初始 opacity:0），正常由 IntersectionObserver
+  // 滚动到视口时显示。若观察器因任何原因未触发（嵌入式 WebView、截图器、异常路径），
+  // 数据会永久空白——数据完整性优先于入场动画：加载 6s 后强制显示所有未显示元素。
+  const revealAllScrollAnimates = () => {
+    document.querySelectorAll('.scroll-animate:not(.visible), .scroll-scale:not(.visible), .scroll-slide-left:not(.visible), .scroll-slide-right:not(.visible)')
+      .forEach(el => el.classList.add('visible'));
+  };
+  if (window.addEventListener) {
+    window.addEventListener('load', () => setTimeout(revealAllScrollAnimates, 6000));
+    setTimeout(revealAllScrollAnimates, 6000);
   }
 
   // ===== 骨架屏自动移除 =====
@@ -316,6 +344,17 @@ window.safeRender = window.safeRender || function(containerId, renderFn, fallbac
 
     mapObserver.observe(container);
   };
+
+  // ===== 动态图片无障碍兜底：给缺 alt 的装饰图标补 alt="" =====
+  // 装饰性游戏图标（音符、卡牌等）对屏幕阅读器应为静默，统一补空 alt
+  const patchImgAlt = () => {
+    document.querySelectorAll('img:not([alt])').forEach(img => {
+      img.setAttribute('alt', '');
+    });
+  };
+  patchImgAlt();
+  document.addEventListener('DOMContentLoaded', patchImgAlt);
+  window.addEventListener('load', () => setTimeout(patchImgAlt, 2500));
 
   // ===== 性能监控（开发模式） =====
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {

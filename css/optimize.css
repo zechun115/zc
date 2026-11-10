@@ -572,4 +572,110 @@ html {
   color: var(--text-primary);
   font-weight: 600;
 }
+
+/* ==================== 通用：分条结论卡（角色页 char-concl-* / 其他页 an-concl-* 别名） ==================== */
+.char-concl-list,
+.an-concl-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.char-concl-item,
+.an-concl-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+}
+
+.char-concl-item .cc-idx,
+.an-concl-item .cc-idx {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--surface);
+  background: var(--gold);
+  margin-top: 2px;
+}
+
+.char-concl-item .cc-body,
+.an-concl-item .cc-body {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.char-concl-item .cc-title,
+.an-concl-item .cc-title {
+  display: block;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 2px;
+  letter-spacing: 0.3px;
+}
+
+.char-concl-item em,
+.an-concl-item em {
+  font-style: normal;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* 分组对照表：首列固定宽度、数值列右对齐，便于纵向读同一指标 */
+.grp-table th,
+.grp-table td {
+  padding: 9px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.grp-table th:first-child,
+.grp-table td:first-child { white-space: normal; }
+
+.grp-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.grp-table td.is-max {
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.grp-table tr.grp-sep td {
+  background: rgba(201,162,39,0.07);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+}
+
+.grp-table tr.grp-sep:hover td { background: rgba(201,162,39,0.07); }
+
+/* ==================== 数据可视化图表质感统一 ==================== */
+/* SVG 文字默认支持描边光晕（halo），无 stroke 时不生效，保证图表文字在任何背景上可读 */
+.card svg text {
+  paint-order: stroke;
+}
+
+/* 热力图数值统一等宽数字，避免逐行跳动 */
+.heat-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* SVG 图表内交互元素的平滑反馈 */
+.card svg rect,
+.card svg circle,
+.card svg polygon {
+  transition: filter 0.2s ease, opacity 0.2s ease;
 }

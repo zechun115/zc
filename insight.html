@@ -73,7 +73,7 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <h1>数据洞察</h1>
       <div class="hero-line"></div>
-      <p>面向 <span id="heroCharN">122</span> 名角色与 <span id="heroTrackN">1753</span> 首可核实曲目的跨平台音乐传播分析 · 描述统计、相关分析、分布诊断与异常值识别</p>
+      <p>面向 <span id="heroCharN">105</span> 名有效角色（角色目录共 <span id="heroCharTotalN">122</span> 名，排除指标缺失）与 <span id="heroTrackN">1753</span> 首可核实曲目的跨平台音乐传播分析 · 描述统计、相关分析、分布诊断与异常值识别</p>
     </div>
     <div class="page-hero-source">素材来源：原神官方互动地图 / enka.network · 仅作可视化展示</div>
   </section>
@@ -114,9 +114,9 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <div class="ds-title-sub" style="font-weight:700;color:var(--gold-light);margin-bottom:8px;">研究问题</div>
         <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
           <div><strong style="color:var(--text-primary);">RQ1 平台联动：</strong>角色 B 站官方视频的播放量与收藏数是否同步？相关性强度如何？</div>
-          <div><strong style="color:var(--text-primary);">RQ2 结构差异：</strong>地区、元素、武器、星级分组下的热度分布是否存在系统性差异？</div>
-          <div><strong style="color:var(--text-primary);">RQ3 分布形态：</strong>曲目级互动是否呈长尾分布？现象级作品集中在哪些版本与地区？</div>
-          <div><strong style="color:var(--text-primary);">RQ4 传播衰减：</strong>从视频播放到收藏、弹幕互动，再到曲目级红心收藏与评论，各层规模量级差多少？</div>
+          <div><strong style="color:var(--text-primary);">RQ2 结构差异：</strong>地区、元素、武器、星级分组下的指标分布有何差异？</div>
+          <div><strong style="color:var(--text-primary);">RQ3 分布形态：</strong>曲目评论数是否呈长尾分布？哪些曲目属于评论高异常值？</div>
+          <div><strong style="color:var(--text-primary);">RQ4 互动规模：</strong>同一批有效角色的官方视频中，播放、收藏、弹幕总量的相对规模分别是多少？</div>
         </div>
       </div>
       <div>
@@ -124,31 +124,31 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
         <div style="font-size:12px;line-height:1.9;color:var(--text-secondary);">
           <div><strong style="color:var(--text-primary);">角色级指标：</strong>B站「原神」官方账号角色视频的播放量（万）、收藏数（千）、弹幕数（千）。</div>
           <div><strong style="color:var(--text-primary);">曲目级指标：</strong>网易云单曲评论总数（条）、网易云红心数（客户端 UI 粗粒度标签：&lt;1000 为精确值，999+/1w+/10w+/100w+ 为档位，统计取下限不估算精确值）、B站「原神+曲名」最相关视频播放量（次）。</div>
-          <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、min-max 与对数归一化、IQR 异常值判定。</div>
-          <div><strong style="color:var(--text-primary);">样本：</strong><span id="defCharN">122</span> 名可玩角色（角色级统计仅纳入有官方角色视频实测数据的样本）；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
+          <div><strong style="color:var(--text-primary);">统计方法：</strong>描述统计（样本量 n、均值、中位数、四分位距 IQR、变异系数 CV）、Pearson 相关、分组比较、相对全角色最大值指数与对数归一化、Tukey 高异常值判定。</div>
+          <div><strong style="color:var(--text-primary);">样本：</strong>角色目录共 <span id="defCharTotalN">122</span> 名；角色级联合分析使用播放、收藏、弹幕三项均完整的 <span id="defCharN">105</span> 名有效角色，缺失者不按 0 计入；<span id="defTrackN">1753</span> 首具备至少一项真实指标的官方曲目（去重后）。</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 平台矩阵 -->
+  <!-- 地区指标相对最大值矩阵 -->
   <div class="card">
-    <h3>跨平台热度对比矩阵 <span class="method-tag">分组归一化</span></h3>
-    <p class="subtitle">按地区汇总的角色级平台指标（n = 该地区可玩角色数），覆盖 B站官方角色视频播放、收藏、弹幕三项实测指标。方法：先计算地区内角色的人均指标（地区总和 ÷ 地区角色数），再以「全角色单人最大值 × 地区角色数」为理论上限做 min-max 归一化，得到 0–100% 的相对强度，从而消除万/千等量纲差异。注意：百分比表示相对位置，不是绝对值。</p>
+    <h3>地区角色视频指标相对全角色最大值指数 <span class="method-tag">地区均值 ÷ 全角色最大值</span></h3>
+    <p class="subtitle">仅纳入播放、收藏、弹幕三项均有效的角色，全局有效 n = <span id="matrixCharN">105</span>，各地区另行标注有效 n，缺失者不按 0 计入。每个单元格 = 该地区有效角色的指标均值 ÷ 全部有效角色中该指标的单角色最大值 × 100%。这不是 min-max 归一化，也不减去最小值；百分比只表示地区均值相对全角色最大值的位置，不是转化率或绝对指标。</p>
     <div id="platformMatrix" style="margin-top:16px;"></div>
   </div>
 
-  <!-- 趋势图 -->
+  <!-- 无序地区分组条形图 -->
   <div class="card">
-    <h3>地区间角色视频播放量差异 <span class="method-tag">分组比较</span></h3>
-    <p class="subtitle">以地区为单位比较角色官方视频播放量的平均水平与离散程度。方法：计算各地区角色的播放量均值、最高值与最低值，并标注角色数 n；均值用于横向比较，最高/最低值用于刻画组内差距。因各地区 n 不同且部分角色无官方视频（不计入），均值差异需结合有效样本量谨慎解读。</p>
-    <svg id="trendSvg" viewBox="0 0 700 260" style="width:100%;height:auto;"></svg>
+    <h3>地区角色视频播放量均值与中位数 <span class="method-tag">无序分类比较</span></h3>
+    <p class="subtitle">地区是无序类别，采用分立条形比较均值与中位数，不连接为趋势线。每组仅纳入有播放量实测值的角色并标注有效 n；悬停可查看均值、中位数、最高值与最低值，点击仍进入对应地区。均值与中位数均使用同一组有效角色，缺失值不参与计算。</p>
+    <svg id="trendSvg" viewBox="0 0 750 300" style="width:100%;height:auto;"></svg>
   </div>
 
-  <!-- 转化漏斗图 -->
+  <!-- 同视频互动指标分立条形图 -->
   <div class="card">
-    <h3>跨平台互动规模对比 <span class="method-tag">量级比较</span></h3>
-    <p class="subtitle">比较 B站角色视频的播放、收藏、弹幕三类指标的总体量级。方法：将各指标统一换算为绝对人次后绘制条形对比，并计算相对首项（播放量）的百分比。必须说明：三者统计口径不同（播放、收藏、弹幕并非同一批用户行为），比率只反映互动深度差异，<strong>不能解读为用户级转化率</strong>。</p>
+    <h3>同一批角色视频的播放、收藏与弹幕规模 <span class="method-tag">相对规模</span></h3>
+    <p class="subtitle">对播放、收藏、弹幕三项均完整的有效角色分别汇总对应官方视频指标，以播放总量为 100% 绘制三条互不相连的条形。百分比仅是指标总量之比，<strong>不表示用户行为顺序、阶段转化或留存</strong>；曲目级网易云红心与评论不进入此图。</p>
     <svg id="sankeySvg" viewBox="0 0 700 280" style="width:100%;height:280px;"></svg>
   </div>
 
@@ -180,10 +180,10 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
     <div id="correlationChart" style="margin-top:16px;"></div>
   </div>
 
-  <!-- 现象级曲目分析 -->
+  <!-- 曲目评论高异常值分析 -->
   <div class="card">
-    <h3>曲目互动长尾与异常值识别 <span class="method-tag">异常值挖掘</span></h3>
-    <p class="subtitle">以网易云评论数为曲目热度代理指标，识别显著高于整体水平的作品。方法：计算中位数、Q1/Q3 与 IQR，采用 Tukey 上界 Q3 + 1.5×IQR 作为异常值阈值；超过阈值的曲目定义为「现象级」，并给出其相对中位数的倍数。该方法是分布诊断而非主观评选。</p>
+    <h3>曲目评论长尾与高异常值识别 <span class="method-tag">Tukey 分布诊断</span></h3>
+    <p class="subtitle">以有实测网易云评论数的去重曲目为样本，计算中位数、Q1/Q3 与 IQR，并将评论数高于 Tukey 上界 Q3 + 1.5×IQR 的曲目称为「评论高异常值」或「头部评论曲目」。这只是当前样本内的统计标记，不等于「现象级」「出圈」或因果判断；《神女劈观》另作人工背景案例展示，不由该规则自动生成传播结论。</p>
     <div id="phenomenonAnalysis" style="margin-top:16px;"></div>
   </div>
 
@@ -225,24 +225,25 @@ window.globalImgFallback = function(img){try{if(img)img.style.display='none';}ca
       </div>
       <div class="ds-item">
         <span class="ds-label">数据清洗</span>
-        <span class="ds-value">去重·跨平台对齐·异常值剔除</span>
+        <span class="ds-value">去重·跨平台对齐·缺失值排除·异常值标记（不剔除）</span>
       </div>
       <div class="ds-item">
         <span class="ds-label">分析方法</span>
         <span class="ds-value">描述统计·相关分析·分组比较·异常值检测</span>
       </div>
     </div>
-    <div class="ds-note">方法说明：① 角色级相关分析使用全部可玩角色（n = 122），不做抽样；② 曲目级样本为 <span id="noteTrackN">1753</span> 首具备真实指标的官方曲目（按中文曲名去重），无真实来源不计入；③ B站曲目播放量取「原神+曲名」搜索最相关视频，同专辑多首曲目可能命中共用同一支 PV，因此该指标反映「曲目相关视频热度」而非严格单曲播放；④ 所有数值为 2026 年 10 月单次快照，不构成时间序列趋势推断。上述限制不影响组内相对比较，但解读跨平台绝对量级时需谨慎。</div>
+    <div class="ds-note">方法说明：① 角色目录共 122 名，播放、收藏、弹幕联合分析使用三项均完整的 <span id="noteCharN">105</span> 名有效角色，指标缺失者排除且不按 0 计入；单指标或双指标分析按各自有效样本计算并标注 n；② 曲目级样本为 <span id="noteTrackN">1753</span> 首具备真实指标的官方曲目（按中文曲名去重），无真实来源不计入；③ B站曲目播放量取「原神+曲名」搜索最相关视频，同专辑多首曲目可能命中共用同一支 PV，因此该指标反映「曲目相关视频热度」而非严格单曲播放；④ 所有数值为 2026 年 10 月单次快照，不构成时间序列趋势推断。分组结果用于描述当前样本，不支持因果识别；跨平台指标不可相加或换算。</div>
     <div class="ds-note" style="margin-top:8px;color:var(--text-quaternary);">© 米哈游版权所有 · 本项目仅供个人学习与非商业用途 · 游戏素材来源：原神官方互动地图 / enka.network</div>
   </div>
 
 </div>
 
 <script src="js/data.js?v=20261108g"></script>
+<script src="js/char-music.js?v=20261110a"></script>
 <script src="js/avatar-map.js?v=20261108g"></script>
 <script src="js/nav.js?v=20261108g"></script>
 <script src="js/insight.js?v=20261108g"></script>
 <script src="js/page-hero.js?v=20261108g"></script>
-<script src="js/optimize.js?v=20261108g"></script>
+<script src="js/optimize.js?v=20261109b"></script>
 </body>
 </html>

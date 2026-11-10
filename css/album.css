@@ -3,8 +3,8 @@
 /* ---------- KPI 总览 ---------- */
 .album-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 10px;
   margin-bottom: 14px;
 }
 .album-stat {
@@ -56,8 +56,10 @@
   gap: 10px; align-items: center;
   padding: 9px 10px; border-bottom: 1px dashed var(--border);
   font-size: 12px; transition: background .12s;
+  cursor: pointer;
 }
 .rank-row:hover { background: rgba(245,158,11,0.04); }
+.rank-row:hover .rank-album { color: var(--text-secondary); }
 .rank-no {
   font-weight: 700; font-size: 15px; color: var(--text-tertiary); text-align: center;
 }
@@ -111,7 +113,13 @@
 .album-mini-cover {
   position: relative;
   min-height: 140px;
+  cursor: pointer;
 }
+.album-mini-cover img {
+  transition: transform .25s ease;
+}
+.album-mini:hover .album-mini-cover img { transform: scale(1.05); }
+.album-mini-title { cursor: pointer; }
 .album-mini-version {
   position: absolute; top: 6px; right: 6px;
   background: rgba(0,0,0,0.55); padding: 2px 7px;

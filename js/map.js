@@ -325,7 +325,7 @@
     `;
   }
 
-  // 获取该地区播放量/热度最高的音乐（按 fav 为主、cmt 为辅排序）
+  // 获取该地区综合热度最高的音乐（综合热度分仅用于当前精选样本内排序）
   // 曲目真实指标（网易云评论数 + B站相关视频播放量），无真实数据返回 null
   function trackRealOf(t) {
     const r = (typeof getRealByName === 'function') ? getRealByName(t.name) : null;
@@ -370,12 +370,12 @@
 
     const topTrackHtml = topTrack ? `
       <div class="region-top-track" style="cursor:pointer;margin:12px 0;padding:14px;background:linear-gradient(135deg, ${region.color}22, ${region.color}08);border:1px solid ${region.color}66;border-radius:var(--radius);transition:all 0.2s;" onmouseenter="this.style.borderColor='${region.color}';this.style.transform='translateX(4px)'" onmouseleave="this.style.borderColor='${region.color}66';this.style.transform='translateX(0)'" onclick="window.location.href='album.html'">
-        <div style="font-size:11px;color:${region.color};font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><img src="assets/img/deco/UI_ItemIcon_211.png" style="width:14px;height:14px;vertical-align:-2px;" onerror="this.style.display='none'"/> 该地区播放量最高音乐</div>
+        <div style="font-size:11px;color:${region.color};font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><img src="assets/img/deco/UI_ItemIcon_211.png" style="width:14px;height:14px;vertical-align:-2px;" onerror="this.style.display='none'"/> 该地区精选曲目中综合热度最高</div>
         <div style="font-size:16px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${topTrack.name}</div>
         <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;display:flex;gap:12px;">
           <span>v${topTrack.version}</span>
-          ${topTrackReal ? `${topTrackReal.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">红心${topTrackReal.neteaseFav}</span>` : ''}<span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 评${fmtCN(topTrackReal.neteaseCmt || 0)}</span>
-          <span><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 播${fmtCN(topTrackReal.biliPlay || 0)}</span>` : ''}
+          ${topTrackReal ? `${topTrackReal.neteaseFav ? `<span style="color:#E2556E;" title="网易云红心数（客户端 UI 显示值，2026-11-07 实测）">红心${topTrackReal.neteaseFav}</span>` : ''}<span><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 评${typeof topTrackReal.neteaseCmt === 'number' ? fmtCN(topTrackReal.neteaseCmt) : '—'}</span>
+          <span><img src="assets/img/deco/UI_NameCardIcon_0.png" style="width:12px;height:12px;vertical-align:-2px;" onerror="this.style.display='none'"/> 播${typeof topTrackReal.biliPlay === 'number' ? fmtCN(topTrackReal.biliPlay) : '—'}</span>` : ''}
         </div>
       </div>
     ` : '';
@@ -400,7 +400,7 @@
       <div class="map-detail-region" style="border-color:${region.color}">
       <button class="mdf-close" title="关闭">×</button>
       <div class="rip-title"><div class="rip-dot" style="background:${region.color}"></div>${region.name} <span style="font-size:12px;color:var(--text-tertiary);font-weight:400;">· v${region.version}</span></div>
-      <div style="font-size:13px;color:var(--text-secondary);">${chars.length} 位角色（${star5Count}位5星）· ${tracks.length} 首地区音乐</div>
+      <div style="font-size:13px;color:var(--text-secondary);">${chars.length} 位角色（${star5Count}位5星）· ${tracks.length} 首规则定义地区曲目</div>
       ${region.areas ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${region.areas.map(a => `<span style="padding:2px 7px;border-radius:10px;background:${region.color}18;color:var(--text-secondary);font-size:11px;">${a}</span>`).join('')}</div>` : ''}
       ${topTrackHtml}
       <div class="rip-stats">
@@ -417,7 +417,7 @@
         ${elementBarHtml}
       </div>` : ''}
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px;" onerror="this.style.display='none'"/> 地区音乐 TOP3（按综合热度分）</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;"><img src="assets/img/items/UI_ItemIcon_112001.png" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px;" onerror="this.style.display='none'"/> 地区精选曲目 TOP3（按综合热度分）</div>
         ${tracks.map(t => ({ t, r: trackRealOf(t) }))
           .filter(x => x.r)
           .sort((a, b) => {
