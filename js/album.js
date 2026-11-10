@@ -209,7 +209,10 @@ function renderRankings() {
 
   el.innerHTML = sorted.map((r, i) => {
     const val = rankMetric === 'heat' ? r.heat : (rankMetric === 'fav' ? r.favLow : (rankMetric === 'cmt' ? r.cmt : r.play));
-    const pct = Math.max(2, (val / maxV) * 100);
+    // 条宽：热度榜线性（0–100）；红心/评论/播放跨数量级，用对数比例让中后段条形也可读。数值标签不受影响。
+    const pct = rankMetric === 'heat'
+      ? Math.max(2, (val / maxV) * 100)
+      : Math.max(2, Math.log10(1 + val) / Math.log10(1 + maxV) * 100);
     const albumName = r.album.name;
     // 红心榜主值直接用客户端标签；其余榜单用人类可读格式。避免与右侧 meta 重复显示"红心xx"两遍。
     const fmtV = rankMetric === 'heat' ? val.toFixed(1) : (rankMetric === 'fav' ? r.fav : fmtCN(val));

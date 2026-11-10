@@ -12,6 +12,11 @@
   --surface: #0F0D0A;
   --surface-raised: #1A1612;
   --surface-elevated: #252018;
+  --surface-muted: #1F1B15;
+
+  /* 兼容别名：部分组件（专辑页抽屉/进度条轨道等）使用了 --bg / --bg-elevated */
+  --bg: #1A1612;
+  --bg-elevated: #1F1A13;
 
   --gold: #C9A227;
   --gold-light: #E8D596;
